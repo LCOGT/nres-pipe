@@ -1,0 +1,474 @@
+pro cc_doppler,datin,stdin,wtsin,lambda,ng,nk,igg,lsgg,lagg,lwdg,lwtg,$
+    gtk,err,qsgg,qagg,qwdg,qwtg,pldp,pldpo,fitserr,resid,wtsf,lccfa,$
+    taperfrac=taperfrac, $ ;Added by JvE 3/21/2013
+    slicecorrections=slicecorrections, $  ;Added by JvE 4/18/2013
+    sliceweights=sliceweights   ;Added JvE 5/16/2013
+    
+  ; this routine accepts a data array datin containing calibrated, extracted
+  ; MRES data
+  ;  datin(nx,mord,nsub).  This is assumed to be corrected for bias, dark,
+  ;  and flat-field, background-corrected, and extracted.
+  ; It contains nsub suborders in each of nord orders, each with nx pixels.
+  ;  stdin(nx,nord,nsub) contains a template spectrum in the same form as datin
+  ;  wtsin(nx,nord,nsub) contains weights, set to zero for unreliable data
+  ;  lambda(nx,nord,nsub) contains the wavelength (AA) for each pixel in stdin
+  ;
+  ;  *****
+  ;  sliceweights[nord,nsub,ng]  Supply additional user weights for weighting
+  ;                              entire slices by. Set any slice to 0 that should
+  ;                              be masked out entirely. JvE 5/16/2013, under construction....
+  ;  *****
+  ;
+  ; Also input are:
+  ;   ng = the number of blocks into which each order will be
+  ;     segmented for independent processing.  Normally ng is about 10-20.
+  ;   nk = the number of pixels surrounding the estimated CC peak for which
+  ;            the cross-correlation is calculated
+  ; The routine computes and returns the following intermediate and final
+  ; arrays:
+  ;  igg(nord,nsub) = integer-pixel lag of max cross-correlation for each
+  ;                    order, suborder.
+  ;  lsgg(nord,nsub,ng) = lag of max CC relative to igg for each block, order,
+  ;                       suborder
+  ;  lagg(nord,nsub,ng) = max CC value for each block, order, suborder
+  ;  lwdg(nord,nsub,ng) = FWHM of CC for each block, order, suborder
+  ;  lwtg(nord,nsub,ng) = statistical weight of this CC sample
+  ;  gtk(nsub,nply+1) = coefficients of fit across (nord,ng) vs nsub
+  ;  err(nsub) = estimated errors of the constant term in fit
+  ;  qsgg(nord,nsub,ng) = lag of max CC from 3-pt quadratic interpolation
+  ;  qagg(nord,nsub,ng) = peak amplitude of CC from 3-pt quadritic interp
+  ;  qwdg(nord,nsub,ng) = half-width of CC from 3-t quadratic interp
+  ;  qwtg(nord,nsub,ng) = quadratic interp statistical weight of this CC sample
+  ;  pldp(nord,nsub,ng) = expected photon noise per order, suborder, block (pix)
+  ;  pldpo(nsub) = pldp for all orders taken together
+  ;  fitserr(nsub) = 0 if the fit to this suborder seemed to succeed, else 1
+  ;  resid(nord,nsub,ng) = residuals around fits
+  ;  wtsf(nord,nsub,ng) = final weights used in fitting the CC data
+  ;  lccfa(nlagc,nord,nsub,ng) = cross-correlation fn per order, subord, block
+  ;
+  ;------------------------------
+  ;ADDED BY JvE FROM 3/21/2013:
+  ;  Inputs:
+  ;    taperfrac: optionally provide a fractional size for tapering the spectra
+  ;               at the edges of each 'slice' (a given block, order, and spectrum)
+  ;               before the CCF is calculated. Intended to mitigate edge-effects where
+  ;               a strong line is on the edge of the slice. Setting to 0 should result
+  ;               in no tapering.
+  ;    slicecorrections: Should be an array with same dimensions as qsgg, containing
+  ;               offset corrections (in pixels) to be added for each slice.
+  ;    sliceweights(nord,nsub,ng): an array containing additional user-defined weights
+  ;               for each slice of each input spectrum. For now, primarily intended
+  ;               for switching off bad slices by setting respective weights to zero.
+  ;               If not specified, all weights are taken as 1.0.
+  ;------------------------------
+    
+    
+  ; constants
+  hplen=105                     ; number of pixels in highpass smoothing
+  hpl3=hplen/3                  ; for pseudo-gauss smoothing
+  nlagc=nk                      ; number of lags to compute for each block
+  lagc=findgen(nlagc)-fix(nlagc/2)   ; contains integer shift values
+  gw0=2.5                       ; starting guess for CC sigma, in pix
+  bsig=6.                       ; points are flagged as discrepant in last
+  ; robust fit if they differ from median by
+  ; bsig or more sigmas.
+  ;********
+  ;gsig=[2.8,2.4]               ; spectrograph-dependent width of gaussian
+  ; to be applied to data for pldp calc, by subord.
+  gsig=[2.8,2.8,2.4]            ;Modified to handle three orders for Jason's
+  ;solar/ThAr data. Note in this case suborder 0 is
+  ;unused fibre, 1 is ThAr, 2 is solar. JvE 3/7/13
+  ;**********
+  
+  
+  nply=3                        ; order of polynomial fitted to shifts
+  ; must be either 3 or 5
+  gain=1.00                     ; inverse gain (e-/ADU) (applied by Jason's code)
+  cs=2.99792458d8               ; speed of light, m/s
+  
+  ;**************
+  ;sysnois=[10.,5.]              ; rms system noise (m/s) to be added to pldp
+  ; to make weights by order, subord, block
+  sysnois=[10.,10.,5.]          ; Modified to handle 3 suborders (as above
+  ; for gsig). JvE 3/7/13
+  precfact=4.                   ; ignore blocks w/ pldp greater than this
+  ; number times the median pldp for this subord.
+  
+  ;--------------------------
+  if n_elements(taperfrac) eq 0 then taperfrac = 0  ;Default value for taperwidth, JvE 2013.
+  ;---------------------------
+  
+  ; get sizes of things
+  sz=size(datin)
+  nx=sz(1)
+  nord=sz(2)
+  nsub=sz(3)
+  
+  ;----------------------
+  ;If no user input supplied, set sliceweights all equal to 1.0. JvE 5/16/2013.
+  if n_elements(sliceweights) eq 0 then begin
+    sliceweights = replicate(1.0,nord,nsub,ng)
+  endif
+  ;------------------------
+  
+  ; may want to put in some pre-filtering here, eg for cosmic rays.
+  
+  ; make radial velocity scale, m/s per pixel of displacement
+  rvscale=dblarr(nx,nord,nsub)
+  for i=0,nord-1 do begin
+    for j=0,nsub-1 do begin
+      rvscale(*,i,j)=cs*deriv(lambda(*,i,j))/lambda(*,i,j)
+    endfor
+  endfor
+  
+  ; testing hack
+  rvs=median(rvscale(*,nord/4:3*nord/4,0),dim=2)
+  rvscale=rebin(rvs,nx,nord,nsub)
+  ;rvscale=dblarr(nx,nord,nsub)+1981.7
+  ; end of test
+  nxg=ng*(nx/ng)                       ; largest multiple of ng <= nx
+  rvs2=rebin(rvscale(0:nxg-1,*,*),ng,nord,nsub)
+  rvs2=transpose(rvs2,[1,2,0])         ; rv scale(ord,sub,blk)
+  
+  ; make highpassed, zero-padded datin and stdin arrays
+  ; smooth datin by 3 on general principles
+  hpdatin=fltarr(nx*3,nord,nsub)
+  hpstdin=fltarr(nx*3,nord,nsub)
+  for isub=0,nsub-1 do begin
+    for iord=0,nord-1 do begin
+      lpdat=smooth(smooth(smooth(datin(*,iord,isub),hpl3,/edge_tr),hpl3,/edge_tr),$
+        hpl3,/edge_tr)
+      hpdatin(nx:2*nx-1,iord,isub)=smooth(datin(*,iord,isub),3,/edge_tr)-lpdat
+      lpstd=smooth(smooth(smooth(stdin(*,iord,isub),hpl3,/edge_tr),hpl3,/edge_tr),$
+        hpl3,/edge_tr)
+      hpstdin(nx:2*nx-1,iord,isub)=stdin(*,iord,isub)-lpstd
+    endfor
+  endfor
+  
+  ;--------------------------------------------------------------------
+  ;Taper the edges of hpdatin and hpstdin (for now apply 'in-place' for
+  ;robustness with the remaining code....
+  ; - CURRENTLY ACTUALLY IN THE WRONG PLACE - SOMETHING LIKE THIS NEEDS TO HAPPEN
+  ;  LATER JUST BEFORE THE 'MAIN LOOP'. So all commented out for now....
+  ;JvE 3/21/2013
+  ;hpdatin_pretaper = hpdatin
+  ;hpstdin_pretaper = hpstdin
+  ;for isub=0,nsub-1 do begin
+  ;  for iord=0,nord-1 do begin
+  ;    hpdatin*=taperedtophat
+  ;    hpstdin*=taperedtophat
+  ;  endfor
+  ;endfor
+  ;---------------------------------------------------------------------
+  
+  ; cross-correlate hpdatin with hpstdin orders, find  cc max to nearest pix
+  igg=fltarr(nord,nsub)
+  sgg=fltarr(nord,nsub)
+  agg=fltarr(nord,nsub)
+  wgg=fltarr(nord,nsub)
+  zagg=fltarr(nord,nsub)
+  zsgg=fltarr(nord,nsub)
+  zwdg=fltarr(nord,nsub)
+  xx=abs(shift(findgen(3*nx)-1.5*nx,1.5*nx))      ; a ramp to normalize cc vals
+  xg=findgen(3*nx)-1.5*nx
+  fcor=sqrt((1.-xx/nx) > 0.1)                         ; normalization correction
+  for isub=0,nsub-1 do begin
+    for iord=0,nord-1 do begin
+      ftdat=fft(hpdatin(*,iord,isub),1)
+      ftstd=fft(hpstdin(*,iord,isub),1)
+      ccf=float(fft(ftdat*conj(ftstd),-1))
+      ccf=ccf/fcor
+      ccfs=shift(ccf,1.5*nx)
+      mxc=max(ccfs,ix)
+      xx0=xg(ix)
+      gval=gaussfit(xg,ccfs,gcc,chisq=gchi,estimates=[mxc,xx0,gw0],nterms=3)
+      igg(iord,isub)=xx0
+      agg(iord,isub)=gcc(0)
+      sgg(iord,isub)=gcc(1)
+      wgg(iord,isub)=abs(gcc(2))
+      ; find CC parameters using 3-point quadratic interpolation
+      zl1=0.5*(ccfs(ix+1)-ccfs(ix-1))
+      zl2=ccfs(ix+1)+ccfs(ix-1)-2.*ccfs(ix)
+      zlf=-zl1/zl2
+      zagg(iord,isub)=mxc
+      zsgg(iord,isub)=zlf+xg(ix)
+      zwdg(iord,isub)=sqrt(mxc/(2.*abs(zl2)))
+    endfor
+  endfor
+  ccgs=zsgg         ; best full-order estimate of lag
+  
+  ; stop
+  
+  ; for each suborder, do a robust polynomial fit of shift posns across orders
+  nop=2                              ; fit a quadratic polynomial
+  xord=findgen(nord)-nord/2.          ; indep coord for order-dep fit
+  aasub=fltarr(nop+1,nsub)
+  if(nord ge 5) then begin
+    for isub=0,nsub-1 do begin
+      wtsub=fltarr(nord)+1.
+      loga=alog10(zagg(*,isub))
+      meda=median(loga)
+      sb=where(abs(loga-meda) ge 1.5,nsb)  ; flag as bad orders with odd amplitudes
+      if(nsb gt 0) then wtsub(sb)=0.
+      ; wtsub=agg(*,isub)/max(agg(*,isub))
+      aa=rob_poly(xord,ccgs(*,isub),wtsub,nop,5.0,rms,chisq,cc0,0,rej)
+      aasub(*,isub)=aa
+    endfor
+  endif
+  
+  ;stop
+  
+  ; loop over orders and blocks
+  blklo=long(nx+findgen(ng)*float(nx)/ng)        ; bottom boundaries of blocks
+  blkhi=shift(blklo,-1)-1     ; top boundaries of blocks
+  blkhi(ng-1)=2*nx-1
+  
+  
+  ; make products of shifted standard onto data
+  ; first compute expected integral-pix shifts lcc0 for each order, suborder.
+  lcc0=lonarr(nord,nsub)
+  for isub=0,nsub-1 do begin
+    lcc0(*,isub)=long(poly(xord,aasub(*,isub)))
+  endfor
+  
+  ;stop
+  
+  prod=fltarr(3*nx,nord,nsub,nlagc)
+  for iord=0,nord-1 do begin
+    for isub=0,nsub-1 do begin
+      for ilag=0,nlagc-1 do begin
+        ; compute CC for a few lags on either side of the fitted value of the shift.
+        prod(*,iord,isub,ilag)=hpdatin(*,iord,isub) * $
+          shift(hpstdin(*,iord,isub),lagc(ilag)+lcc0(iord,isub))
+      endfor
+    endfor
+  endfor
+  
+  ;stop
+  
+  ;------------------------------------------------------
+  ;Added Mar 28 2013, JvE
+  ;Make a taper function matching the width of the blocks
+  taper = tapered_tophat(float(nx)/ng, taperfrac)
+  ;And replicate it in the 'y' direction to match the number of lags for the CC
+  taper = rebin(taper, n_elements(taper), nlagc)
+  ;------------------------------------------------------
+  
+  ;stop
+  
+  ; fit for max position, fwhm, CC max value, set weight for this block
+  ligg=fltarr(nord,nsub,ng)
+  lagg=fltarr(nord,nsub,ng)
+  lsgg=fltarr(nord,nsub,ng)
+  lwdg=fltarr(nord,nsub,ng)
+  lwtg=fltarr(nord,nsub,ng)
+  qagg=fltarr(nord,nsub,ng)
+  qsgg=fltarr(nord,nsub,ng)
+  qwdg=fltarr(nord,nsub,ng)
+  qwtg=fltarr(nord,nsub,ng)
+  lccfa=fltarr(nlagc,nord,nsub,ng)
+  
+  ; make pldp estimate
+  pldp=fltarr(nord,nsub,ng)  ; set to nominal photon-limited doppler prec (pixels)
+  pldpo=fltarr(nsub)
+  for isub=0,nsub-1 do begin
+    gaussx=findgen(2.*4.*gsig(isub))-4.*gsig(isub)
+    gaussa=exp(-6.*gaussx^2/(2.*gsig(isub)^2))
+    gaussa=gaussa/total(gaussa)
+    for iord=0,nord-1 do begin
+      intlp=convol(datin(*,iord,isub)*gain,gaussa,/edge_truncate)
+      didl2=(deriv(intlp))^2
+      for iblk=0,ng-1 do begin
+        ibot=nx*float(iblk)/ng
+        itop=ibot+float(nx)/ng-1
+        pldp(iord,isub,iblk)=1./sqrt(total(didl2(ibot:itop)/intlp(ibot:itop)))
+      ; units are pix
+      endfor
+    endfor
+    ; convert to m/s, average over blocks, orders
+    pldp(*,isub,*)=pldp(*,isub,*)*rvs2(*,isub,*)
+    pldpo(isub)=sqrt(1./(total(1./(pldp(*,isub,*)^2))))
+  endfor
+  
+  ; main loop, compute and characterize cross-correlation fns.
+  xs=findgen(nlagc)
+  err1=intarr(nord,nsub,ng)
+  err2=intarr(nord,nsub,ng)
+  for iord=0,nord-1 do begin
+    for isub=0,nsub-1 do begin
+      for iblk=0,ng-1 do begin
+        ;------Modified JvE, Mar 28 2013------------------------------------
+        ;lccf=rebin(prod(blklo(iblk):blkhi(iblk),iord,isub,*),1,1,1,nlagc)
+        prodslice = prod(blklo(iblk):blkhi(iblk),iord,isub,*)
+        
+        ;If required, multiply the product arrays by the taper function (which is a 2D array matching prodslice).
+        if taperfrac ne 0 then begin
+          taperprodslice=prodslice*taper
+        endif else begin
+          taperprodslice = prodslice
+        endelse
+        
+        ;And sum up the multiples to get the ccf
+        lccf = rebin(taperprodslice,1,1,1,nlagc)
+        
+        ;stop
+        ;-------------------------------------------------------------------
+        
+        lccf=reform(lccf)
+        lccfa(*,iord,isub,iblk)=lccf
+        lmxc=max(lccf,lix)
+        ligg(iord,isub,iblk)=float(lix)
+        gfc=gaussfit(xs,lccf,lgcc,chisq=chi,estimate=[lmxc,lix,gw0],nterms=3)
+        lagg(iord,isub,iblk)=lgcc(0)
+        lsgg(iord,isub,iblk)=lgcc(1)
+        lwdg(iord,isub,iblk)=abs(lgcc(2))
+        lwtg(iord,isub,iblk)=lgcc(0)/lgcc(2) > 0.
+        if(abs(lgcc(1)-nlagc/2.) gt (nlagc/2.)) then lwtg(iord,isub,iblk)=0.
+        if(abs(lgcc(1)-nlagc/2.) gt (nlagc/2.)) then err1(iord,isub,iblk)=1
+        if(lgcc(0) le 0. or lgcc(2) le 0.) then lwtg(iord,isub,iblk)=0.
+        if(lgcc(0) le 0. or lgcc(2) le 0.) then err2(iord,isub,iblk)=1
+        
+        ; compare with lag derived from max 3 CC points only
+        liz=(lix > 1) < (nk-2)
+        dl1=0.5*(lccf(liz+1)-lccf(liz-1))
+        dl2=lccf(liz+1)+lccf(liz-1)-2.*lccf(liz)
+        if(dl2 ne 0.) then dlf=-dl1/dl2 else dlf=0.
+        qagg(iord,isub,iblk)=lmxc
+        qsgg(iord,isub,iblk)=dlf+xs(liz)
+        qwdg(iord,isub,iblk)=sqrt(lmxc/(2.*abs(dl2)))
+        ;     qwtg(iord,isub,iblk)=lmxc/qwdg(iord,isub,iblk) > 0.
+        qwtg(iord,isub,iblk)=1./(pldp(iord,isub,iblk)^2+sysnois(isub)^2) > 0.
+        if(dl2 eq 0.) then begin
+          qwtg(iord,isub,iblk)=0.
+          qwdg(iord,isub,iblk)=999.
+        endif
+      ;     stop
+      ; end loop
+      endfor
+    endfor
+  endfor
+  
+  ;----------------------------------------------------------------------------
+  ;CODE TO APPLY SHIFT CORRECTIONS TO QSGG FOR SLICES WHERE THERE
+  ;IS A LINE WHICH OVERLAPS THE EDGE OF THE SLICE
+  ;JvE Apr 18 2013.
+  ;
+  if keyword_set(slicecorrections) then begin
+    qsggold=qsgg
+    qsgg+=slicecorrections
+  endif
+  ;----------------------------------------------------------------------------
+  
+  
+  lagfinal=qsgg-ligg+rebin(igg,nord,nsub,ng)  ; make the total shift for each
+  ; order, suborder, block.
+  rvs=rebin(rvscale,ng,nord,nsub)
+  rvsr=dblarr(nord,nsub,ng)
+  for i=0,ng-1 do begin             ; should be avg of (dI/dlam)^2, or some such
+    rvsr(*,*,i)=reform(rvs(i,*,*))
+  endfor
+  velfinal=lagfinal*rvsr     ; convert to m/s
+  
+  ;stop
+  
+  ; identify points having crazy values of shift, CC peak width, or bad precision
+  for isub=0,nsub-1 do begin
+    tqwt=qwtg(*,isub,*)                         ; wts for this subord
+    tqsg=qsgg(*,isub,*)
+    tqwd=qwdg(*,isub,*)
+    sg=where(tqwt gt 0.,nsg)                    ; points with nonzero weights
+    if(nsg gt 4) then begin
+      quartile,tqsg(sg),med,q,dq
+      bads=where(abs(tqsg-med)/dq ge bsig/1.349,nbads)
+      ; quartile,qagg(sg),med,q,dq
+      ; bada=where(abs(qagg-med)/dq ge bsig/1.349,nbada)
+      quartile,tqwd(sg),med,q,dq
+      badw=where(abs(tqwd-med)/dq ge bsig/1.349,nbadw)
+      badp=where(pldp(*,isub,*) gt precfact*median(pldp(*,isub,*)),nbadp)
+      if(nbads gt 0) then tqwt(bads)=0.
+      ; if(nbada gt 0) then qwtg(bada)=0.
+      if(nbadw gt 0) then tqwt(badw)=0.
+      if(nbadp gt 0) then tqwt(badp)=0.
+    endif else begin
+      goto,nogoodpts
+    endelse
+    qwtg(*,isub,*)=tqwt
+  endfor
+  
+  
+  ; do a robust polynomial fit for lag along each order and as a function of
+  ; order number, and estimate errors
+  xb=findgen(ng)-float(ng)/2.
+  yb=findgen(nord)-float(nord)/2.
+  gtk=fltarr(nsub,nply)
+  fitserr=intarr(nsub)          ; set to 1 if fitting process fails
+  err=fltarr(nsub)   ; set to expected error of constant term
+  resid=fltarr(nord,nsub,ng)
+  wtsf=fltarr(nord,nsub,ng)
+  funs=fltarr(nord*ng,nply)
+  for isub=0,nsub-1 do begin
+    ; dat=reform(lagfinal(*,isub,*))
+    dat=reform(velfinal(*,isub,*))
+    wts=reform(qwtg(*,isub,*))
+    
+    ;***************************COMMENTED OUT********************
+    ; testing, testing  zero weights for a few
+    ;  wts(0,*)=0.
+    ;  wts(21:22,*)=0.
+    ; end test
+    ;*********************JvE Feb 28 2013*************************
+    
+    ;---------------------------------------------------------
+    ;Perform slice weighting/masking. Something like this should
+    ;do it, I think....     JvE May 16 2013
+    wts *= reform(sliceweights[*,isub,*])
+    ;-----------------------------------------------------------
+    
+    good=where(wts gt 0.,ngood)
+    ; make functions to fit.  Ideally, these numbers should relate to effective
+    ; coordinates on the chip of the CG of data blocks, but for now, just
+    ; block numbers and order numbers.
+    funs(*,0)=1.
+    funs(*,1)=reform(rebin(xb,ng,nord))
+    funs(*,2)=reform(rebin(reform(yb,1,nord),ng,nord))
+    if(nply ge 5) then begin
+      funs(*,3)=funs(*,1)^2
+      funs(*,4)=runs(*,1)*funs(*,2)     ;NB - 'runs' is probably a typo here...? JvE 4/18/2013.
+    endif
+    if(ngood ge nply+3) then begin
+      datl=reform(dat,nord*ng)
+      wtsl=reform(wts,nord*ng)
+      qq=lstsqr(datl,funs,wtsl,nply,rms,chisq,outp,1,cov)
+      quartile,outp,med,q,dq
+      
+      ;---------------Modified - JvE, 6/6/2013--------------
+      ;Assuming the following line is for rejecting outliers beyond bsig*sigma.
+      ;Changing 'ge' to 'gt', to allow for cases where outp is uniformly zero,
+      ;in which case dq (quartile range) is also zero (which can happen if an
+      ;observation is being compared to itself....). Otherwise, *all* data would
+      ;be rejected and weighted to zero, in which case you get singular matrix
+      ;errors.
+      ;sb=where(abs(outp ge dq*bsig/1.349),nsb)
+      sb=where(abs(outp gt dq*bsig/1.349),nsb)
+      ;-----------------------------------------------------
+      
+      
+      if(nsb gt 0) then wtsl(sb)=0.
+      qq=lstsqr(datl,funs,wtsl,nply,rms,chisq,outp,1,cov)
+      if((ngood-nsb-nply) ge 3) then fitserr(isub)=0
+      gtk(isub,*)=reform(qq,1,nply)
+      resid(*,isub,*)=reform(outp,nord,1,ng)
+      wtsf(*,isub,*)=reform(wtsl,nord,1,ng)
+      ; do crude error estimate for constant term, based on residuals
+      ; this should be redone for all coeffs, based on an honest statistical analysis
+      err(isub)=sqrt(total(wtsl^2*outp^2)/(total(wtsl^2)*ng*nord))
+    endif else begin
+      qq=fltarr(nply)
+      fitserr(isub)=1
+      gtk(isub,*)=fltarr(1,1,nply)
+    endelse
+    
+    nogoodpts:
+  endfor
+  
+end

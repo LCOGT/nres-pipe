@@ -1,0 +1,77 @@
+Tasks for data reduction pipeline
+
+ThAr reduction
+  Make flat-fielded triple ThAr spectrum for Lab spectrograph --  1/2 day
+  Make flat-fielded double ThAr spectrum for Sedgwick -- 1/2 day
+  Make starting guess solutions vs fiber posn for Lab SG --  1 day
+  Make starting guess solutions vs fiber posn for Sedgwick --  1/2 day
+  Verify valid solutions propagate through pipeline  -- 1/2 day
+  Update documentation for ThAr code and procedures --  1 day
+4d
+  
+Cross-correlation/spectrum fitting
+  Complete the cross_correl idl routine; compiled and running  --  1 day
+  Write radial_velocity idl routine; compiled and running -- 2 day
+  Build valid ZERO calibration file for solar sky spectrum, Lab SG -- 1/2 day
+  Select Sedgewick RV test data sets for 3 stars -- 1/2 day
+  Build valid ZERO calibration files for 3 Sedgwick stars --  1/2 day
+  Debug, test up to radial_velocity on minimal data sets for Sun, Sedgwick -- 2d
+  Update documentation RV code (common vars, algorithms, inline comments) -- 1d
+7.5d
+
+Spectrum classification
+  Compile and run test nres/gssp grid classification code on desktop --  1 day  
+  Install, compile, run gssp code on fmw --  1 day
+  Write spec_classify idl routine invoking gssp --  1 day
+  Compile, run, debug spec_classify to obtain plausible output --  1 day
+  Document spec_classify (common vars, algorithms, inline comments) --  1 day
+5d
+
+Autoguider
+  Write autoguider idl routine --  1 day
+  Compile, run, debug autoguider code on fake input --  1/2 day
+  Document autoguider code (functionality, common vars) --  1/2 day
+2d
+
+Expmeter
+  Write expmeter idl routine -- 1 day
+  Compile, run, debug expmeter code on fake input --  1/2 day
+  Document autoguider code (functionality, common vars) --  1/2 day
+2d
+  
+Solar RV test
+  Define data set for solar time-series observation test --  1/2 day
+  Process entire solar time-series data set  --  1 day
+  Write idl display_solar code to visualize test results --  2 day
+  Write summary report on results of solar time series test  -- 1 day
+4.5d
+
+Sedgwick RV test
+  Define data set for Sedgwick star RV test --  1/2 day
+  Process entire Sedgwick RV test data set --  1 day
+  Adapt display_solar code to accommodate Sedgwick data --  1 day
+  Document solar/stellar display code (functionality, inputs, outputs) -- 1 day
+  Write summary report on results of Sedgwick time series test --  1 day  
+4.5d
+
+Pipeline cleanup
+  Regularize runtime reporting --  1 day
+  Revise documentation to show as-built --  1 day
+  Revise output data as experience indicates --  2 day
+4d
+
+Ephemeris
+  BCD, RV ephemeris for stars, Sun --  Rob
+
+Offline calibrations
+  Write idl code to identify and list desired data for averaging into
+super-calibs -- 1d
+  Test, debug, and document calib file selection code  --  1/2 day
+  Write idl code to make averages of bias and dark images  --  1 day
+  Test, debug, and document avg bias and dark code --  1 day
+  Write idl code to make averages of 1-D flats  --  1/2 day
+  Write idl code to make average ZERO files  --  1/2 day
+  Test, debug, and document avg flat and ZERO code -- 1 day
+5.5d
+
+Total 39d

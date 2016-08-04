@@ -1,0 +1,3 @@
+--> Bracket fitsio.h inclusion and fitsfile *fptr so that these are not used
+when building the library?  This way you could use ezImg as the interface 
+without needing the definition files from CFITSIO ...

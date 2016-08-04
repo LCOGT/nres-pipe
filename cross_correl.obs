@@ -1,0 +1,102 @@
+pro cross_correl,ierr
+; This routine computes cross-correlation displacements between the current
+; extracted data stored in common structure echdat and one or two standard ZERO
+; files (depending on how the fibers are illuminated) identified by routine 
+; find_zero.  Shifts, meta- and ancillary data are returned in the common
+; structure crossred, and the shifts and some metadata are written to a
+; FITS binary table in directory reduce/ccor
+
+@nres_comm
+
+; constants
+null=-99.9
+ierr=0
+
+; count star fibers; return target structure(s) with info on target(s)
+; grind through these 1 fiber at a time, because of all the special cases
+targnames=strarr(2)            ; names for targets on fibers 0 and 2, resp.
+targra=dblarr(2)
+targdec=dblarr(2)
+zeronames=strarr(2)            ; names of ZERO files
+zerotypes=strarr(2)             ; type of selection for each ZERO file
+objects=get_words(sxpar(dathdr,'OBJECTS'),nwd,delim='&')
+
+if(objects(0) ne 'NONE') then begin         ; this fiber has a real target
+  targnames(0)=strcompress(strupcase(objects(0)),/remove_all)
+  targra(0)=sxpar(tel1hdr,'RA')
+  targdec(0)=sxpar(tel1hdr,'DEC')
+  targ0struc=get_targ_props(targnames(0),targra(0),targdec(0))
+endif else begin
+  targ0struc=get_targ_props('NULL',0.d0,0.d0)   ; get a null structure
+endelse
+; get_targ_props returns a structure containing name, RA, DEC, Vmag, B-V,
+; logg, PMRA, PMDEC.  If no name or position match, get a structure full
+; of nulls.
+
+if(objects(1) ne 'ThAr') then begin
+  print,'FATAL ERROR:  in cross_correl, fiber 1 must be ThAr'
+  ierr=1
+  goto,fini
+endif
+
+if(nfib eq 3) then begin
+  if(objects(2) ne 'NONE') then begin
+    targnames(1)=strcompress(strupcase(objects(2)),/removeall)
+    targra(1)=sxpar(tel2hdr,'RA')
+    targdec(1)=sxpar(tel2hdr,'DEC')
+    targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
+  endif else begin
+    targ1struc=get_targ_props('NULL',0.d0,0.d0)
+  endelse
+endif
+  
+targstrucs=[targ0struc,targ1struc]
+nblock=specdat.nblock
+nfib=specdat.nfib
+nord=specdat.nord
+
+ccor=dblarr(nblock,nfib-1,nord)
+xcen=dblarr(nblock,nfib-1,nord)      ; signal-weighted center posn of block
+dlamdx=dblarr(nblock,nfib-1,nord)    ; dispersion at block center
+ccht=dblarr(nblock,nfib-1,nord)      ; cross correlation height
+ccwid=dblarr(nblock,nfib-1,nord)     ; cross correlation width (pix)
+
+; choose one or two ZERO files for the cross-correlation
+obsmjd=sxpar(dathdr,'MJD-OBS')
+
+for i=0,1 do begin
+  if(targnames(i) ne 'NULL') then begin
+    select_std,'ZERO',obsmjd,'NULL','NULL',1,targstrucs(i),zeroname,zerotype
+    zeronames(i)=zeroname
+    zerotypes(i)=zerotype
+;select_std,fiber,stdtype,mjd,site,stdfiber,targstruc,name_out,sel_type;  
+;  'NULL' or null means ignore.  seltype is one of "MJD_nearest", "In targs
+;  file", "std spectrum NN", "forced to NULL", or whatever.
+  endif
+
+; get the ZERO data
+
+; do the cross-correlation
+
+endfor
+
+; write results to reduce/ccor directory
+
+; build output structure
+
+  crossred={targstrucs:targstrucs,zeronames:zeronames,zerotypes:zerotypes,$
+      ccor:ccor,xcen:xcen,dlamdx:dlamdx,ccht:ccht,ccwid:ccwid}
+
+fini:
+
+if(verbose ge 1) then begin
+  print,'*** cross_correl ***'
+  print,'File In = ',filin0
+  naxes=sxpar(dathdr,'NAXIS')
+  nx=sxpar(dathdr,'NAXIS1')
+  ny=sxpar(dathdr,'NAXIS2')
+  print,'Naxes, Nx, Ny = ',naxes,nx,ny 
+  print,'ZERO file(s) used:',zeronames
+endif
+
+end

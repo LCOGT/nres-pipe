@@ -1,0 +1,65 @@
+Possible problems with RV estimates:
+
+Poor line-by-line estimates of ThAr positions (x-coords).
+Something to do with systematically poor fits to wavelength vs x.
+Poor barycentric corrections.
+Poor estimates of cross-correlation peak positions.
+Bad ThAr lines corrupting wavelength fits.
+Shot noise in ThAr and/or stellar spectrum estimates.
+Smaller version of whatever is causing single-point weirdness in lammid.
+Cosmic ray hits
+Motion of spectrum on chip combined with flat-fielding errors, background
+
+
+Are alleged changes in mgbdisps consistent with changing separations of
+well-exposed single lines?
+What are expected errors from shot noise?  From backgnd/flat field errors?
+Does removing systematically bad lines help?
+Does correcting mean line positions help?
+Does improving ThAr line position-finding help?
+Verify that barycentric corrections are as expected.
+Try to identify source of isolated bad measurements.
+Does freezing wavelength scale help?
+Why is the cross-correlation peak so wide (18 pix)?
+
+Notes:
+(1) Time variations in grating incidence angle are dominated by spectrograph
+thermal cycle of ~ 10 min period.  Occasional 1-point discontinuous behavior
+corresponds to times when all 3 other physical parameters (fl, y0, z0) suffer
+large value changes, in spite of their being supposedly constrained near their
+nominal values by setting small allowed ranges in the amoeba fit.  These
+discontinuities appear at time indices of 15, 60, and 73-75.  They do not
+have obvious counterparts in the rvkmpss radial velocity time series.
+Tentative conclusions:
+* Must redo fitting code so that nuisance parameters (fl, y0, z0) are truly
+frozen.
+* Scatter in the rvkmpss data probably does not arise mostly from the wavelength
+solution.
+
+(2) There appears to be a causal (but not linear) relationship between the
+rvkmpss time series and that of correlation peak width.  No obvious connection
+with correlation peak amplitude.  The former also suggests a problem in the 
+correlation fitting code.
+
+(3) Time variations in the wavelength model lam_c(nx,nord) are fairly large
+(up to +/- 0.02 nm at the bluemost wavelengths, perhaps +/- .004 at 516 nm).
+The variations have a component that varies slowly with wavelength;  this
+is largest at very blue and very red wavelengths, outside the range constrained
+by observed ThAr lines.  They also have a component that varies strongly
+(+/- .005 nm) across each order.  The variations are apparently random in
+time.  Inferences:
+* Most of the coefficients in the rcubic fits are ill-constrained.  Need to
+identify what modes of variation of line wavelengths actually occur, and
+fit only for these.  (I.e., freeze nuisance parameters in this fit also.)
+* Need a more accurate model for wavelengths near the detector top & bottom,
+since the current one evidently does not reproduce line positions in these
+regions, and this in turn causes unconstrained flopping in the rcubic fits.
+
+(4) Cross-correlation is wide because wavelength scale for ZERO spectrum
+is far from scale for solar observations!  The separation between lines
+at the blue and red ends of the Mgb order varies by 15 pixels, between the
+wavelength-corrected ZERO spectrum and the observed spectra.
+* Need to fix this!  This likely contributes to the asymmetry of CC peak,
+and possibly to extra noise because CC width variations map into apparent
+shifts.
+

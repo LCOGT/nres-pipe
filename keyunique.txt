@@ -1,0 +1,32 @@
+Keywords now (16 July 2015) used in NRES processing code
+
+These are read from input data headers, and their values are used.
+OBJECTS
+EXPTIME
+NAXIS
+NAXIS1
+NAXIS2
+MJD-OBS
+OBSTYPE
+INSTRUME
+SITEID
+ORIGNAME -- Name of the original raw FITS data file
+
+These are read from input data headers, but their values are not yet used.
+RA
+DEC
+AIRMASS
+BJDTDB
+JDTDB
+MOONALT
+MOONPHAS
+MOONSEP
+
+These are ones that I use in various internal FITS files.
+NORD
+NFIB
+NPOLY
+ORDWIDTH
+MEDBOXSZ
+FIBZ0
+FIBZ1

@@ -1,0 +1,15 @@
+; RUN ME WITH:       idl COMMANDS.txt
+; In IDL ...
+
+.COMPILE
+
+image = readfits('sqa0m801-kb35-20151208-0021-g00.fits', hdr)
+
+idata = eztest(image)
+
+ifile = 'ezimg_test.fits'
+writefits, ifile, idata
+
+;end
+exit
+
