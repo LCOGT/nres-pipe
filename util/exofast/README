@@ -1,0 +1,69 @@
+#Installation instructions:
+
+# This package can be installed with SVN:
+cd $HOME/idl
+svn checkout http://subversion.assembla.com/svn/exofast/
+
+# Or downloaded as a tarball
+cd $HOME/idl
+wget http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz
+tar -xzf exofast.tgz
+rm exofast.tgz
+
+# define environment variables
+# for bash shell (.bashrc)
+# EXOFAST_PATH="$HOME/idl/exofast/" ; export EXOFAST_PATH
+# IDL_PATH="$IDL_PATH:+$EXOFAST_PATH" ; export IDL_PATH
+# ASTRO_DATA="$HOME/idl/astrolib/data" ; export ASTRO_DATA
+
+# for cshell (.tcshrc)
+# setenv EXOFAST_PATH "$HOME/idl/exofast/"
+# setenv IDL_PATH "$IDL_PATH:+$EXOFAST_PATH"
+# setenv ASTRO_DATA "$HOME/idl/astrolib/data"
+
+# NOTE: the "+" in the IDL_PATH is required to include all subdirectories.
+
+# to test your installation, do this:
+cd $EXOFAST_PATH
+idl -e "exofast, rvpath='hat3.rv',tranpath='hat3.flux',pname='HAT-P-3b',band='Sloani',/circular,/noslope,/specpriors,minp=2.85,maxp=2.95"
+
+# this should complete in a couple minutes and generate several 
+# output files (hat3*). If it does not compile or fails, check for missing 
+# dependencies (e.g., IDL astronomy library)
+
+######## For the BJD and Barycentric correction codes, a few additional steps are required ########
+mv $EXOFAST_PATH/bary/JPLEPH.405 $ASTRO_DATA
+
+# And there are several files you must keep up to date with a cron job
+# 1 1 1 * * . ~/.bashrc ; wget --ftp-user=anonymous -NP $ASTRO_DATA ftp://maia.usno.navy.mil/ser7/tai-utc.dat >& $ASTRO_DATA/cron.log
+# 2 1 * * * . ~/.bashrc ; wget --ftp-user=anonymous -NP $ASTRO_DATA ftp://tai.bipm.org/TFG/TT\(BIPM\)/TTBIPM.09 >& $ASTRO_DATA/cron.log
+# 3 1 * * * . ~/.bashrc ; wget --ftp-user=anonymous -NP $ASTRO_DATA ftp://tai.bipm.org/TFG/TT\(BIPM\)/TTBIPM09.ext >& $ASTRO_DATA/cron.log
+# 4 1 * * * . ~/.bashrc ; cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile 
+# 5 1 * * * . ~/.bashrc ; wget --ftp-user=anonymous -NP $ASTRO_DATA ftp://maia.usno.navy.mil/ser7/finals.all 
+# 6 1 * * * . ~/.bashrc ; cp $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat
+###################################################################################################
+
+# to get future updates
+cd $EXOFAST_PATH
+svn update
+
+############################## WINDOWS 7 ##############################
+# EXOFAST has had limited testing on Windows 7 (with IDL version 7.1).
+# A few features like /UPDATE and /DISPLAY won't work, and the status 
+# output is messy, otherwise cursory tests look good.
+# Install an SVN client (e.g., http://svn-ref.assembla.com/easysvn.html)
+# go to your IDL directory and create an 'exofast' folder and enter it.
+# right click -> SVN Checkout
+# enter http://subversion.assembla.com/svn/exofast/ for the URL of the repo
+# click ok
+# right click my computer-> properties
+# advanced system settings (on left frame)
+# environment variables...
+# define a new user variable EXOFAST_PATH to be the location of 
+#   your exofast directory (don't forget the trailing '\')
+# make sure the exofast directory is in your IDL path
+######################################################################
+
+# if you want to be notified of future major upgrades and/or critical
+# bug fixes (or have a bug to report), please send me an email
+# (jeastman@lcogt.net).

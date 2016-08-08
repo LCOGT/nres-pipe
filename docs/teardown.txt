@@ -1,0 +1,24 @@
+Disassembly sequence for moving NRES from assembled in optics lab
+
+Faro arm, with 2 electrical cables
+Faro laptop
+Mouse for optical table laptop (just get this out of the way)
+power cables for alignment lasers (3)
+electrical cables:  fiber stage motor, encoder
+                    collimator stage motor, encoder
+                    optical bench temperature probe
+                    main spectrograph shutter
+trifurcated 67-micron fiber, splice box (note orientation)
+trifurcated 400-micron fiber
+Orion web cam & cable (insert opaque plug in web cam port)
+Celestron spotting scope & post
+Wedge mirror, mount, & post.  Leave kinematic post mount, safety bracket.
+L0 holder/magnetic kinematic mount
+ghost baffle (note:  needs tiny metric hex wrench to back off attachment screws)
+prism
+collimator (add baffle and covers)
+CCD  (nominally 9 electrical connections including 3 on power supply, plus
+      cryotiger hoses.  Need 3/4 and 2 x 5/8 wrenches to undo cryo couplings.)
+
+X fold mirror & post
+X fiber & L0 support post

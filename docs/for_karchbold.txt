@@ -1,0 +1,64 @@
+For our conversation with Kevin today, here is an outline of the Reduction
+Pipeline/Database development.  There are some suggested milestones at the end.
+
+DATA REDUCTION
+	Data Flow Definition
+		directory structure, calibration data, target data, 
+		index files for calibrations, diagnostic data
+	Calibration/Extraction
+		bias, dark, background sub, cosmic ray, bad pixels, extract,
+		statistics, flat-field
+	Wavelength Calibration
+		bootstrap wavelength solution, ThAr fiber solution, DOUBLE
+		calibration, solution for all fibers
+	Stellar Classification
+		S/N okay? Teff, log(g), log(Z), vsini, RV (rough), binary?
+		generate synthetic standard spectra for RV
+		execution time okay for pipeline processing
+	Radial Velocity Estimation
+		star RV solution relative to lab, exposure meter corrections,
+		ephemeris corrections, bad data rejection, statistics
+	Diagnostic and QC
+		measures of spectrograph stability, throughput, repeatability
+		of RV, compare star classifications with other groups' results
+
+DATA DISSEMINATION
+	Define Functions & Services
+		Latham's web page is nominal template
+	Database Framework & Platform, Languages
+		SQL compatible, probably python, FMW short-term
+		schema
+	Data Ingestion
+		scripts to pull data, tests for completeness, reporting
+
+OPERATIONS
+	Calibration Protocol
+		bias, dark, tungsten-halogen, double ThAr, choose ZEROs
+	Short-Term Characterization & Debugging
+		instability timescales, throughput maximization, scheduler
+		performance, double scrambler?, tweak performance & debug
+	Long-Term QC, Maintenance
+		obs of standard stars, inter-site comparisons, script for
+		daily quality check
+
+***********************************************************************
+
+MILESTONES
+      * Reduce solar multi-day time series through RV (no classification),
+	RV stability better than 100 m/s day-to-day, 30 m/s during day.
+
+      * Classify solar spectrum as sun-like, within loose tolerances
+
+      * Reduce Sedgwick RV for all data on selection of 10 target stars,
+	stability better than 30 m/s rms
+
+      * Classify above 10 target stars from Sedgwick spectra, with nominal
+	errors relative to standard classifications
+
+      * Pipeline produces all necessary data for database (some faked, maybe),
+	successfully ingested automatically for 1 week  
+
+      * Database user interface ready for beta testing
+
+      * 3-night standard star RV time series from BPL, 10 spectra/night, 
+        better than 30 m/s rms

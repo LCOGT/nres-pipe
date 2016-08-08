@@ -1,0 +1,117 @@
+How to do a COLD START of the analysis routines for a new spectrograph
+
+Spectrograph should be focused and tweaked so spectra are in final or
+near-final positions.
+
+(1) Set up the environment variables NRESROOT, NRESCODE, and NRESRAWDAT.  
+These point to the root directory of the NRES directory structure, to 
+its "code" subdirectory, and to the root directory of the raw data storage,
+respectively.  Put the latest release of NRES code into the code directory,
+and csv templates into $NRESROOT/reduced/csv.  Put the current list
+of stellar targets into the reduced/csv/targets.csv file.  Put the existing
+ZERO files in reduced/zeros, and the existing reduced/csv/zeros.csv in
+its place in the new directory structure.  All this is 
+probably best done with an "NRES_blank" pre-loaded directory structure,
+created with a "copy_nres" script.
+
+(2) Under $NRESROOT, set up the NRES directory structure described in
+$NRESROOT/notes.txt.
+
+(3) In NRESRAWDAT or one of its subdirectories, put data files of these types:
+BIAS --  5 or more is better, but only 1 required to begin
+DARK -- like BIAS
+FLAT --  FLAT1: Tungsten-Halogen in fibers 0,1
+FLAT --  FLAT2: Tungsten-Halogen in fibers 1,2 (needed only if nfib=3, 
+                  ie spectrograph has 3 usable fibers).
+DOUBLE --  DOUBL1: ThAr in fibers 0,1
+DOUBLE --  DOUBL2: ThAr in fibers 1,2, needed only if nfib=3
+
+TARGET -- A Sun-like star in fiber 0 or 2, ThAr in fiber 1.
+
+(3a) Create a line in the spectrographs.csv file, defining (more or less
+crudely) the new spectrograph's characteristics.  Easiest is likely to copy
+a line from an existing similar spectrograph.  Be sure to set the "site" entry
+to reflect the new location.  The immediate utility of this table line is
+that it sets the median filter width for background subtraction, and the
+degree of polynomial used in each order for traces.
+
+(4) Run "muncha, biasname" as needed to ingest the bias images
+
+(4a) If you have multiple biases, run "mk_biasavg" to make an average bias.
+
+(5) Run "muncha, darkname" as needed to ingest the darks
+
+(5a) If you have multiple darks, run "mk_darkavg" to make an average dark.
+
+(8) Make a TRACE file, so that spectra can be extracted.
+With ds9, examine (by hand) the file FLAT1, and create the file
+site_trace0.txt.  This contains the center y-coordinates for at least 5 x-coords
+per order for both fibers and for at least 5 (10 is better) well-spaced 
+orders in the flat field spectrum.  Put into the header lines the information
+describing the spectrograph configuration.  See trace0.pro in-line documentation
+for details.  Run trace0.pro with site_trace0.txt as input.  This generates
+a rough trace file for the spectrograph.  Then run "trace_refine.pro" with
+FLAT1 and (if needed, for 3-fiber systems) FLAT2 as input. This creates an
+improved trace file.  Both the rough and refined trace files are placed
+in reduced/trace/*.fits, and pointers to them are put in the 
+/reduced/csv/standards.csv file.
+
+(9) Make a standard flat file.  Run "muncha,FLAT1,/flat" and
+"muncha,FLAT2,/flat" to ingest the Tungsten-Halogen flats, (do all of them,
+if there is more than one flat per fiber), and then run
+"mk_flat2" to generate the average(s) and combine the two fiber configurations
+into one 3-fiber flat, if necessary.
+ 
+(10) Make wavelength solution file(s).  To get a solution from scratch with 
+the requisite accuracy requires a bootstrap procedure:
+   (10a) Make a solution accurate to about 0.1 AA = 0.01 nm = 2.5 pix, for
+         a single fiber (either 0 or 2):
+         Run "muncha,TARGET" to get an extracted solar spectrum.
+         Also "muncha,DOUBLE1" and maybe "muncha,DOUBLE2" to get extracted
+         ThAr spectra in all fibers.
+         Note the names of the output SPEC files; you will need them later.
+   (10b) From plots of the extracted solar spectrum, identify (by hand) the
+         pixel locations of all the solar lines listed in
+         reduced/config/bplsun_lamvac_pix2.txt.  Use the plots in
+         reduced/config/lineplots/* to be sure of line identifications.
+         Create a new "sitesun_lamvac_pixn.txt" file, where "site" is the
+         site name, and n is the number [0,1,2] of the fiber for the solar spec.
+         (eg "bplsun_lamvac_pix2.txt")
+         The format of this filename must be right for the next step.
+   (10c) Run "sun_fitall,sgsite,nn,fibindx,suf,ierr" (see inline docs) to fit
+         a wavelength solution to the solar line positions.  When finished,
+         you should have ierr=0 and "final rmserr" <= 0.01 nm.  If this is true,
+         rerun with keyword speccsv set, to write the results into a new line
+         in the reduced/csv/spectrographs.csv file.  If not true, there is
+         probably something wrong with your line positions.  Full diagnostic
+         info appears in the sunstruc structure in the output idl save file 
+         written to reduced/config/sitefib_date-time_suf.idl.
+   (10d) Run "sunlampix2fib,sunlampixin,DOUBLEx,fibout,sunlampixout" 
+         This measures the shifts between ThAr lines in the 2 fibers represented
+         in DOUBLEx, and modifies the pixel coordinates to correspond to
+         fibout=1 (and optionally again for fibout= (0 or 2, whichever was
+         not used in the solar spectrum).
+   (10e) Run "sun_fitall,sgsite,'1',1,suf,ierr,/speccsv" to compute a wavelength
+         solution for fiber1, and save the result as a new line in the
+         spectrographs.csv table.  Either do not do a solution for the
+         remaining fiber (0 or 2), or do this first and fiber1 afterwards,
+         so that subsequent processing will pick up the fiber1 results as
+         the most recent solution.
+   (10f) Run "thar_fitalloff,sgsite,SPEC1,1,ierr" where SPEC1 is the name
+         of the extracted DOUBLE1 ThAr file, eg SPEC2015256.11111.fits.
+         This makes an improved (based on ThAr) fiber1 wavelength model
+         and saves it as a new line in reduced/csv/spectrographs.csv.  This is
+         the base model for subsequent pipeline processing.
+
+
+?DOUBL2 as input.  Results go into reduced/thar directory, with pointers
+?in reduced/csv/standards.csv. ***Details to follow***
+
+(11) Make a TRIPLE file, giving the difference between wavelength solutions
+in various fibers.  ***Details to follow***
+ 
+Now muncha.pro should work on input TARGET files, without complaining about
+missing calibrations.  As it runs, muncha will automatically add new targets
+to the target list, and will create single-image BIAS, DARK, FLAT files.
+All average calibrations must be created with separate code (not muncha);  
+also all TRACE, TRIPLE, and ZERO files.

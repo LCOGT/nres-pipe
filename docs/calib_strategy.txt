@@ -1,0 +1,49 @@
+This is a top-level description of the wavelength calibration strategy used
+in the NRES spectrograph reduction code.
+
+The following calibration data are needed:
+(1) A line in the reduced/csv/spectrographs.csv file, giving a set of starting
+  parameters describing the spectrograph wavelength solution.  This solution
+  applies to fiber 1, and is derived from a ThAr spectrum using that fiber.
+  ***Use of the rcubic coefficients in this line needs to be sorted out.***
+(2) A TRIPLE file in reduced/trip/, containing ??polynomial coefficients?? that
+  relate the wavelength scale in fibers 0 and 2 (if it exists) to that in
+  fiber 1.
+(3) A ZERO file containing clean spectra of a target star and of ThAr, both
+  on the fiber 1 wavelength scale, and an accompanying lambda array, giving
+  the vacuum wavelength for each pixel.  The stellar spectrum should ideally 
+  be a synthetic one, evaluated at zero red shift, but it may be a cleaned
+  and smoothed average stellar spectrum, measured at a nominal red shift
+  (the red shift value being recorded in the data file header).  The lambda
+  array is derived from a fit to the recorded ThAr spectrum, which is also a
+  smoothed, cleaned, average spectrum.
+   
+Also need the TARGET spectrum, consisting of a ThAr spectrum in fiber 1, and
+a stellar spectrum that may be in either fiber 0 or fiber 2.
+
+Try to follow two principles:  Never interpolate the TARGET spectrum.  See
+that if the TARGET spectrum and the ZERO file represent the same data, then
+the calculated red shift is zero (for every block).
+
+Procedure:
+(a) Fit a wavelength scale lamT(x,iord) to the ThAr spectrum of the TARGET file.
+
+(b) Use lamT and the TRIPLE file to compute a wavelength scale lamS for the
+  fiber containing the TARGET stellar spectrum.
+
+(c) Interpolate the ZERO ThAr spectrum to the lamT wavelength grid.  Compute
+  the residual shift between these spectra (in pixels) on a per-block basis.
+  (How to deal with changes in line intensity?)
+  (Should we fit instead model parameters such as sinalp, fl, etc?)
+
+(d) Interpolate the ZERO stellar spectrum onto the lamS wavelength grid.  Make
+  a rough (~1 km/s) estimate of the stellar z == z0, based on the 
+  Mg b line order.  (How?)
+
+(e) Interpolate the ZERO stellar spectrum onto the lamS grid, modified to
+  reflect the current z estimate.  Compute the shift between the interpolated
+  ZERO spectrum and the TARGET spectrum, on a per-block basis.
+
+(f) Subtract the ThAr shifts from step (c) from the measured TARGET spectrum
+  shifts.  Fit a correction to z.  Go back to (e), and iterate to convergence.
+

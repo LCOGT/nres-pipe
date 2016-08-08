@@ -1,0 +1,23 @@
+ThAr to-do list
+
+Get data sets to work on:
+*	lab setup double or triple ThAr (applicable to solar time series)
+*	lab setup solar spectrum
+        sqa double ThAr spectrum
+
+Write and debug avg_triple (or graft it onto avg_flat)
+* Transform stellar spectrum line wavelengths table to vacuum.
+*Make a new trace file covering 67 orders
+*Make a new flat file covering 67 orders
+*Find bug that is clobbering spec(*,*,0) for solar data
+Make a wavelength solution for lab setup using sun vacuum wavelengths.
+Get thar wavelength solution to converge for lab setup, same fiber as above.
+Get thar wavelength solution to converge for all fibers.
+Understand the solution parameter differences among fibers.  Gamma angle?
+
+Write out description of full calibration strategy.
+Make reduced line list(s) containing only matched ThAr lines.  Try fits with
+  these.
+Test ThAr fits using voting on lab spectra.
+Clean obsolete/unnecessary files out of 'reduced' directory.
+Do cold starts for sqa, lab spectrographs.

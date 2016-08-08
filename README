@@ -1,0 +1,11 @@
+This directory contains IDL code for the NRES analysis pipeline.
+The main routine (apart from wrappers that run it, eg, on a list of input files) is muncha.pro
+Routine muncha and the various routines that it calls are in the main directory.
+In addition there are subdirectories containing more specialized things:
+  util/ contains utilities and libraries (notably exofast) that are called by other routines.
+  labops/ contains routines used to analyze special laboratory data (usually images), eg AGU or expmeter
+          images.
+  offline/ contains routines that operate on intermediate data products produced by muncha.  These routines
+          are integral to the NRES reductions, but are not called from muncha or its subroutines.
+  docs/ contains text files that document features, coding choices, oddities, etc, as well as basic
+          strategies for some of the reduction steps.

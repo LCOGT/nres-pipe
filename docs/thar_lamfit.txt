@@ -1,0 +1,190 @@
+This is a funtional description of the routines used in making a wavelength
+scale from ThAr spectra.
+
+thar_wavelen,dbg=dbg,tharlist=tharlist
+  This is the main routine (called from muncha.pro) that creates 
+  lam_all(x,iord,ifib) for each fiber in an image that contains ThAr.
+  Keyword dbg allows some debugging functions.
+  Keyword tharlist specifies the list of valid standard ThAr wavelengths used.
+  Besides lam_all, it places in thar_comm the spectrograph parameters sinalp,
+  fl, y0, z0, and the polynomial fitting coefficients coefs(15) which corrects
+  the physical model by at most about 0.1 nm, and coefficients fibcoefs(10,2)
+  which describe the differences (in pix) between fibers (0,2) and fiber 1.
+  Output goes to a structure tharred that is saved in nres_comm
+  and to a multi-extension fits file that is saved in reduced/thardir
+
+	thar_fitall,sgsite,fibindx,ierr,tharlist=tharlist
+	  This is the main routine to fit wavelength solutions to ThAr spectra.
+	  It loads information on the current spectrograph and uses that to
+	  make a starting wavelength solution.  It also locates ThAr line
+	  positions (in pix) from the input extracted spectrum (resident in
+	  the thar_comm common block).  It uses the downhill simplex "amoeba"
+	  routine to optimize the 4 physical parameters describing the
+	  wavelength solution to best fit extracted lines to standard line
+	  wavelengths, modifying the expected wavelengths as needed to allow
+	  for the fiber being used (no correction needed if fiber 1).  
+	  Last, it fits the 15 coefficients of a restricted
+	  quartic (mislabeled restricted cubic) polynomial in xpos, iord
+	  to improve the fit further.
+	  On return, all of the useful results are stored in the thar_comm
+	  common block.
+
+		thar_setup,sgsite,fibindx,ierr,tharlist=tharlist
+		  This routine accepts identifiers for the spectrograph being 
+		  modeled.  It reads the appropriate spectrograph configuration
+		  file, finds input spectrum in nres_comm corspec array and 
+		  renames it tharspec_c, and proceeds to fill as much as it 
+		  can of the thar_am common block, which is used by 
+		  other routines.
+
+			get_specdat,mjdc,err
+			  This routine reads the spectrograph.csv file from the
+			  reduced/csv/ directory and returns the properties
+			  of the spectrograph for the site appearing in 
+			  nres_common, and for the MJD that is the most recent 
+			  relative to the input parm mjd.
+			  Results are placed in common structure specdat.
+
+			lambda3ofx,xx,mm,fibno,specdat,lam_c,y0m_c
+			  This routine computes wavelength lam(nm) as a 
+			  function of x-coordinate xx and order number mm, 
+			  for fiber fibno={0, 1, or 2}.
+			  Wavelengths are computed using 4 physical spectrograph
+			  parameters (relating to alpha, focal length, gamma,
+			  and air refractive index), 15 correction coefficients
+			  in a restricted quartic polynomial in xpos and iord, 
+			  and fiber index combined with coefficients in another
+			  polynomial, also in xpos and iord.
+
+			thar_catalog,tharspec_c,thrshamp,iord_c,xpos_c,amp_c,$
+                          wid_c,ierrc
+			  This routine accepts a ThAr spectrum tharin(nx,nord).
+			  It searches each order for significant lines, and 
+			  lists the positions order number iord, pixel position
+			  xpos along with estimates of the amplitude amp 
+			  (in ADU) and the FWHM wid (in pixels).
+
+		thar_amoeba(parmsin)
+		  This function accepts a 4-element vector parmsin:
+		  (0) a0 = perturbation to angle of incidence (radian)
+		  (1) f0 = perturbation to camera focal length (mm) 
+		  (2) g0 = perturbation to y-coord at which gamma=0 (mm)
+		  (3) z0 = perturbation to redshift z (or refr index of medium)
+		  It also takes a lot of other information from the 
+		  thar_comm common area.
+		  It computes and returns the mean-squared difference (nm^2)
+		  between "matched" observed and standard ThAr line wavelengths.
+		  Line matching is performed via a voting procecure as in
+		  my line_wcs code.
+		  Other information beyond the function value is returned
+		  into the nres_comm common block.
+
+			lambda3ofx (See description above)
+
+			lineseg,lam,lindx,lparm 
+			  This routine makes 'features' from the list of line
+			  wavelengths lam, returned in arrays lindx, lparm.
+
+			matchline,n1,lindx1,lparm1,n2,lindx2,lparm2,dw,ds,votes
+			  This routine computes the votes array describing
+			  possible matches between two lists of line features.
+
+		thar_rcubic
+		  This routine does a robust fit of a 'restricted cubic'
+		  (actually a restricted quartic)
+		  function of (xpos, iord) to the residuals
+		  remaining after the 4-parameter fit to ThAr line positions 
+		  as done by the first part of thar_fitall.pro.
+		  Results are returned in thar_comm array coefs_c and in
+		  various other thar_comm arrays.
+          
+	lam_polynoms,ifib,plam,fib_poly
+	  This routine computes the two polynomial corrections to wavelength vs
+	  pixel, order that appear in lambda3ofx.pro. 
+	  It is intended for real-time debugging.  To function correctly,
+	  it must be called from within routine tharwavelen, following line 70.
+
+thar_triple,fil01,fil12,fitcoefs,rms
+  This routine runs offline (ie, not called by muncha).
+  It accepts ascii file names fil01,fil02, which should be FITS files
+  containing extracted and flat-fielded spectra, resident in
+  the NRES directory reduced/dble.
+  fil01 and fil12 must be DOUBLE (ie, thar/thar) spectra --
+  if nfib=2 then they must be the same,
+  if nfib=3 then fil01 must have OBJECTS='thar/thar/none', and
+                 fil12 must have OBJECTS='none/thar/thar'.
+  It then fits wavelength scales to ThAr spectra in all fibers that have them,
+  and constructs the array fitcoefs(2,7), containing polynomial coefficients
+  describing the x-pixel shifts between fibers {0,1} or {1,2}.
+  fitcoefs array is written into a FITS file in reduced/trip/TRIPxxxxxxxx.xxxxx,
+  and a new line describing the TRIPLE file is written into the
+  reduced/csv/standards.csv file.
+
+	thar_fitoff,fibindx,filin,filout
+	  This routine reads a ThAr DOUBLE extracted spectrum file filin
+	  It calls thar_fitall to fit a model of the spectrograph to
+	  the observed ThAr line positions
+	  Results embedded in a "tharstruc" structure are saved in common and
+	  written to an output idl save file filout in reduced/thar/.
+	  On input, filin must be a full pathname.
+
+		thar_fitall (See description above)
+
+mk_supercal,type,site,camera,dateran,object
+  This routine runs stand-alone (not called by muncha).  It locates all
+  calibration files of the given type (BIAS, DARK, FLAT, or ZERO),
+  taken with the given camera (eg fl07) at the given site (eg bpl)
+  and within the given date range.
+  dateran(2) contains the start and end UT date of the search given as a
+  double-precision number yyyyddd.xxxxx, where
+  yyyy=year
+  ddd=day number
+  xxxxx=fractional day.
+  Note that the calibration files are assigned names based on dates in this
+  format.
+  The routine writes the names of these into a temporary file calibin.txt in the
+  temp directory.  It then calls avg_biasdark or avg_flat to combine flats,
+  or avg_zero to combine zeros.  The result is written to the appropriate
+  subdirectory of /reduced, and a line describing the new calibration file
+  is written to standards.csv.
+  Rules for combining calibration data are:
+  For BIAS and DARK, the search must yield at least 3 input files.
+  For FLAT, if NAXIS3=3 (3 fibers exist) there must be at least one file
+   having fib0=0 and one with fib0=1
+  For ZERO, selected input files must have the given object input parameter,
+   and the search must yield at least 2 input files.
+
+	avg_biasdark,type,flist
+	   This routine accepts a calibration image type, either 'BIAS' 
+	   or 'DARK',
+	   and a list of pathnames to files to be averaged, eg
+	   ['dark/DARK2015153.5243.fits','dark/DARK2015161.5243.fits',....]
+	   It median-averages the indicated files, and writes the resulting
+	   super-BIAS or super-DARK into the appropriate directory.
+	   It adds a descriptive line to the standards.csv file.
+	   All input files must come from the same site and camera.
+	   This routine is intended to be called from an offline routine 
+	   mk_supercal,
+	   not from muncha, hence it does not reference the nres_comm 
+	   common block.
+
+	avg_flat,flist
+	   This routine accepts a list of pathnames to files to be averaged, eg
+	   ['flat/FLAT2015153.5243.fits','flat/FLAT2015161.5243.fits',....]
+	   It averages the indicated files, and writes the resulting
+	   super-FLAT into the appropriate directory.
+	   It adds a descriptive line to the standards.csv file.
+	   All input files must come from the same site and camera.
+	   This routine is intended to be called from an offline 
+	   routine mk_supercal,
+	   not from muncha, hence it does not reference the nres_comm 
+	   common block.
+	   The work is done by routine favg_line.pro, which does 
+	   something sensible
+	   with flat data, namely decompose each input spectrum instance
+	   (ie, flux vs x for a given time sample, order and fiber) into 
+	   a low- and a
+	   high-frequency part;  then average the low-frequency parts, 
+	   and median the
+	   high-frequency parts, and sum them to give the output.
+

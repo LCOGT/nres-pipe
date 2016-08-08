@@ -1,0 +1,55 @@
+This is a description of the strategy for estimating the NRES optical efficiency
+vs wavelength, in absolute terms, using the narrow-band filter on the AGU.
+
+The basic idea is to transfer an absolute flux calibration from a standard star
+to a flat-field source such as the daytime sky by using the AGU camera, and
+then measure the energy detected by the spectrograph when looking at the
+flat-field source.  The ratio detected/incident energy is the system efficiency.
+This method avoids errors due to uncertainties in estimating coupling losses
+at the entrance fiber.  Conversely, coupling losses can be estimated by
+comparing measured star fluxes (measured in the stellar spectrum) with 
+sky fluxes.
+
+1. Measure the total count rate through the AGU narrow-band filter from
+a bright standard star, on a transparent night.  For an exposure time s_AGU,
+this yields
+ADU/s_AGU = flux_star * Area_tel * Trans_atmos * Trans_telesc * Trans_filter * 
+     dlam * AGUDet_effic
+ (units) =       erg/cm^2-s-AA * cm^2 * 1 * 1 * 1 * AA * AGUADU/erg = ADU/s
+
+Then the AGUdetector-telescope response is AGUtel_resp = AGUADU/(s_AGU * 
+    flux_star * Area_tel * Trans_atmos * Trans_filter * dlam) = AGUADU/erg
+
+2. Measure the flux from some broadband flat-field source (eg daytime sky).
+This gives flux_sky = AGUADU/(s_AGU * pixel^2)  (units AGUADU/(s-pix^2)   
+
+3. Measure the area of the stellar pickoff fiber fib_area in units of AGUpix^2, 
+using the measuring microscope and the known pixel size in micron.
+
+Then the total energy incident on the spectrograph fiber is given by
+  fib_flux = flux_sky * fib_area / AGUtel_resp   (units = erg/s)
+
+4. At the same time as (2), measure (a) the total counts detected in the filter
+bandpass by the spectrograph detector, which is
+  flux_spec (specADU/s) = sum_lam(I_lam)/s_spec   (units specADU/s), where 
+sum_lam means a sum over the wavelength pixels, I_lam is the raw measured 
+ADU at each pixel (not flat-fielded), and s_spec is the spectrum exposure time.
+Also (b) the effective bandpass of the filter
+  dlam (AA) = sum_lam((I_lam * delta_lam)/I_max)
+where delta_lam is the wavelength increment at each pixel, and I_max is the
+maximum intensity found in the wavelength range containing the filter bandpass.
+If the bandpass covers more than one echelle order, the values for different
+orders should be summed.
+
+5. Estimate the filter peak transmission Trans_filter in the range [0,1], 
+either from test data that comes with the filter, or (better) from lab 
+measurement.
+
+6. Estimate the spectrograph detector reciprocal gain gain_spec (e-/ADU) from 
+a photon transfer curve, or by some other method.
+
+Then the optical efficiency of the telescope/spectrograph system is
+the ratio of the energy detected by the spectrograph to that entering the fiber,
+ie
+
+Effic_telspec = flux_spec * gain_spec * h*nu / (fib_flux * s_spec) 

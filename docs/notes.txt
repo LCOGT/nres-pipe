@@ -1,0 +1,294 @@
+Directory Structure for NRES reduction
+
+Top level is ~Thinkpad2/nres/svncode/nres/nodbase
+
+nodbase
+    code
+        ***IDL code for reduction
+    rawdat
+        ***raw data files to be processed.  Will be superceded after early tests
+    reduced
+        ***intermediate and final results of reductions
+        autog -- *** output of autoguider.pro
+        bias --  *** bias standard files
+        ccor --  *** output of cross_correl.pro
+        class --  *** output of spec_classify.pro
+        config -- *** configuration files for spectrographs, CCDs, etc
+            spec_SQA_config.txt
+            CCD_fl01_config.txt
+            CCD_at07_config.txt
+            etc......
+            tharlist.txt --  ThAr wavelengths list
+        csv -- ***pseudo-database files
+            standards.csv
+               FLAGS entries: 1st character: 0 = ok, 1 = don't use
+            targets.csv
+            zeros.csv
+               FLAGS entries: 1st char: 0 = ok, 1 = don't use
+                              2nd char: 0 = normal, 1 = ok for 'blind' standard
+            obs.csv (?)
+            ccds.csv
+            spectrographs.csv
+        dark -- *** dark standard files
+        diag -- *** diagnostic plots for inclusion in "real" DB
+        expm -- *** output of expmeter.pro
+        flat -- *** flat-field standard files
+        rv --  *** output of radial_velocity.pro
+        spec -- *** output of calib_extract.pro
+        thar -- *** output of tharwavelen.pro
+        trace -- *** trace standard files
+        trip --  *** triple standard files
+        zero -- *** ZERO standard files
+    temp
+        ***temporary data storage during reduction 
+
+################################################################
+Definitions:
+
+nfib = the number of fibers supported by the current spectrograph
+       indexing over nfib counts up (0,1,2) from the bluemost fiber
+       (top of normally displayed image).  This convention about ordering
+       of the fiber indices is to agree with the layout of the Sedgwick
+       prototype spectrograph.
+
+mfib = the number of fibers illuminated in the current image.
+fib0 = The index (0 or 1) of the bluemost illuminated fiber.
+fib1 = The index (1 or 2) of the 2nd bluemost illuminated fiber
+
+nord = the number of orders actually extracted from the data files.
+       If there is a conflict, specdat.nord takes precedence.
+       This is derived from the given line in the spectrographs.csv file.
+
+nx = untrimmed detector width (includes overscan) for raw, bias- and
+       dark-subtracted images.  Overscan (if any) is trimmed before
+       the background subtraction step.
+       The original value of nx is determined from the raw data header.
+       The trimmed value is determined from the spectrographs.csv file.
+
+##################################################################
+Contents of nres common block:
+
+filin0 = string name of input data file or calibration file currently
+         being processed
+nfib = No of fibers for this spectrograph, from spectrographs.csv
+nresroot = content of $NRESROOT environment variable
+tempdir = dir for temporary data storage during reduction, if needed.
+expmdir = dir for output from expmeter.pro reduction step
+thardir = dir for output from tharwavelen.pro reduction step
+specdir = dir for output from calib_extract.pro reduction step.
+          Includes flat-fielded extracted spectra.
+ccordir = dir for output from cross_correl.pro reduction step
+rvdir =   dir for output from radial_velocity.pro reduction step
+classdir = dir for spec_classify.pro reduction step
+diagdir = dir for diagnostic plots to be displayed by "real" database code
+csvdir = dir to hold searchable, editable *.csv files.  Includes:
+         spectrographs.csv, standards.csv, targets.csv, zeros.csv 
+biasdir = dir to hold standardized bias images.  
+   ***** "standardized" means
+   they contain only data for a single camera (eg science camera), and
+   with minimal headers.
+darkdir = dir to hold standardized dark images
+flatdir = dir to hold standardized extracted flat images
+tracedir = dir to hold trace data in standard form, in a FITS file.
+tripdir = dir to hold triple-ThAr shift data in standard form, in a FITS file
+jdc = JD = system time at which pipeline was run
+mjdc = JD - 2400000.5 days
+datestrc = string date (YYYY+DOY+fractional day) used to name standard files
+   (BIAS, DARK, FLAT, ZERO, TRIPLE, TRACE) created by the pipeline.
+filname = original filename ('ORIGNAME') of the input data file
+dat = raw science data array
+dathdr = header for raw input main data segment
+cordat = corrected (for bias, dark, background) and trimmed science data image
+expmdat = exposure meter data segment of input data file
+expmhdr = exposure meter header segment 
+agu1 = AGU1 data segment of input data file
+agu1hdr = AGU1 header segment
+agu2 = AGU2 data segment of input data file
+agu2hdr = AGU2 header segment
+teldat1 = Telescope1 data segment of input data file 
+tel1hdr = Telescope1 header segment
+teldat2 = Telescope2 data segment of input data file 
+tel2hdr = Telescope2 header segment
+type = string observation type, one of: 'BIAS','DARK','FLAT','TARGET','TRIPLE'
+     with various short-term hacks to account for inconsistent naming
+     conventions in the startup data.
+site = string site ID, eg 'sqa', 'lsc'
+telescop = string telescope ID, eg '0m8-01'
+camera = string camera ID, eg 'en03'
+specdat = structure containing data relating to the spectrograph.  Almost
+  all of these items are read from the spectrographs.csv file.
+   site = site ID housing spectrograph, eg 'lsc'
+   mjd  = MJD of current pipeline run
+   ord0 = diffraction order of redmost order
+   grspc = grating groove spacing (microns)
+   grinc = incidence angle onto grating (degree)
+   dgrinc = starting range for amoeba search for grinc
+   fl = spectrograph camera fl (mm)
+   dfl = starting range for fl
+   y0 = spectrograph gamma angle parameter
+   dy0 = starging range for y0
+   z0 = (n-1) for air surrounding spectrograph optics
+   dz0 = starting range for z0
+   glass = string prism glass type, eg 'PBM2'
+   apex = prism apex angle (degrees)
+   lamcen = nominal central wavelength (ie zero prism net deflection) (microns)
+   rot = rotation angle of detector (deg)
+   pixsiz = detector pixel size (mm)
+   nx = number of active (non-overscan) pixels on detector
+   nord = number of orders to be extracted
+   nblock = number of blocks to use in cross-correlation reduction step
+   nfib = number of fibers allowed by the spectrograph
+orddiff = array containing the diffraction order for each of nord order indices.
+tracedat = structure containing information relating to the order tracing.
+  These data mostly come from the designated TRACE standard file, or are
+  computed from it.
+   trace(nleg,nord,nfib) contains legendre coeffs for nord x nfib order y posns
+   npoly = max number of polynomial coeffs used to parameterize the variation
+        of the nleg coefficients with order index.
+   ord_vectors(nx,nord,nfib) = traced order center y-posns vs iord, ifib
+   ord_wd = full width of each order extraction box, in pix
+   medboxsz = width of the median-filtering box for background subtraction,
+        to be applied in the 4x4-binned image.
+   tracefile = name of the tracefile used to analyze the current image
+echdat = structure containing data relating to the echelle extraction:
+  spectrum(nx,nord,nfib) = intensity integrated across order vs x, order, fiber
+  specrms(nx,nord,nfib) = formal error of spectrum
+  specdy(nx,nord,nfib) = cross-dispersion position of spectrum in extraction box
+  specwid(nx,nord,nfib) = 2nd moment of cross-dispersion intensity
+  diffrms(nord,nfib) = rms of obsd-model spectrum by order, fiber
+  nx = number of pixels along dispersion
+  nord = number of orders in spectrum
+  nfib = number of fibers that may be illuminated in this spectrograph
+  mjd = mjd of input data file
+  origname = name of original image data file
+  siteid = site ID for spectrograph used
+  camera = CCD camera ID (INSTRUME keyword)
+  exptime = original image exptime in s
+  objects = object names corresp to each fiber, separated by "&"
+  nelectron(nfib) = total number of electrons recorded in each fiber
+  craybadpix = total number of cosmic ray pixels identified in image 
+
+agu1red = structure containing data relating to the agu1 processing
+
+agu2red = structure containing data relating to the agu2 processing
+    
+expmred = structure containing data relating to the exposure meter processing
+
+tharred = structure containing data relating to the thar processing
+  fibth(nthar) = fiber indices of the fibers (at most 2) containing ThAr
+  lam(nx,nord,nthar) = wavelength solution, per pixel, order, fiber
+  sinalp(nthar) = sin of grating incidence angle, fitted pr thar fiber
+  fl(nthar) = camera focal length, fitted per thar fiber
+  y0(nthar) = y0 of zero gamma, fitted per thar fiber
+  z0(nthar) = n-1 (or relativistic z) fitted per thar fiber
+  coefs(ncoef,nthar) = restricted cubic coeffs fitted per thar fiber
+  site = observatory site ID (eg sqa)
+  jd = JD of observation
+
+crossred = structure containing data relating to the cross-correl processing
+
+rvred = structure containing data relating to the radial velocity processing
+
+spclassred = structure containing data relating to the spectral classification
+
+verbose = variable governing the amount of diagnostic data printed
+
+###############################################################
+Contents of thar_comm common block
+
+mm_c = array containing diffraction order number for each extracted order
+grspc_c = grating groove spacing in micron
+sinalp_c = sine of grating angle of incidence
+fl_c = camera effective focal length in mm
+y0_c = detector y coordinate (measured from center) where gamma = 0.
+z0_c = red shift for spectrum;  (1.+z0_c) is the effective refractive index
+       of air in the optical path.
+gltype_c = glass type for cross-disperser, eg BK7
+apex_c = prism vertex angle in degrees
+lamcen_c = nominal wavelength at which net prism deflection is zero (micron)
+?? rot_c = rotation angle of detector, CCW seen from front (degree). 
+pixsiz_c = detector pixel size (micron)
+nx_c = number of pixels per line in trimmed image
+nord_c = number of diffraction orders to be extracted from image
+tharspec_c(nx,nord) = extracted ThAr spec from standard fiber = fiber 1.
+iord_c = order numbers of each of the ThAr lines found in the current
+         spectrum (ie, the "catalog" lines)
+xpos_c = x-pixel position of each of the detected "catalog" lines (pixels)
+amp_c = amplitudes (nominal e-) of each of the "catalog" lines (ADU)
+wid_c = width of each of the "catalog" lines (pixels)
+dsinalp_c = starting amoeba range for sinalp
+dfl_c = starting amoeba range for fl
+dy0_c = starting amoeba range for y0
+dz0_c = starting amoeba range for z0
+linelam_c = wavelengths for each line in the standard ThAr linelist (nm)
+lineamp_c = amplitudes for each line in the standard ThAr linelist (arbitrary)
+matchlam_c = model wavelength of each supposedly matched "catalog" line
+matchamp_c = amplitude (total e-) of each matched "catalog" line.
+matcherr_c = formal uncertainty of each matched line
+matchdif_c = difference between model line lambda and linelist lambda, for
+             each matched line
+matchord_c = order index (0 to nord-1) in which each matched line appears
+matchxpos_c = x-coordinate of observed matched "catalog" line (pix)
+matchwts_c = fitting weights in rcubic.pro for each matched "catalog" line
+matchline_c = 
+matchbest_c = model wavelength for each matched "catalog" line, after
+              correction for polynomial shifts from rcubic.
+matchline_c = wavelength for each supposedly matched standard linelist line (nm)
+nmatch_c = number of detected "catalog" lines that are wavelength matched
+          to standard ThAr lines.  May be more than the number of linelist
+          lines, because wavelength overlap causes many lines to appear twice.
+dlam2_c = summed squared lambda matching error, over matched lines
+chi2_c = chi^2 value coming out of rcubic lstsqr.pro fit
+niter_c = counts amoeba iterations as it searches for minimum
+unmatchlam_c = wavelengths of "catalog" lines with no matches
+unmatchamp_c = amplitudes of "catalog" lines with no matches
+lam_c = final wavelength model lambda(nx,nord) (nm)
+y0m_c = cente-of-detector y-value for each order (mm)  
+ncoefs_c = number of coefficients used in polynomial wavelength correction
+coefs_c(ncoefs_c) = wavelength correction polynomial coeffs.  These multiply
+          polynomials in x-coordinate and order index
+outp_c = residuals from last rcubic fit of catalog wavelengths to x-position
+airmass_c = airmass of observation
+bjdtdb_c = BJD of observation
+dec_c = declination of target (deg)
+exptime_c = exposure duration for observation (s)
+jdtdb = julian data of exposure start time
+moonalt_c = moon altitude at exposure start (deg)
+moonphase_c = moon illuminated phase (percent) at exposure start
+moonsep_c = moon separation from target at exposure start (deg)
+ra_c = target RA (deg)
+vmag_c = V-band magnitude of target
+site_c = site from which observation was obtained
+fibindx_c = index number (0-2) of fiber containing ThAr spectrum
+fileorg_c = name of original science camera fits file for this spectrum
+ierr_c = error code for ThAr processing
+fibcoefs(2,7) = polynomial coefficients relating spectrum position (in pix)
+      for fibers 0 and 2 to the positions for fiber 1.
+
+###############################################################
+Data Sets
+
+sqa 20150502 0001-0004? HD85882 = RS CVn, probably variable RV
+             0005?-0009 HD114378 = F5
+   All with decent exposure and good ThAr
+
+sqa 20150626 0001-0052 Bias, Dark, Flat, Double ThAr
+
+###############################################################
+
+Definitions of flags in standards.csv
+
+char0: Used in select_std to identify good/bad references.
+       0 -> good
+       not 0 -> bad
+char1: Used in select_std to identify ZERO calibration files that are vetted
+       as suitable as "standards", ie, can be used on stars that we have not
+       looked at before, or that for some other reason do not have a ZERO
+       file that is tailored to them.
+       0 -> not a standard
+       1 -> a standard
+char2: Used for FLAT and DOUBLE files to show which fibers are active.
+       1 -> [0,1]
+       2 -> [1,2]
+       3 -> [0,1,2]
+char3:  Unused
