@@ -77,7 +77,7 @@ ddark=readfits(dark,hdr)       ; should really be a bias and a dark.
                                ; for now, assume it is really a bias.
 ; make array of differences, data - dark
 ddarkb=rebin(ddark,nx,ny,nt)
-difb=dat-darkb
+difb=dat-ddarkb
 
 ; make masks for the 3 fibers and background
 xx=rebin(findgen(nx),nx,ny)
