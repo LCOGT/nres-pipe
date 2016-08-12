@@ -32,7 +32,6 @@ if (file_test(save_dir, /DIRECTORY, /WRITE) EQ 0) then begin
    printf, -2, "Error! Directory not writeable: " + save_dir
    STOP
    END
-endif
 
 ; write bias to file and update records:
 writefits,biasout,bias,hdr
