@@ -20,6 +20,21 @@ exptime=sxpar(dathdr,'EXPTIME')
 sxaddpar,hdr,'EXPTIME',exptime
 biaso='BIAS'+datestrc+'.fits'
 biasout=nresroot+biasdir+biaso
+
+; Create directory if not present:
+save_dir = file_dirname(biasout)
+if (file_test(save_dir, /DIRECTORY) EQ 0) then begin
+   file_mkdir, save_dir
+endif
+
+; Abort in case of non-writeable directory:
+if (file_test(save_dir, /DIRECTORY, /WRITE) EQ 0) then begin
+   printf, -2, "Error! Directory not writeable: " + save_dir
+   STOP
+   END
+endif
+
+; write bias to file and update records:
 writefits,biasout,bias,hdr
 stds_addline,'BIAS','bias/'+biaso,1,site,camera,jdc,'0000'
 
