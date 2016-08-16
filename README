@@ -12,3 +12,8 @@ In addition there are subdirectories containing more specialized things:
     but are not called from muncha or its subroutines.
   docs/ contains text files that document features, coding choices, oddities, 
     etc, as well as basic strategies for some of the reduction steps.
+  csv/ contains routines that manipulate the NRESROOT/reduced/csv files that
+    stand in for databases in the muncha code.  These consist of rv.csv,
+    standards.csv, standards.csv, targets.csv, and zeros.csv.  Other .csv
+    files are simply read, not accessed as lightweight databases.
+    
