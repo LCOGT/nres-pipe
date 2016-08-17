@@ -96,13 +96,11 @@ stop
 ; unless it may be incomplete, because of a too-short time between
 ; the last data date and the current date.  In that case the
 ; end-of-data string is given as 'uu'.
-; In the process, produce a count of chunks nchunk and a vector
+; Afterwards, produce a count of chunks nchunk and a vector
 ; nchfile(nchunk) = number of files to process in each chunk.
 ; If end-of-data = 'uu', then nchfile for the last chunk is set to zero.
 
 difpaths=['']
-nchunk=0
-nchfile=[0]
 jdc=systime(/julian)
 
 ; loop over legal observation types
@@ -114,12 +112,11 @@ for i=0,ntypes-1 do begin
     jsite=vsites(j)
     sg=where(diftypes eq ityp and difsites eq jsite,nsg)
     if(nsg gt 0) then begin
-      nchfilei=0
+      print,'nsg=',nsg
       for k=0,nsg-1 do begin
         if(k eq 0) then begin
 ; get here on 1st file of a group with same type and site
           difpaths=[difpaths,difnames(sg(k))]
-          nchfilei=1
         endif else begin      
           dt=difjds(sg(k))-difjds(sg(k-1))
           if(ityp eq 'DARK') then begin            ; type = 'DARK'
@@ -130,18 +127,12 @@ for i=0,ntypes-1 do begin
 ; good=1 means the current file is a continuation of a valid chunk
           if(good eq 1) then begin 
             difpaths=[difpaths,difnames(sg(k))]
-            nchfilei=nchfilei+1
           endif else begin
-            nchfile=[nchfile,nchfilei]
             difpaths=[difpaths,'xx',difnames(sg(k))]
-            nchunk=nchunk+1
-            nchfilei=1
           endelse
         endelse 
-        print,k,' ',ityp,' ',jsite,' ',total(nchfile),' ',difpaths(0:(k < 10))
       endfor
 ; check to see if the last chunk is so recent that it may be incomplete.
-;    if(nchfilei eq 1) then nchunk=nchunk+1
     dtnow=jdc-difjds(sg(k-1))
     if(dtnow le tn.t3) then difpaths=[difpaths,'uu'] else $
         difpaths=[difpaths,'xx']
@@ -151,7 +142,26 @@ for i=0,ntypes-1 do begin
 endfor
 
 difpaths=difpaths(1:*)
-nchfile=nchfile(1:*)
+
+; read through difpaths to establish nchunks and nchfile
+ndpath=n_elements(difpaths)
+nchunks=0
+nchfile=[0]
+if(ndpath gt 0) then begin
+  ic=0                        ; index of current chunk
+  nc=0                        ; number of paths in current chunk
+  for i=0,ndpath-1 do begin
+    if(difpaths(i) ne 'xx' and difpaths(i) ne 'uu') then begin
+      nc=nc+1
+    endif else begin
+      nchfile=[nchfile,nc]
+      nchunks=nchunks+1
+      nc=0
+    endelse
+  endfor
+endif
+
+if(nchunks gt 0) then nchfile=nchfile(1:*)
 
 
 stop
