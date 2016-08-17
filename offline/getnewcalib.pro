@@ -52,7 +52,7 @@ stdfnames=stdfnames(s1)
 stdnavgs=stdnavgs(s1)
 stdsites=stdsites(s1)
 stdcameras=stdcameras(s1)
-stdjdates=stdjdates(s1)
+stdjdates=stdjdates(s1)              ; creation dates of muncha output files
 stdflags=stdflags(s1)
 
 ; write these lines out to a temporary file in the csv directory
@@ -92,7 +92,7 @@ stop
 ; similar data (ie of same type, from same site, close together in time).  
 ; The ends of chunks are
 ; indicated by an element consisting of the string 'xx'.
-; The last chunk is followed by an end-of-data string 'zz',
+; The last chunk from each site is followed by an end-of-data string 'zz',
 ; unless it may be incomplete, because of a too-short time between
 ; the last data date and the current date.  In that case the
 ; end-of-data string is given as 'uu'.
@@ -100,8 +100,12 @@ stop
 ; nchfile(nchunk) = number of files to process in each chunk.
 ; If end-of-data = 'uu', then nchfile for the last chunk is set to zero.
 
-difpaths=['']
-jdc=systime(/julian)
+difpaths=['']            ; holds pathnames and chunk end indicators
+; start array of structures with chunk parameters
+calblocks=[{type:diftypes(0),names:strarr(100),navg:difnavgs(0),$
+    site:difsites(0),cam:difcams(0),jdc:difjds(0),flag:difflags(0),$
+    valid:0}]
+jdcur=systime(/julian)
 
 ; loop over legal observation types
 for i=0,ntypes-1 do begin
@@ -129,19 +133,33 @@ for i=0,ntypes-1 do begin
             difpaths=[difpaths,difnames(sg(k))]
           endif else begin
             difpaths=[difpaths,'xx',difnames(sg(k))]
+; add new element to calblocks array of structures
+            calblocks=[calblocks,{type:ityp,names:strarr(100),navg:0L,$
+                site:jsite,cam:difcams(sg(k)),jdc:difjds(sg(k)),$
+                flag:difflags(sg(k)),valid:1}]
           endelse
         endelse 
       endfor
 ; check to see if the last chunk is so recent that it may be incomplete.
-    dtnow=jdc-difjds(sg(k-1))
-    if(dtnow le tn.t3) then difpaths=[difpaths,'uu'] else $
-        difpaths=[difpaths,'xx']
+    dtnow=jdcur-difjds(sg(k-1))
+    if(dtnow le tn.t3) then begin
+      difpaths=[difpaths,'uu'] 
+      calblocks=[calblocks,{type:ityp,names:strarr(100),navg:0L,site:jsite,$
+          cam:difcams(sg(k-1)),jdc:difjds(sg(k-1)),flag:difflags(sg(k-1)),$
+          valid:0}]
+    endif else begin
+        difpaths=[difpaths,'zz']
+        calblocks=[calblocks,{type:ityp,names:strarr(100),navg:0L,site:jsite,$
+            cam:difcams(sg(k-1)),jdc:difjds(sg(k-1)),flag:difflags(sg(k-1)),$
+            valid:1}]
+    endelse
     endif
   endfor
 
 endfor
 
 difpaths=difpaths(1:*)
+calblocks=calblocks(1:*)
 
 ; read through difpaths to establish nchunks and nchfile
 ndpath=n_elements(difpaths)
@@ -151,7 +169,8 @@ if(ndpath gt 0) then begin
   ic=0                        ; index of current chunk
   nc=0                        ; number of paths in current chunk
   for i=0,ndpath-1 do begin
-    if(difpaths(i) ne 'xx' and difpaths(i) ne 'uu') then begin
+    dpi=difpaths(i)
+    if(dpi ne 'xx' and dpi ne 'uu' and dpi ne 'zz') then begin
       nc=nc+1
     endif else begin
       nchfile=[nchfile,nc]
