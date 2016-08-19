@@ -1,4 +1,4 @@
-pro calib2control,difpaths
+pro calib2control
 ; This routine controls the creation of 2nd-stage calibration files
 ; of type BIAS, DARK, FLAT, TRIPLE, 
 ; from 1st-stage (ie not averaged or otherwise combined) files of type
@@ -40,34 +40,24 @@ rd_calcontrol,calcontrol
 ; do diff standards-combined.  ierr=0 means good files to process
 ; combfiles=list of files in combined.csv
 ; newfiles=calib files that do not appear in combined.csv
-getnewcalib,stdpath,combpath,combfiles,tn,newfiles,ierr,difpaths
+getnewcalib,stdpath,combpath,combfiles,tn,difdat,calblocks,ierr
 if(ierr ne 0) then begin
-; deal here with no valid input tiles, or other error
+; deal here with no valid input files, or other error
 ; includes check that combined.csv is not locked
 endif
 stop
 goto,fini
 
-; loop over sites
-for i=0,nsites-1 do begin
-getcalblocks,newfiles,sites(i),calblocks,jerr
-;  returns calblocks=array of structures, each with 1 calib block for this site
-  if(jerr ne 0) then begin
- 
-    endif
-
 ; loop over calblocks
-  ncblk=n_elements(calblocks)
-  kerrlist=intarr(ncblk)
-  for j=0,ncblk-1 do begin
-    calibproc,calblocks(j),kerr
-    kerrlist(j)=kerr
-  endfor
-
+ncblk=n_elements(calblocks)
+kerrlist=intarr(ncblk)
+for j=0,ncblk-1 do begin
+  calibproc,calblocks(j),usedlist,kerr
+  kerrlist(j)=kerr
 endfor
 
 ; write modified, unlocked combined.csv file
-writecombined,combpath,calblocks,kerrlist
+writecombined,combpath,difdat,calblocks,usedlist,kerrlist
 
 fini:
 end

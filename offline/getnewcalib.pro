@@ -1,16 +1,20 @@
-pro getnewcalib,stdpath,combpath,combfiles,tn,newfiles,ierr,difpaths
+pro getnewcalib,stdpath,combpath,combfiles,tn,difdat,calblocks,ierr
 ; This routine reads the standards.csv file containing all calibration
 ; files processed by muncha, and the combined.csv file, containing all
 ; 1st-stage calibration files that have been processed into 2nd-stage
-; calibrations.  It differences these two lists, and returns the list
-; of newfiles (along with calib types, sites, cameras, creation dates, 
-;   and flags).
-; On input, structure tn contains time intervals in days used for identifying
+; calibrations.  It differences these two lists, and returns a structure
+; difdat containing the unused calib files, in standards.csv format, and an
+; array calblocks of structures containing descriptions of chunks of files
+; segregated by type, site, and creation date.  For each chunk, the
+; calblocks structures  calib types, sites, cameras, creation dates, 
+;   muncha-processed filenames, and flags).
 ; boundaries of chunks of data of the same type, site.
 ; On return, ierr=0 -> no error
 ;            ierr=1 -> no new files
 ;            ierr=2 -> combined.csv file is locked
 ;            ierr>2 -> other fatal error
+; On input, structure tn contains time intervals in days used for identifying
+; valid chunks of input files.
 
 ; constants
 root=getenv('NRESROOT')
@@ -171,7 +175,9 @@ if(ndpath gt 0) then begin
   for i=0,ndpath-1 do begin
     dpi=difpaths(i)
     if(dpi ne 'xx' and dpi ne 'uu' and dpi ne 'zz') then begin
+      calblocks(nchunks).names[nc]=dpi
       nc=nc+1
+      calblocks(nchunks).navg=nc ; navg stores the number of files in chunk
     endif else begin
       nchfile=[nchfile,nc]
       nchunks=nchunks+1
