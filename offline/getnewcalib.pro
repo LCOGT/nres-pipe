@@ -1,4 +1,4 @@
-pro getnewcalib,stdpath,combpath,combfiles,tn,difdat,calblocks,ierr
+pro getnewcalib,stdpath,combpath,combdat,combhdr,tn,difdat,calblocks,ierr
 ; This routine reads the standards.csv file containing all calibration
 ; files processed by muncha, and the combined.csv file, containing all
 ; 1st-stage calibration files that have been processed into 2nd-stage
@@ -42,6 +42,7 @@ dat=read_csv(combpath,header=combhdr)
 ;    dat.field6,dat.field7,header=headerlock
 ;endelse
 ;###### end bypass
+combdat=dat
 
 ; get the standards.csv file, exclude lines with navg ne 1, or invalid type
 ; or invalid site.
@@ -88,8 +89,6 @@ difsites=difdat.field4
 difcams=difdat.field5
 difjds=difdat.field6
 difflags=difdat.field7
-
-stop
 
 ; make an array difpaths of (string) calib file pathnames, 
 ; ordered into chunks of
@@ -187,10 +186,6 @@ if(ndpath gt 0) then begin
 endif
 
 if(nchunks gt 0) then nchfile=nchfile(1:*)
-
-
-stop
-
 
 fini:
 

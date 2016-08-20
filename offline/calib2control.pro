@@ -40,13 +40,22 @@ rd_calcontrol,calcontrol
 ; do diff standards-combined.  ierr=0 means good files to process
 ; combfiles=list of files in combined.csv
 ; newfiles=calib files that do not appear in combined.csv
-getnewcalib,stdpath,combpath,combfiles,tn,difdat,calblocks,ierr
+getnewcalib,stdpath,combpath,combdat,combhdr,tn,difdat,calblocks,ierr
 if(ierr ne 0) then begin
+  if(ierr eq 1) then begin    ; test for no valid files to use
+                              ; if none found, rewrite combdat w/ orig header
+    write_csv,combpath,combdat.field1,combdat.field2,combdat.field3,$
+        combdat.field4,combdat.field5,combdat.fieldt,combdat.field6,$
+        combdat.field7,header=cmbhdr
+    goto,fini
+  endif
+  if(ierr eq 2) then begin    ; test for locked combined file
+    goto,fini                 ; if so, bail out with no action
+  endif
 ; deal here with no valid input files, or other error
 ; includes check that combined.csv is not locked
 endif
 stop
-goto,fini
 
 ; loop over calblocks
 ncblk=n_elements(calblocks)
@@ -56,8 +65,10 @@ for j=0,ncblk-1 do begin
   kerrlist(j)=kerr
 endfor
 
+stop
+
 ; write modified, unlocked combined.csv file
-writecombined,combpath,difdat,calblocks,usedlist,kerrlist
+writecombined,combpath,combdat,combhdr,difdat,calblocks,kerrlist
 
 fini:
 end

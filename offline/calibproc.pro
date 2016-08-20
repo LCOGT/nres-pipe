@@ -18,6 +18,7 @@ nf=calblock.navg               ; number of valid pathnames in calblock.names
 flist=calblock.names(0:nf-1)   ; list of files to process
 flags=calblock.flag            ;### need to make flag a string array ###
 valid=calblock.valid
+kerr=0                         ; marks good return if not changed
 
 if(type ne 'BIAS' and type ne 'DARK' and type ne 'FLAT' and type ne 'DOUBLE') $
      then begin
@@ -37,7 +38,14 @@ case type of
         usedlist=['']
         goto,fini
       endif else begin
-        avg_biasdark,type,flist
+
+; temporary logging for debugging
+        print,'Averaging BIAS frames:
+        for j=0,nf-1 do begin
+          print,flist(j)
+        endfor
+
+        avg_biasdark,type,flist,/array
         usedlist=flist
       endelse
     end
@@ -47,7 +55,14 @@ case type of
         usedlist=['']
         goto,fini
       endif else begin
-        avg_biasdark,type,flist
+
+; temporary logging for debugging
+        print,'Averaging DARK frames:
+        for j=0,nf-1 do begin
+          print,flist(j)
+        endfor
+
+        avg_biasdark,type,flist,/array
         usedlist=flist
       endelse
     end
@@ -57,7 +72,14 @@ case type of
         usedlist=['']
         goto,fini
       endif else begin
-        avg_flat,flist
+
+; temporary logging for debugging
+        print,'Averaging FLAT frames:
+        for j=0,nf-1 do begin
+          print,flist(j)
+        endfor
+
+        avg_flat,flist,/array
         usedlist=flist
       endelse
     end
@@ -67,7 +89,11 @@ case type of
         usedlist=['']
         goto,fini
       endif else begin
-        print,'Can't handle DOUBLE files yet!'
+        print,'Cannot handle DOUBLE files yet!'
+        for j=0,nf-1 do begin
+          print,flist(j)
+        endfor
+
         usedlist=['']
       endelse
     end
