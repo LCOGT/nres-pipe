@@ -291,4 +291,11 @@ char2: Used for FLAT and DOUBLE files to show which fibers are active.
        1 -> [0,1]
        2 -> [1,2]
        3 -> [0,1,2]
+   For TRIPLE files, char2 is interpreted similarly:
+       1 -> TRIPLE made from a single DOUBLE, with fibers [0,1] active
+       2 ->               ditto                           [1,2] active
+       3 -> TRIPLE made from combination of [0,1] and [1,2] files
+   TRIPLEs are not made from files with 3 fibers active.
+   Averaged TRIPLE files are always made from inputs with the same flag char2
+   values, hence retain the flags from their inputs.
 char3:  Unused

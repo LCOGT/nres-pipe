@@ -11,5 +11,8 @@ check all routines that access trace data to make uniform the use of variables
 Figure out what is meant by step (10f) in the COLD START instructions.
 Write up descriptions of the content and format of output files written to
   the various reduced/* subdirectories.
-Clean up obsolete versions of (particularly thar) routines; rename *2.pro
+xClean up obsolete versions of (particularly thar) routines; rename *2.pro
   routines to eliminate the "2".
+Modify intermediate-result filenames to reflect data date, not creation date.
+Suppress email notification on cron jobs
+finish avg_coub2trip.pro, test

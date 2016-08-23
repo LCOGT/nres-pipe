@@ -1,0 +1,2 @@
+testlog
+exit

@@ -1,4 +1,5 @@
-pro thar_triple,fil01,fil12,fibcoefs,rms,force2=force2,cubfrz=cubfrz
+pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
+    nofits=nofits
 ; This routine runs offline (ie, not called by muncha).
 ; It accepts ascii file names fil01,fil02, which should be FITS files
 ; containing extracted and flat-fielded ThAr/ThAr spectra, resident in 
@@ -29,6 +30,11 @@ pro thar_triple,fil01,fil12,fibcoefs,rms,force2=force2,cubfrz=cubfrz
 ;
 ; If keyword cubfrz is set, this prevents thar_fitall from adjusting the
 ;  rcubic coefficients as read from spectrographs.csv.
+;
+; If keyword nofits is set, no output fits file is written, and no corresp
+; line is added to standards.csv.  This is handy for applications
+; (notably avg_doub2trip.pro) that average several pairs of input files
+; to create one output file.
 
 ; get common blocks for NRES, ThAr fitting
 @nres_comm
@@ -179,6 +185,13 @@ if(nfiba eq 3) then begin
   fibcoefs(*,0)=fibc0
   fibcoefs(*,1)=fibc1
 endif
+
+; save all the stuff that needs to be averaged into a returned structure.
+; the rest of the data (for purposes of writing a fits file) goes to common
+tripstruc={fibcoefs:fibcoefs,sinalpav:sinalpav,flav:flav,y0av:y0av,z0av:z0av,$
+     coefsav:coefsav,lamav:lamav}
+
+if(keyword_set(nofits)) then goto,fini
 
 ; write out FITS file
 ; The header of this file is complex, because it contains spectrograph
