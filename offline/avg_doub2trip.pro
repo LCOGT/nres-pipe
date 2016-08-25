@@ -25,12 +25,11 @@ pro avg_doub2trip,flist
 ; get common blocks for NRES, ThAr fitting
 @nres_comm
 @thar_comm
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
 nresroot=getenv('NRESROOT')
-dbledir=nresroot+'reduced/dble/'
-tripdir=nresroot+'reduced/trip/'
-
+reddir=nresroot+'reduced/'
 ; match input list with standards.csv to get flag values, site name
 ; in the process check that all images come from same site.
 stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
@@ -46,7 +45,7 @@ for i=0,nfile-1 do begin
     flag2(i)=fix(strmid(flags(s),2,1))
     if(i eq 0) then begin
       site=sites(s)
-      s0name=fnames(0)
+      s0name=fnames(s)
     endif
     if(i gt 0) then begin
       if(site ne sites(s)) then begin
@@ -58,12 +57,13 @@ for i=0,nfile-1 do begin
 endfor
 
 ; read first input file, move useful data from header into nres_comm
-pathname=nresroot+dbldir+s0name
+pathname=reddir+s0name
 dd=readfits(pathname,dblehdr0)
 mjd=sxpar(dblehdr0,'MJD-OBS')
 
 ; use site name to find nfib value for these data from spectrographs.csv
 get_specdat,mjd,err
+nfib=specdat.nfib
 
 ; check to see that rules for input list are obeyed
 opt=0                 ; -> rule failure unless proved othewise
@@ -86,15 +86,18 @@ endif
 
 ; process input files individually.  Output is an array of structures, each
 ; of which contains all of the information in a TRIPLE file.
+; also retain list of input files, to be written into header
 
 ; do case of list with either flags(char2)=1 or =2
 if(opt eq 1 or opt eq 2) then begin
   for i=0,nfile-1 do begin
-    fil01=files(i)
+    fil01=flist(i)
     fil12=fil01
     if(nfib eq 3) then force=1 else force=0
     thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
+    if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
+    stop
   endfor
 endif
 
@@ -103,17 +106,19 @@ if(opt eq 3 or opt eq 4) then begin
   nfileh=nfile/2
   for i=0,nfileh-1 do begin
     if(opt eq 3) then begin
-      fil01=files(2*i)
-      fil12=files(2*i+1)
+      fil01=flist(2*i)
+      fil12=flist(2*i+1)
     endif else begin
-      fil01=files(2*i+1)
-      fil12=files(2*i)
+      fil01=flist(2*i+1)
+      fil12=flist(2*i)
     endelse
     thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
+    if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
   endfor
 
 endif
+nfilinp=n_elements(filinp)
 
 ; build the output data from an appropriate average over structure elements
 ns=n_elements(outs)
@@ -125,39 +130,40 @@ if(ns eq 1) then begin
   z0av=outs.z0av
   coefsav=outs.coefsav
 endif
-if(ns gt 1 and ns le 4) then begin
+if(ns ge 2 and ns le 4) then begin
   fibcoefs=mean(outs(*).fibcoefs,dimension=3)
-  sinalpav=mean(outs(*).sinalpav,dimension=3)
-  flav=mean(outs(*).flav,dimension=3)
-  y0av=mean(outs(*).y0av,dimension=3)
-  z0av=mean(outs(*).z0av,dimension=3)
-  coefsav=mean(outs(*).coefsav,dimension=3)
-endif else begin
+  sinalpav=mean(outs(*).sinalpav)
+  flav=mean(outs(*).flav)
+  y0av=mean(outs(*).y0av)
+  z0av=mean(outs(*).z0av)
+  coefsav=mean(outs(*).coefsav,dimension=2)
+endif
+if(ns gt 4) then begin
   fibcoefs=median(outs(*).fibcoefs,dimension=3)
-  sinalpav=median(outs(*).sinalpav,dimension=3)
-  flav=median(outs(*).flav,dimension=3)
-  y0av=median(outs(*).y0av,dimension=3)
-  z0av=median(outs(*).z0av,dimension=3)
-  coefsav=median(outs(*).coefsav,dimension=3)
-endelse
+  sinalpav=median(outs(*).sinalpav)
+  flav=median(outs(*).flav)
+  y0av=median(outs(*).y0av)
+  z0av=median(outs(*).z0av)
+  coefsav=median(outs(*).coefsav,dimension=2)
+endif
 
 ; make wavelength scale from averaged parameters
-xx=pixsiz_c*(dindgen(nx)-nx/2.d0)
-mm=ord0+lindgen(nord_c)
+xx=pixsiz_c*(dindgen(nx_c)-nx_c/2.d0)
 fibno=1
-specstruc={d:grspc_c,gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,rot:rot_c,$
-    sinalp:sinalpav,fl:flav,y0:y0av,z0:z0av,coefs:coefsav}
-lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,air=0
+specstruc={grspc:grspc_c,gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,$
+    rot:rot_c,sinalp:sinalpav,fl:flav,y0:y0av,z0:z0av,coefs:coefsav,$
+    ncoefs:ncoefs_c}
+lambda3ofx,xx,mm_c,fibno,specstruc,lam,y0m,air=0
 
 ; write the output fits file
 ; The header of this file is complex, because it contains spectrograph
 ; parameters, rcubic fit coefficients, fibcoefs relating spectra from
 ; different fibers
 
-; make creation date, output filename
-; ### should change creation date to data date ###
-jd=systime(/julian)      ; file creation time, for sorting similar calib files
-mjd=jd-2400000.5d0
+; make data date, output filename
+;jd=systime(/julian)      ; file creation time, for sorting similar calib files
+;mjd=jd-2400000.5d0
+jd=mjd+2400000.5d0
 daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 fout='TRIP'+datestrc+'.fits'
@@ -168,8 +174,14 @@ branch='trip/'
 mkhdr,hdrout,lamav
 sxaddpar,hdrout,'MJD',mjd
 sxaddpar,hdrout,'NFRAVGD',nfile
-sxaddpar,hdrout,'ORIGNAM0',fil01
-sxaddpar,hdrout,'ORIGNAM1',fil12
+for i=0,nfilinp-1 do begin
+  strdig=strtrim(string(i),2)
+  if(strlen(strdig) eq 1) then strdig='0'+strdig
+  keynam='ORGNAM'+strdg
+  sxaddpar,hdrout,keynam,filinp(i)
+endfor
+;sxaddpar,hdrout,'ORIGNAM0',fil01
+;sxaddpar,hdrout,'ORIGNAM1',fil12
 sxaddpar,hdrout,'ORD0',mm_c(0)
 sxaddpar,hdrout,'GRSPC',grspc_c
 sxaddpar,hdrout,'SINALP',sinalpav
@@ -224,5 +236,7 @@ writefits,filout,lamav,hdrout
 stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,'0000'
 
 ; optionally write out log information.
+
+fini:
 
 end

@@ -11,6 +11,7 @@ pro thar_fitoff,fibindx,filin,filout,cubfrz=cubfrz
 
 @nres_comm
 @thar_comm
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
 nresroot=getenv('NRESROOT')

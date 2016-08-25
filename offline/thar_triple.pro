@@ -4,6 +4,7 @@ pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
 ; It accepts ascii file names fil01,fil02, which should be FITS files
 ; containing extracted and flat-fielded ThAr/ThAr spectra, resident in 
 ; the NRES directory reduced/dble.
+; Names must be of form, dble/DOUBLExxxxxxx.xxxxx.fits
 ; fil01 and fil12 must be DOUBLE (ie, thar/thar) spectra --
 ; if nfib=2 then they must be the same, with OBJECTS='thar&thar'
 ; if nfib=3 then fil01 must have OBJECTS='thar&thar&none', and
@@ -39,15 +40,16 @@ pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
 ; get common blocks for NRES, ThAr fitting
 @nres_comm
 @thar_comm
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
 nresroot=getenv('NRESROOT')
-dbledir=nresroot+'reduced/dble/'
+reddir=nresroot+'reduced/'
 tripdir=nresroot+'reduced/trip/'
 
 ; read input files, decide if we have 2 fibers or 3
-fnam01=dbledir+strtrim(fil01,2)
-fnam12=dbledir+strtrim(fil12,2)
+fnam01=reddir+strtrim(fil01,2)
+fnam12=reddir+strtrim(fil12,2)
 dd01=readfits(fnam01,hdr01)
 dd12=readfits(fnam12,hdr12)
 site=strtrim(strupcase(sxpar(hdr01,'SITEID')),2)

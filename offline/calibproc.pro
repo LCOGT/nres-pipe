@@ -89,7 +89,8 @@ case type of
         usedlist=['']
         goto,fini
       endif else begin
-        print,'Cannot handle DOUBLE files yet!'
+;       print,'Cannot handle DOUBLE files yet!'
+        avg_doub2trip,flist
         for j=0,nf-1 do begin
           print,flist(j)
         endfor
