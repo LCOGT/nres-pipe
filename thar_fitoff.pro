@@ -1,4 +1,4 @@
-pro thar_fitoff,fibindx,filin,filout,cubfrz=cubfrz
+pro thar_fitoff,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
 ; This routine reads a ThAr DOUBLE extracted spectrum file filin, and
 ; puts its corspec array into the common data area.
 ; It then calls thar_fitall to fit a model of the spectrograph to
@@ -44,7 +44,7 @@ if(nwd eq 3 and strtrim(strupcase(words(0)),1) eq 'THAR') then fibin0=fibindx
 tharspec_c=corspec(*,*,fibin0)
 
 ; call thar_fitall
-thar_fitall,sgsite,fibin0,ierr,cubfrz=cubfrz
+thar_fitall,sgsite,fibin0,ierr,cubfrz=cubfrz,tharlist=tharlist
 
 tharstruc={mm:mm_c,grspc_c:grspc_c,sinalp:sinalp_c,y0:y0_c,z0:z0_c,$
 gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,rot:rot_c,pixsiz:pixsiz_c,nx:nx_c,$

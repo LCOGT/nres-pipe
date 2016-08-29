@@ -1,4 +1,4 @@
-pro avg_doub2trip,flist
+pro avg_doub2trip,flist,tharlist=tharlist
 ; This routine combines a list of DOUBLE files into a single averaged
 ; TRIPLE file, saves the output into the /reduced/trip directory, and writes
 ; a summary line into the standards.csv file.
@@ -94,10 +94,10 @@ if(opt eq 1 or opt eq 2) then begin
     fil01=flist(i)
     fil12=fil01
     if(nfib eq 3) then force=1 else force=0
-    thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
+    thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
+       tharlist=tharlist
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
     if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
-    stop
   endfor
 endif
 
@@ -152,8 +152,8 @@ xx=pixsiz_c*(dindgen(nx_c)-nx_c/2.d0)
 fibno=1
 specstruc={grspc:grspc_c,gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,$
     rot:rot_c,sinalp:sinalpav,fl:flav,y0:y0av,z0:z0av,coefs:coefsav,$
-    ncoefs:ncoefs_c}
-lambda3ofx,xx,mm_c,fibno,specstruc,lam,y0m,air=0
+    ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
+lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 
 ; write the output fits file
 ; The header of this file is complex, because it contains spectrograph
@@ -177,7 +177,7 @@ sxaddpar,hdrout,'NFRAVGD',nfile
 for i=0,nfilinp-1 do begin
   strdig=strtrim(string(i),2)
   if(strlen(strdig) eq 1) then strdig='0'+strdig
-  keynam='ORGNAM'+strdg
+  keynam='ORGNAM'+strdig
   sxaddpar,hdrout,keynam,filinp(i)
 endfor
 ;sxaddpar,hdrout,'ORIGNAM0',fil01
@@ -233,10 +233,31 @@ endfor
 writefits,filout,lamav,hdrout
 
 ; write line into standards.csv
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,'0000'
+case opt of
+  0: flg='0000'
+  1: flg='0010'
+  2: flg='0020'
+  3: flg='0030'
+  4: flg='0030'
+endcase
+stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,flg
 
-; optionally write out log information.
+; write out log information.
+print,'*** avg_doub2trip ***'
+print,'Files In = '
+for i=0,nfile-1 do begin
+  print,flist(i)
+endfor
+naxes=sxpar(hdrout,'NAXIS')
+nx=sxpar(hdrout,'NAXIS1')
+ny=sxpar(hdrout,'NAXIS2')
+print,'Naxes, Nx, Ny = ',naxes,nx,ny
+print,'Wrote file to trip/ dir:'
+print,branch+fout
+print,'Added line to reduced/csv/standards.csv'
 
 fini:
+
+stop
 
 end

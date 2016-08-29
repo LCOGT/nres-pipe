@@ -1,5 +1,5 @@
 pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
-    nofits=nofits
+    nofits=nofits,tharlist=tharlist
 ; This routine runs offline (ie, not called by muncha).
 ; It accepts ascii file names fil01,fil02, which should be FITS files
 ; containing extracted and flat-fielded ThAr/ThAr spectra, resident in 
@@ -79,7 +79,7 @@ endif
 if(nfiba eq 2 and fib0 eq 0) then ifib=0
 if(nfiba eq 2 and fib0 eq 2) then ifib=1
 if(nfiba eq 3) then ifib=0
-thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz
+thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil12 results
 ; name contains (input file # 0 or 1) (fiber # 0,1,2)
 sinalp00=sinalp_c
@@ -97,7 +97,7 @@ er00=matcherr_c
 if(nfiba eq 2 and fib0 eq 0) then ifib=1
 if(nfiba eq 2 and fib0 eq 2) then ifib=2
 if(nfiba eq 3) then ifib=1
-thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz
+thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
 sinalp01=sinalp_c
 fl01=fl_c
 y001=y0_c
@@ -125,7 +125,7 @@ endif
 
 if(nfiba eq 3) then begin
 ; estimate wavelength solution for fiber 1 of fil12
-  thar_fitoff,1,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz
+  thar_fitoff,1,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil01 results
   sinalp11=sinalp_c
   fl11=fl_c
@@ -139,7 +139,7 @@ if(nfiba eq 3) then begin
   er11=matcherr_c
 
 ; estimate wavelength solution for fiber 2 of fil12
-  thar_fitoff,2,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz
+  thar_fitoff,2,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil01 results
   sinalp12=sinalp_c
   fl12=fl_c
