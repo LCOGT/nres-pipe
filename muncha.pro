@@ -102,6 +102,7 @@ case type of
   endif
 ; spec_classify
 ; obs2txt                ; writes all metadata to obs.txt
+; plot_quick             ; writes quick-look postscript plot
   end
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv

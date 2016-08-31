@@ -238,7 +238,8 @@ endfor
 ; build output structure
 
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
-       bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo}
+       bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
+       rcc0:rcco,ampcco:ampcco,widcco:widcco}
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
