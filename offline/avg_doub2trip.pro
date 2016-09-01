@@ -1,10 +1,13 @@
-pro avg_doub2trip,flist,tharlist=tharlist
+pro avg_doub2trip,flist,tharlist=tharlist,array=array
 ; This routine combines a list of DOUBLE files into a single averaged
 ; TRIPLE file, saves the output into the /reduced/trip directory, and writes
 ; a summary line into the standards.csv file.
-; On input, flist = string array containing the names of the input files,
+; On input, flist = the name of an ascii file containing the list of names
+; of the input files,
 ; which are to be found in the reduced/dble directory.
-; No processing will be done unless these files conform to the following rules.
+; If keyword array is set, it indicates that flist is a string array
+; containing the names.
+; No processing will be done unless input files conform to the following rules.
 ; There must be at least 2 files in the input list, and
 ; EITHER
 ; * All files must have flags(char2)=1 or all =2, indicating the active fibers
@@ -30,15 +33,32 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 ; constants
 nresroot=getenv('NRESROOT')
 reddir=nresroot+'reduced/'
+
+; read flist if necessary, or copy to array 'files'
+if(keyword_set(array)) then begin
+  files=flist
+endif else begin
+  files=['']
+  ss=''
+  openr,iun,flist,/get_lun
+  while(not eof(iun)) do begin
+    readf,iun,ss
+    files=[files,strtrim(ss,2)]
+  endwhile
+  close,iun
+  free_lun,iun
+  files=files(1:*)
+endelse
+
 ; match input list with standards.csv to get flag values, site name
 ; in the process check that all images come from same site.
 stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
-nfile=n_elements(flist)
+nfile=n_elements(files)
 flag2=intarr(nfile)
 for i=0,nfile-1 do begin
-  s=where(fnames eq flist(i),ns)
+  s=where(fnames eq files(i),ns)
   if(ns ne 1) then begin
-    print,'input DOUBLE file not found in standards.csv  ',flist(i)
+    print,'input DOUBLE file not found in standards.csv  ',files(i)
     print,'avg_doub2trip FAIL'
     goto,fini
   endif else begin
@@ -91,7 +111,7 @@ endif
 ; do case of list with either flags(char2)=1 or =2
 if(opt eq 1 or opt eq 2) then begin
   for i=0,nfile-1 do begin
-    fil01=flist(i)
+    fil01=files(i)
     fil12=fil01
     if(nfib eq 3) then force=1 else force=0
     thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
@@ -106,11 +126,11 @@ if(opt eq 3 or opt eq 4) then begin
   nfileh=nfile/2
   for i=0,nfileh-1 do begin
     if(opt eq 3) then begin
-      fil01=flist(2*i)
-      fil12=flist(2*i+1)
+      fil01=files(2*i)
+      fil12=files(2*i+1)
     endif else begin
-      fil01=flist(2*i+1)
-      fil12=flist(2*i)
+      fil01=files(2*i+1)
+      fil12=files(2*i)
     endelse
     thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
@@ -246,7 +266,7 @@ stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,flg
 print,'*** avg_doub2trip ***'
 print,'Files In = '
 for i=0,nfile-1 do begin
-  print,flist(i)
+  print,files(i)
 endfor
 naxes=sxpar(hdrout,'NAXIS')
 nx=sxpar(hdrout,'NAXIS1')

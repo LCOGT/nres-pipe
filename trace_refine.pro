@@ -58,7 +58,7 @@ npoly=sxpar(tracehdr,'NPOLY')
 if(keyword_set(nleg)) then nleg=nleg else nleg=npoly
 ord_wid=sxpar(tracehdr,'ORDWIDTH')
 medboxsz=sxpar(tracehdr,'MEDBOXSZ')
-site=sxpar(tracehdr,'SITEID')
+site=strupcase(sxpar(tracehdr,'SITEID'))
 camera=sxpar(tracehdr,'INSTRUME')
 cowid=sxpar(tracehdr,'COWID')
 nblock=sxpar(tracehdr,'NBLOCK')
@@ -115,7 +115,7 @@ ny=sz(2)
 
 ; subtract the background
 order_cen,trace,ord_vectors
-objs=sxpar(dathdr,'OBJECTS')
+objs=sxpar(hdr1,'OBJECTS')
 backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
 
 ; if there are 2 input files, read and process the 2nd one
@@ -298,8 +298,10 @@ for i=0,nord-1 do begin
     if(j ne zdark) then begin
       sg=where(profmax(*,i,j) ge minamp,nsg)   ; blocks with acceptable ampl
         if(nsg le 0) then begin
-          print,'No good profiles in order ',i,' fiber ',j,'  Fatal Error'
-          stop
+;         print,'No good profiles in order ',i,' fiber ',j,'  Fatal Error'
+          print,'No good profiles in order ',i,' fiber ',j,'  Importing prof0.'
+          prof0(*,*,i,j)=prof0(*,*,i-1,j)   ; get a profile from previous order
+          goto,skipit
         endif
       lsg=min(sg)
       rsg=max(sg)
@@ -314,6 +316,7 @@ for i=0,nord-1 do begin
         endfor
       endif
     endif
+    skipit:
   endfor
 endfor
 
