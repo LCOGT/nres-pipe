@@ -12,7 +12,7 @@ datestr=string([yr,mo,da],format='(i4,"-",i2.2,"-",i2.2,"_")')
 timestr=string([hh,mm,ss],format='(i2.2,"h",i2.2,"m",i2.2,"s, ")')
 
 hjdstr=string(bjdtdb,format='(f14.6)')+', '
-apstr='ap = '+strtrim(string(iord,format='(i2)'),2)+', '
+apstr='ap = '+strtrim(string(iord0,format='(i2)'),2)+', '
 expstr='expt = '+strtrim(string(exptime,format='(i4)'),2)+' s, '
 verstr='Ver = '+version
 

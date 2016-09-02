@@ -7,6 +7,6 @@ common nres,filin0,nfib,mfib,fib0,fib1,$
        expmdat,expmhdr,expmvals,agu1,agu1hdr,agu2,agu2hdr,$
        teldat1,tel1hdr,tel2dat,tel2hdr,$
        type,site,telescop,camera,exptime,ccd,specdat,orddiff,tracedat,echdat,$
-       agu1red,agu2red,$
+       flatdat,agu1red,agu2red,$
        expmred,tharred,rvindat,rvred,spclassred,$
        verbose

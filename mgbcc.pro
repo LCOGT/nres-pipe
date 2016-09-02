@@ -111,8 +111,8 @@ vel=c*rmin*(findgen(nbig)-nbig/2.)
 ; find the maximum, estimate FWHM.
 mxcc=max(cc,ix)
 mxcch=mxcc/2.              ; halfway from max to zero
-ccm=cc(ix-200:ix+200)
-delx=findgen(401)-200.
+ccm=cc(ix-400:ix+400)
+delx=findgen(801)-400.
 delv=delx*rmin*c           ; cc x-coord in velocity units (km/s)
 ssn=where(ccm le mxcch and delx lt 0.,nssn)
 ssp=where(ccm le mxcch and delx gt 0.,nssp)
@@ -139,6 +139,6 @@ rcc=rrp*rmin
 rvv=rcc*c                          ; redshift in km/s
 ampcc=rr(0)+rr(1)*ds+rr(2)*ds^2
 
-stop
+;stop
 
 end

@@ -88,8 +88,8 @@ ebbo=dblarr(2,nord,nblock) ; formal uncertainty in bbo
 pldpo=dblarr(2,nord,nblock)  ; photon-limited doppler precision (km/s)
     
 ; make output arrays for cross-correlation results
-ccmo=fltarr(2,401)
-delvo=fltarr(2,401)
+ccmo=fltarr(2,801)
+delvo=fltarr(2,801)
 rvvo=fltarr(2)
 
 ; loop over star fibers.  Skip if target is NULL
@@ -155,12 +155,12 @@ for i=0,1 do begin
                   dbmed lt 3.*dq) then begin
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
-          if(j eq 34) then stop
+;         if(j eq 34) then stop
           goto,bail
         endif
 ; fit redshift and continuum normalization.
         blockfit,lamblock,zblock,dblock,blockparms
-        if(j eq 34 and (k eq 8 or k eq 9)) then stop
+;       if(j eq 34 and (k eq 8 or k eq 9)) then stop
       
 ; end blocks loop
       bail:
@@ -286,7 +286,7 @@ fxbwritm,unit,['RedShft','ErrRShft','Scale','ErrScale','Lx1Coef','ErrLx1',$
 
 ; make a 2nd extension, containing cross-correlation data.
 ; each column contains a single row, and each element is an array
-; dimensioned (2,401) containing the cross-correlation function and
+; dimensioned (2,801) containing the cross-correlation function and
 ; its lag coordinate in velocity units (km/s)
 fxaddpar,hdr,'LAGKMS0',rvvo(0)
 fxaddpar,hdr,'LAGKMS1',rvvo(1)
@@ -307,6 +307,6 @@ if(verbose ge 1) then begin
   print,'MJD=',obsmjd
 endif
 
-stop
+;stop
 
 end

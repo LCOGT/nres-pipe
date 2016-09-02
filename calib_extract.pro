@@ -45,6 +45,7 @@ get_calib,'DARK',darkfile,dark,darkhdr,gerr
 errsum=errsum+gerr
 if(not keyword_set(flatk)) then begin
   get_calib,'FLAT',flatfile,flat,flathdr,gerr
+  flatdat={flat:flat,flatfile:flatfile,flathdr:flathdr}
   errsum=errsum+gerr
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
