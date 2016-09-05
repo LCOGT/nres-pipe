@@ -24,15 +24,17 @@ coltab=6                                  ; color table
 lamplot=[396.85d,656.281d,670.79d,589.0d,589.6d] 
 ; plot xtitles,ytitles
 xtits=['Wavelength (Angstrom)','Shift (km/s)']
-ytits=['Relative Intensity','','ADU','Photons']
+ytits=['Relative Intensity','','k ADU','k Photons']
 titls=['Rotating template correlation','Non-rotating template correlation',$
       'Mg b 5184','Ca II H 3968.5','H alpha 6562.81','Li 6707.9',$
       'NaD 5890 and 5896']
+ppr=[5.,3.5]                     ; pixels per resolution element for NRES, Sedg
+gai=[1.,2.5]                     ; gain e-/ADU for NRES, Sedg
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
-mjd=echdat.mjd
-jd=2450000.5d0+echdat.mjd
+mjd=sxpar(dathdr,'MJD-OBS')                ; observation start time
+jd=2400000.5d0+mjd                         ; ditto
 site=echdat.siteid
 objcts=sxpar(dathdr,'OBJECTS')
 objects=strupcase(strtrim(get_words(objcts,nobj,delim='&'),2))
@@ -53,14 +55,14 @@ rastr=strarr(2)       ; RA, Dec strings
 decstr=strarr(2)
 for i=0,1 do begin
   ras=sixty(rah(i))
-  rastr(i)=string(ras(0),format='(i2.2,"h")') + $
-           string(ras(1),format='(i2.2,"m")') + $
-           string(ras(2),format='(f5.2,"s")')
+  rastr(i)=string(ras(0),format='(i2.2,":")') + $
+           string(ras(1),format='(i2.2,":")') + $
+           string(ras(2),format='(f5.2)')
   decs=sixty(targdec(i))
   if(targdec(i) ge 0) then sgn='+' else sgn='-'
-  decstr(i)=sgn+string(decs(0),format='(i2.2,"d")') + $
-                string(decs(1),format='(i2.2,"m")') + $
-                string(decs(2),format='(f4.1,"s")')
+  decstr(i)=sgn+string(decs(0),format='(i2.2,":")') + $
+                string(decs(1),format='(i2.2,":")') + $
+                string(decs(2),format='(f4.1)')
 endfor
 
 ; which fiber are we plotting?  If two, loop over them
@@ -127,16 +129,25 @@ for i=0,nplot-1 do begin
   x1=rvred.delvo(ip2,*)
   plt1=rvred.ccmo(ip2,*)
   
+; make S/N estimate per resolution element for Mg b order
+if(nx_c gt 4000) then ppre=ppr(0) else ppre=ppr(1)     ; NRES vs Sedgwick
+if(nx_c gt 4000) then gg=gai(0) else gg=gai(1)         ;     ditto
+sigtyp=ptile(plt8,95)*gg*ppre        ; e- in one resolution element for
+                                     ; typical bright pixels (95th percentile)
+snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
+
 ; make the title string
   version='1.1'      ; ###bogus###
-  shorttitl=shtitlstr(objects(iplot),site,mjd,bjdtdb_c(iplot),iord0,exptime,version) 
+  shorttitl=shtitlstr(objects(iplot),site,mjd,bjdtdb_c(iplot),iord0,exptime,$
+       snr,version) 
 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
   sitesh=strlowcase(strmid(site,0,2))
   plotname=plotdir+'/PLOT'+sitesh+datestrc+fibstr+'.ps'
+  !p.font=0
   psll,name=plotname,ys=20.
-  device,set_font='Helvetica',/tt_font
+  device,set_font='Helvetica'
 
 ; 1st page plot
   !p.multi=[0,1,2]
@@ -149,24 +160,24 @@ for i=0,nplot-1 do begin
   pran=maxy-miny
   yran=[(miny-0.15*pran) > 0.,maxy+0.05*pran]
   plot,lam0,plt0,tit=shorttitl,xtit=xtits(0),ytit=ytits(0),xran=xran,yran=yran,$
-     /xsty,/ysty,charsiz=1.0,/nodata
+     /xsty,/ysty,charsiz=0.8,/nodata
   oplot,lam0,plt0,color=blue
   oplot,lam0z,plt0z,color=red
 ; lots of xyouts stuff here
   xbot=xran(0)+(xran(1)-xran(0))*0.05
-  xtop=xran(1)-(xran(1)-xran(0))*0.2
+  xtop=xran(1)-(xran(1)-xran(0))*0.15
   ybot=yran(0)+(pran*.06)*(findgen(4)+0.3)
 
-  xyouts,xbot,ybot(0),'Program = unknown',charsiz=0.8              ; font?
-  xyouts,xbot,ybot(1),'N_COMB = unknown',charsiz=0.8
-  xyouts,xbot,ybot(2),'DEC = '+decstr(ip2),charsiz=0.8
-  xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=0.8
-  xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=0.8
-  xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=0.8
-  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=0.8
-  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=0.8
+  xyouts,xbot,ybot(0),'Program = unknown',charsiz=0.7              ; font?
+  xyouts,xbot,ybot(1),'N_COMB = unknown',charsiz=0.7
+  xyouts,xbot,ybot(2),'DEC = '+decstr(ip2),charsiz=0.7
+  xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=0.7
+  xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=0.7
+  xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=0.7
+  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=0.7
+  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=0.7
 
- !p.multi=[3,3,2]                             ; do the 2nd row
+ !p.multi=[3,3,2]                             ; do the 2nd row of plots
   xran=[-400.,400.]
   yran=[-0.4,1.0]
   xbot=50.
@@ -177,9 +188,11 @@ for i=0,nplot-1 do begin
   oplot,x1,plt1,color=black
   oplot,[0.,0.],[yran],color=blue
   oplot,[rvvo(i),rvvo(i)],yran,color=green
-  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.8
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)'),charsiz=0.8
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)'),charsiz=0.8
+  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.7
+  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=0.7
+  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+     charsiz=0.7
 
 ; do the 2nd correlation plot
   plot,x1,plt1,tit=titls(1),xtit=xtits(1),ytit=ytits(1),/xsty,/ysty,$
@@ -187,47 +200,49 @@ for i=0,nplot-1 do begin
   oplot,x1,plt1,color=black
   oplot,[0.,0.],yran,color=blue
   oplot,[rvvo(i),rvvo(i)],yran,color=green
-  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.8
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)'),charsiz=0.8
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)'),charsiz=0.8
+  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.7
+  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=0.7
+  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+     charsiz=0.7
 
 ; do the 'spectrum' plot
-  yran=[0.,1.15*ptile(plt3,98)]
-  plot,lam3,plt3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
+  yran=[0.,1.15*ptile(plt3/1.e3,98)]
+  plot,lam3,plt3/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
     yran=yran,charsiz=1.5
 
 ; second page
   !p.multi=[0,2,2]
 
-  yran=[0.,1.20*ptile(plt4,98)]
-  yspan=[ptile(plt4,98),1.35*ptile(plt4,98)]
-  plot,lam4,plt4,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
+  yran=[0.,1.20*ptile(plt4/1.e3,98)]
+  yspan=[ptile(plt4/1.e3,98),1.35*ptile(plt4/1.e3,98)]
+  plot,lam4,plt4/1.e3,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
      /xsty,/ysty,charsiz=1.0
   oplot,10.*[lamplot(0),lamplot(0)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt5,98)]
-  yspan=[ptile(plt5,98),1.35*ptile(plt5,98)]
-  plot,lam5,plt5,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
+  yran=[0.,1.20*ptile(plt5/1.e3,98)]
+  yspan=[ptile(plt5/1.e3,98),1.35*ptile(plt5/1.e3,98)]
+  plot,lam5,plt5/1.e3,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=1.0
   oplot,10.*[lamplot(1),lamplot(1)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt6,98)]
-  yspan=[ptile(plt6,98),1.35*ptile(plt6,98)]
-  plot,lam6,plt6,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
+  yran=[0.,1.20*ptile(plt6/1.e3,98)]
+  yspan=[ptile(plt6/1.e3,98),1.35*ptile(plt6/1.e3,98)]
+  plot,lam6,plt6/1.e3,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=1.0
   oplot,10.*[lamplot(2),lamplot(2)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt7,98)]
-  yspan=[ptile(plt7,98),1.35*ptile(plt7,98)]
-  plot,lam7,plt7,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
+  yran=[0.,1.20*ptile(plt7/1.e3,98)]
+  yspan=[ptile(plt7/1.e3,98),1.35*ptile(plt7/1.e3,98)]
+  plot,lam7,plt7/1.e3,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=1.0
   oplot,10.*[lamplot(3),lamplot(3)],yspan,color=blue
   oplot,10.*[lamplot(4),lamplot(4)],yspan,color=blue
 
 ; last page
-  yran=[0.,1.20*ptile(plt3,98)]
-  yspan=[ptile(plt3,98),1.35*ptile(plt3,98)]
-  plot,lam8,plt8,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
+  yran=[0.,1.20*ptile(plt3/1.e3,98)]
+  yspan=[ptile(plt3/1.e3,98),1.35*ptile(plt3/1.e3,98)]
+  plot,lam8,plt8/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=1.0
 
   psend
