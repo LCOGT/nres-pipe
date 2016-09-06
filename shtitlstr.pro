@@ -14,7 +14,11 @@ timestr=string([hh,mm,ss],format='(i2.2,"h",i2.2,"m",i2.2,"s, ")')
 hjdstr=string(bjdtdb,format='(f14.6)')+', '
 apstr='ap = '+strtrim(string(iord0,format='(i2)'),2)+', '
 expstr='expt = '+strtrim(string(exptime,format='(i4)'),2)+' s, '
-snstr='S/N='+string(snr,format='(f5.1)')+', '
+if(snr lt 1000.) then begin
+  snstr='S/N='+string(snr,format='(f5.1)')+', '
+endif else begin
+  snstr='S/N='+string(snr,format='(f5.0)')+', '
+endelse
 verstr='Ver = '+version
 
 shtitle=obstr+sitstr+datestr+timestr+hjdstr+apstr+expstr+snstr+verstr

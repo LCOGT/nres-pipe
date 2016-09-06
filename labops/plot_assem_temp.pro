@@ -9,7 +9,7 @@ filt_assem_temp,jd,tamb,tbase,tair,tcoll,tambn,tambsm,tambnsm
 
 xtit='JD - 2457600.'
 ytit='Degrees C'
-yran=[23.,25.]
+yran=[21.,26.]
 
 loadct,4
 red=95
@@ -33,7 +33,6 @@ if(keyword_set(ps)) then begin
   sun
 endif
 
+stop
+
 end
-
-
-

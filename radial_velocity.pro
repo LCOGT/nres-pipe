@@ -243,6 +243,7 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
+
 rvname='RADV'+datestrc+'.fits'
 rvout=nresroot+rvdir+rvname
 
@@ -270,7 +271,7 @@ endfor
 ; each column contains a single row, and each element is an array
 ; dimensioned (2,nord,nblock) containing various redshift fitting
 ; parameters or error estimates.
-fxwrite,rvout,hdr
+fxwrite,rvout,hdr ;### guess this isn't needed, causes unit leak
 fxbhmake,hdr,1                   ; make extension header, only 1 row
 fxbaddcol,jn1,hdr,rro,'RedShft','Redshift frm blockfit'
 fxbaddcol,jn2,hdr,erro,'ErrRShft','Redshift error'
@@ -283,6 +284,7 @@ fxbaddcol,jn7,hdr,pldpo,'PLDP','PLDP'
 fxbcreate,unit,rvout,hdr,ext1
 fxbwritm,unit,['RedShft','ErrRShft','Scale','ErrScale','Lx1Coef','ErrLx1',$
                'PLDP'],rro,erro,aao,eaao,bbo,ebbo,pldpo
+fxbfinish,unit
 
 ; make a 2nd extension, containing cross-correlation data.
 ; each column contains a single row, and each element is an array
@@ -308,5 +310,6 @@ if(verbose ge 1) then begin
 endif
 
 ;stop
+skipall:
 
 end

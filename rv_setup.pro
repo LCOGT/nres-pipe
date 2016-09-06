@@ -137,6 +137,7 @@ for i=0,1 do begin
       fxbread,unit,thar,'ThAr',1         ; 'ThAr' col
       fxbread,unit,lam,'Wavelength',1   ; 'Wavelength' col
       fxbclose,unit
+      free_lun,unit
     
       zstar(*,*,i)=star
       zthar(*,*,i)=thar

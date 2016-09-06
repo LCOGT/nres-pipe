@@ -30,6 +30,9 @@ titls=['Rotating template correlation','Non-rotating template correlation',$
       'NaD 5890 and 5896']
 ppr=[5.,3.5]                     ; pixels per resolution element for NRES, Sedg
 gai=[1.,2.5]                     ; gain e-/ADU for NRES, Sedg
+cs0=0.78                      ; big character size
+cs1=0.68                     ; small character size
+cs2=1.5                      ; very big character size
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
@@ -160,7 +163,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   pran=maxy-miny
   yran=[(miny-0.15*pran) > 0.,maxy+0.05*pran]
   plot,lam0,plt0,tit=shorttitl,xtit=xtits(0),ytit=ytits(0),xran=xran,yran=yran,$
-     /xsty,/ysty,charsiz=0.8,/nodata
+     /xsty,/ysty,charsiz=cs0,/nodata
   oplot,lam0,plt0,color=blue
   oplot,lam0z,plt0z,color=red
 ; lots of xyouts stuff here
@@ -168,14 +171,14 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   xtop=xran(1)-(xran(1)-xran(0))*0.15
   ybot=yran(0)+(pran*.06)*(findgen(4)+0.3)
 
-  xyouts,xbot,ybot(0),'Program = unknown',charsiz=0.7              ; font?
-  xyouts,xbot,ybot(1),'N_COMB = unknown',charsiz=0.7
-  xyouts,xbot,ybot(2),'DEC = '+decstr(ip2),charsiz=0.7
-  xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=0.7
-  xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=0.7
-  xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=0.7
-  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=0.7
-  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=0.7
+  xyouts,xbot,ybot(0),'Program = unknown',charsiz=cs1              ; font?
+  xyouts,xbot,ybot(1),'N_COMB = unknown',charsiz=cs1
+  xyouts,xbot,ybot(2),'DEC = '+decstr(ip2),charsiz=cs1
+  xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=cs1
+  xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=cs1
+  xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=cs1
+  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=cs1
+  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=cs1
 
  !p.multi=[3,3,2]                             ; do the 2nd row of plots
   xran=[-400.,400.]
@@ -184,32 +187,32 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   ybot=0.8+0.05*findgen(3)
   
   plot,x1,plt1,tit=titls(0),xtit=xtits(1),ytit=ytits(1),/xsty,/ysty,$
-    xran=xran,yran=yran,charsiz=1.5,/nodata
+    xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],[yran],color=blue
   oplot,[rvvo(i),rvvo(i)],yran,color=green
-  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.7
+  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
-     charsiz=0.7
+     charsiz=cs1
   xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
-     charsiz=0.7
+     charsiz=cs1
 
 ; do the 2nd correlation plot
   plot,x1,plt1,tit=titls(1),xtit=xtits(1),ytit=ytits(1),/xsty,/ysty,$
-    xran=xran,yran=yran,charsiz=1.5,/nodata
+    xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],yran,color=blue
   oplot,[rvvo(i),rvvo(i)],yran,color=green
-  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=0.7
+  xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
-     charsiz=0.7
+     charsiz=cs1
   xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
-     charsiz=0.7
+     charsiz=cs1
 
 ; do the 'spectrum' plot
   yran=[0.,1.15*ptile(plt3/1.e3,98)]
   plot,lam3,plt3/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
-    yran=yran,charsiz=1.5
+    yran=yran,charsiz=cs2
 
 ; second page
   !p.multi=[0,2,2]
@@ -217,25 +220,25 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   yran=[0.,1.20*ptile(plt4/1.e3,98)]
   yspan=[ptile(plt4/1.e3,98),1.35*ptile(plt4/1.e3,98)]
   plot,lam4,plt4/1.e3,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
-     /xsty,/ysty,charsiz=1.0
+     /xsty,/ysty,charsiz=cs0
   oplot,10.*[lamplot(0),lamplot(0)],yspan,color=blue
 
   yran=[0.,1.20*ptile(plt5/1.e3,98)]
   yspan=[ptile(plt5/1.e3,98),1.35*ptile(plt5/1.e3,98)]
   plot,lam5,plt5/1.e3,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
-     yran=yran,charsiz=1.0
+     yran=yran,charsiz=cs0
   oplot,10.*[lamplot(1),lamplot(1)],yspan,color=blue
 
   yran=[0.,1.20*ptile(plt6/1.e3,98)]
   yspan=[ptile(plt6/1.e3,98),1.35*ptile(plt6/1.e3,98)]
   plot,lam6,plt6/1.e3,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
-     yran=yran,charsiz=1.0
+     yran=yran,charsiz=cs0
   oplot,10.*[lamplot(2),lamplot(2)],yspan,color=blue
 
   yran=[0.,1.20*ptile(plt7/1.e3,98)]
   yspan=[ptile(plt7/1.e3,98),1.35*ptile(plt7/1.e3,98)]
   plot,lam7,plt7/1.e3,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
-     yran=yran,charsiz=1.0
+     yran=yran,charsiz=cs0
   oplot,10.*[lamplot(3),lamplot(3)],yspan,color=blue
   oplot,10.*[lamplot(4),lamplot(4)],yspan,color=blue
 
@@ -243,7 +246,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   yran=[0.,1.20*ptile(plt3/1.e3,98)]
   yspan=[ptile(plt3/1.e3,98),1.35*ptile(plt3/1.e3,98)]
   plot,lam8,plt8/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
-     yran=yran,charsiz=1.0
+     yran=yran,charsiz=cs0
 
   psend
 
