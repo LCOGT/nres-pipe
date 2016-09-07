@@ -6,12 +6,13 @@ pro filt_assem_temp,jd,tamb,tbase,tair,tcoll,tambn,tambsm,tambnsm
 rd_assem_temp,0,jd0,tamb0,tbase0,tcoll0,tair0,tambn0
 rd_assem_temp,1,jd1,tamb1,tbase1,tcoll1,tair1,tambn1
 rd_assem_temp,2,jd2,tamb2,tbase2,tcoll2,tair2,tambn2
-jdx=[jd0,jd1,jd2]
-tambx=[tamb0,tamb1,tamb2]
-tbasex=[tbase0,tbase1,tbase2]
-tairx=[tair0,tair1,tair2]
-tcollx=[tcoll0,tcoll1,tcoll2]
-tambnx=[tambn0,tambn1,tambn2]
+rd_assem_temp,3,jd3,tamb3,tbase3,tcoll3,tair3,tambn3
+jdx=[jd0,jd1,jd3,jd2]
+tambx=[tamb0,tamb1,tamb3,tamb2]
+tbasex=[tbase0,tbase1,tbase3,tbase2]
+tairx=[tair0,tair1,tair3,tair2]
+tcollx=[tcoll0,tcoll1,tcoll3,tcoll2]
+tambnx=[tambn0,tambn1,tambn3,tambn2]
 
 ; median filter tambx, replace bad points with median
 tamby=median(tambx,5)

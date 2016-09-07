@@ -6,7 +6,8 @@ pro rd_assem_temp,ifil,jd,tamb,tbase,tcoll,tair,tambn
 
 files=['/scratch/rsiverd/environment/20160802--assembly_area_temperature.log',$
 '/scratch/rsiverd/environment/20160803--assembly_area_temperature.log.oops',$
-'/scratch/rsiverd/environment/assembly_area_temperature.log']
+'/scratch/rsiverd/environment/assembly_area_temperature.log',$
+'/scratch/rsiverd/environment/20160901--assembly_area_temperature.log']
 
 
 openr,iun,files(ifil),/get_lun
