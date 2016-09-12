@@ -28,7 +28,8 @@ nodbase
                               2nd char: 0 = normal, 1 = ok for 'blind' standard
             obs.csv (?)
             ccds.csv
-            spectrographs.csv
+            spectrographs.csv --  *** configuration data per spectrograph
+            rv.csv -- *** output of radial_velocity.pro
         dark -- *** dark standard files
         diag -- *** diagnostic plots for inclusion in "real" DB
         expm -- *** output of expmeter.pro
@@ -41,6 +42,50 @@ nodbase
         zero -- *** ZERO standard files
     temp
         ***temporary data storage during reduction 
+
+################################################################
+General comments about the code
+
+These routines are intended for use with the NRES spectrographs, and also
+with the NRES prototype, which is installed at BOS = Byrne Observatory at
+Sedgwick.  The prototype and the final NRES spectrographs differ in
+significant ways: different optics (including different gratings), different
+fiber configurations, and different detectors (including different detector
+formats, eg 2K x 2K vs 4K x 4K.  The NRES units are more homogeneous, but
+because of differing site setups, even they differ with respect to the number 
+of active star fibers (1 or 2), and all units have slightly different realized
+spectrograph configuration parameters (grating angle of incidence, collimator
+focal length, etc.).  These various configuration differences account for much 
+of the complexity in the code.
+
+The code is organized as a number of more-or-less independent processing
+steps that communicate through common blocks.  The main routine (muncha.pro)
+calls the various processing modules in sequence, details depending on the
+type (BIAS, DARK, FLAT, TARGET, or DOUBLE) of the input data file.  Routine
+muncha.pro operated on one input file at a time;  to deal with a list or
+queue of input files, it requires some kind of wrapper routine 
+(eg run_muncha0.pro).
+
+By default, each processing step within muncha.pro writes output files
+(in simple FITS or in binary-table FITS format) to particular subdirectories
+of the root directory.  These files are mostly intended for debugging and error-
+tracing; the code does not go back to read them in the course of normal data
+processing.  Exceptions to this rule involve calibration files of various sorts
+(BIAS, DARK, FLAT, TRACE, TRIPLE, ZERO).  For processing, these are normally
+supercal files, constructed from appropriate averages over single calibration
+images by routines found in code/offline;  these routines are managed by
+routine calibproc.pro, not from muncha.pro.
+
+The code uses a few comma-separated-variable (csv) ascii files living
+in subdirectory reduced/csv, as lightweight databases. These keep track of what 
+calibration data exist (standards.csv, zeros.csv), and which individual 
+calibration images have been combined into supercals (combined.csv).  
+Other .csv files are used more as searchable configuration files, holding 
+instrument- or target-specific information that will change seldom if at all.  
+These include ccds.csv, spectrographs.csv, and targets.csv.
+File rv.csv contains per-image summary data from the radial-velocity analysis,
+and is intended to provide data for constructing time series of final or
+near-final results, mostly for debugging.
 
 ################################################################
 Definitions:
@@ -99,6 +144,9 @@ filname = original filename ('ORIGNAME') of the input data file
 dat = raw science data array
 dathdr = header for raw input main data segment
 cordat = corrected (for bias, dark, background) and trimmed science data image
+varmap = 2D estimate of variance in corrected image
+corspec = corrected (for flat field) extracted spectrum (nx,nord,nfib)
+
 expmdat = exposure meter data segment of input data file
 expmhdr = exposure meter header segment 
 agu1 = AGU1 data segment of input data file
@@ -188,6 +236,24 @@ tharred = structure containing data relating to the thar processing
 crossred = structure containing data relating to the cross-correl processing
 
 rvred = structure containing data relating to the radial velocity processing
+  rroa = weighted avg of fitted stellar redshifts over orders
+  rrom = median of fitted stellar redshift over selected orders, blocks
+  rroe
+  rro(2,nord,nblock) = redshift vs fiber, order, block (dimensionless)
+  erro(2,nord,nblock) = formal uncertainty in rro (redshift units)
+  aao(2,nord,nblock) = intensity scale factor vs fiber, order block (dimenless)
+  eaao(2,nord,nblock) = formal uncertainty in aao
+  bbo(2,nord,nblock) = intensity x deriv parameter vs fiber, order, block
+  ebbo(2,nord,nblock) = formal uncertainty in bbo
+  pldpo(2,nord,nblodk) = photon-limited doppler precision (km/s) vs fiber,
+                         order, block
+  ccmo(2,801) = Mg b order cross-correl vs lag (pixels) for each fiber
+  delvo(2,801) = velocity vs lag in pixels for each fiber
+  rvvo(2) = estimated radial velocity (km/s) for each fiber, w/o barycen corr
+  rcco(2) = estimated cross-correl-derived redshift (dimensionless), per fiber,
+            before barycentric correction
+  ampcco(2) = amplitude of cross-correl peak, per fiber, in range [0,1]
+  widcco(2) = width of cross-correl peak, per fiber in pixel (delvo) units
 
 spclassred = structure containing data relating to the spectral classification
 
@@ -195,6 +261,8 @@ verbose = variable governing the amount of diagnostic data printed
 
 ###############################################################
 Contents of thar_comm common block
+
+This common block is used by routines that determine the wavelength solution.
 
 mm_c = array containing diffraction order number for each extracted order
 grspc_c = grating groove spacing in micron
@@ -287,15 +355,8 @@ char1: Used in select_std to identify ZERO calibration files that are vetted
        file that is tailored to them.
        0 -> not a standard
        1 -> a standard
-char2: Used for FLAT and DOUBLE files to show which fibers are active.
+char2: Used for FLAT, DOUBLE, TRIPLE files to show which fibers are active.
        1 -> [0,1]
        2 -> [1,2]
        3 -> [0,1,2]
-   For TRIPLE files, char2 is interpreted similarly:
-       1 -> TRIPLE made from a single DOUBLE, with fibers [0,1] active
-       2 ->               ditto                           [1,2] active
-       3 -> TRIPLE made from combination of [0,1] and [1,2] files
-   TRIPLEs are not made from files with 3 fibers active.
-   Averaged TRIPLE files are always made from inputs with the same flag char2
-   values, hence retain the flags from their inputs.
 char3:  Unused

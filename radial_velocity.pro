@@ -180,15 +180,18 @@ for i=0,1 do begin
 ; Do robust average of redshift over blocks.  Estimate avg, uncertainty.
     rrot=rro(i,*,*)
     errot=erro(i,*,*)
-    sz=where(rrot ne 0.,nsz)
+    sz=where((rrot ne 0.) and (errotg ne 0.),nsz)
     if(nsz ne 0) then begin
-      quartile,rrot(sz),medro,qro,dqro
-      dif=rrot-medro
+      rrotg=rrot(sz)
+      errotg=errot(sz)
+      quartile,rrotg,medro,qro,dqro
+      dif=rrotg-medro
       sg=where(abs(dif) le 4.*dqro/1.35,nsg)
       if(nsg gt 0) then begin
-        rroa(i)=total(rrot(sg)/(errot(sg)^2))/total(1./(errot(sg)^2))
-        rrom(i)=median(rrot(sg))
-        rroe(i)=1./sqrt(total(1./errot(sg)^2))
+        rroa(i)=total(rrotg(sg)/(errotg(sg)^2))/total(1./(errotg(sg)^2))
+        rrom(i)=median(rrotg(sg))
+        rroe(i)=1./sqrt(total(1./errotg(sg)^2))
+        if(~finite(rroa(i))) then stop
       endif else begin
         rroa(i)=0.d0
         rrom(i)=0.d0
@@ -239,7 +242,7 @@ endfor
 
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcc0:rcco,ampcco:ampcco,widcco:widcco}
+       rcco:rcco,ampcco:ampcco,widcco:widcco}
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
