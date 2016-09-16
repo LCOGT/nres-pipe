@@ -11,6 +11,6 @@ zna=0.05792105d0/(238.0185d0-nam2) + 0.00167917d0/(57.362d0-nam2)
 
 zair=zs*z0/zna
 
-return,lam/(1.d0+zair)
+return,lam*(1.d0+zair)
 
 end

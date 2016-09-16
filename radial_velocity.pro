@@ -180,7 +180,7 @@ for i=0,1 do begin
 ; Do robust average of redshift over blocks.  Estimate avg, uncertainty.
     rrot=rro(i,*,*)
     errot=erro(i,*,*)
-    sz=where((rrot ne 0.) and (errotg ne 0.),nsz)
+    sz=where((rrot ne 0.) and (errot ne 0.),nsz)
     if(nsz ne 0) then begin
       rrotg=rrot(sz)
       errotg=errot(sz)

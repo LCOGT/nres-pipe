@@ -114,9 +114,13 @@ lam=(d/mmo)*(sinalpo-sinbet)*cosgamo
 
 ; correct lambda for ambient refractive index
 if(keyword_set(air)) then begin
-  lam=airlam(lam,z0)
+; lam=airlam(lam,z0)
+  lam=airlam(lam,-2*z0)    ; gives vacuum lam, assuming optical path n = 1+z0
+; ####### The factor of 2 in the above line is symptomatic of a big problem ####
+
 endif else begin
-  lam=lam*(1.+z0)
+; lam=lam*(1.+z0)
+  lam=lam/(1.+z0)         ; gives rest frame lam, assuming source shifted by z0
 endelse
 
 ; convert lam to nm

@@ -152,13 +152,15 @@ for iter=0,1 do begin
   endif
 
   datparms={nx:nx,cowid:cowid,nord:nord,nfib:nfib,mfib:mfib,remain:remain}
-  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,exintn,exsig,exdy
+  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,exintn,exsig,exdy,excon
 
 ; subtract profile*intensity from observations, look for high-sigma outliers
+  prodc=rebin(reform(excon,nx,1,nord,mfib),nx,cowid,nord,mfib)
   prod0=fprofile*rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
   prod1=dfpdy*rebin(reform(exdy,nx,1,nord,mfib),nx,cowid,nord,mfib)*$
           rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
-  diff=ebox-prod0-prod1
+  diff=ebox-prodc-prod0-prod1
+stop
   diffe=ebox(*,1:cowid-2,*,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord,mfib)
   for i=0,nord-1 do begin
@@ -182,7 +184,7 @@ for iter=0,1 do begin
   endif
 
 ; redo the intensity estimates to account for cosmics.
-  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,spectrum,specrms,specdy
+  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,spectrum,specrms,specdy,specon
 
 endfor
 
@@ -193,7 +195,8 @@ if(ix eq 0) then spectrum(nx-1,*,*)=spectrum(nx-2,*,*)
 ; useful values go into common structure echdat, including a lot of
 ; place-holding nulls, to be filled in by calib_extract.
 nelectron=reform(nx*nord*rebin(spectrum,1,1,mfib))
-echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specwid:mom2,$
+echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specon:specon,$
+    specwid:mom2,$
     diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjd:0.d0,origname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
     nelectron:nelectron,craybadpix:nsbad}

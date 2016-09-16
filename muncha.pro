@@ -94,6 +94,7 @@ case type of
   'TARGET': begin
   if(verbose) then print,'###TARGET block'
   calib_extract,flatk=0
+stop
   autoguider
   expmeter
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip

@@ -104,8 +104,8 @@ for i=0,nplot-1 do begin
      grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
       coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
   xx=pixsiz_c*(findgen(nx_c)-nx_c/2.)
-;  lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m,/air          ; air wavelengths
-   lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m          ; vacuum wavelengths
+   lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m,/air          ; air wavelengths
+;  lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m          ; vacuum wavelengths
 
 ; get wavelengths and fluxes for the desired plots and plot intervals
   ist=iplot-fib0
@@ -127,6 +127,8 @@ for i=0,nplot-1 do begin
   zstar=rvindat.zstar(*,*,ip2)
   zlam=rvindat.zlam(*,*,ip2)
   get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z,/norm ; Mg b zero spec
+; convert lam0z to air wavelengths
+  lam0z=airlam(lam0z,-z0_c)
 
 ; shifts and cross-correlation values for plots 1 & 2.
   x1=rvred.delvo(ip2,*)
