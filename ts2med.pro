@@ -41,18 +41,18 @@ for i=0,nt-1 do begin
   u1=rr(1,*,6:11)         ; data from upper half of blocks
   s0=where(u0 ne 0.,ns0)  ; u0 maybe good
   t0=where(u0 eq 0.,nt0)  ; u0 already flagged as bad
-  s1=where(u1 ne 0.,ns0)  ; u1 maybe good
+  s1=where(u1 ne 0.,ns1)  ; u1 maybe good
   t1=where(u1 eq 0.,nt1)  ; u1 already flagged as bad
   p0=pbad(*,0:5)
   if(nt0 gt 0) then p0(t0)=1.  ; =1 if bad order or bad data point
   p1=pbad(*,6:11)
   if(nt1 gt 0) then p1(t1)=1.  ; =1 if bad order or bad data point
-  ts2(i,0)=median(u0(s0))
-  ts2(i,1)=median(u1(s1))
-  s2=where(p0 eq 0)   ; points in u0 that are neither 0 or bad order
-  s3=where(p1 eq 0)   ; ditto for u1
-  ts2(i,2)=median(u0(s2))
-  ts2(i,3)=median(u1(s3))
+  if(ns0 gt 0) then ts2(i,0)=median(u0(s0)) else ts2(i,0)=0.
+  if(ns1 gt 0) then ts2(i,1)=median(u1(s1)) else ts2(i,0)=0.
+  s2=where(p0 eq 0,ns2)   ; points in u0 that are neither 0 or bad order
+  s3=where(p1 eq 0,ns3)   ; ditto for u1
+  if(ns2 gt 0) then ts2(i,2)=median(u0(s2)) else ts2(i,2)=0.
+  if(ns3 gt 0) then ts2(i,3)=median(u1(s3)) else ts2(i,3)=0.
   roall(*,*,i)=reform(rr(1,*,*))
 endfor
 

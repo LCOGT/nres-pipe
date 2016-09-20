@@ -72,7 +72,7 @@ endfor
 ; iplot0 is the first fiber index to plot, one of {0,2}
 ; nplot is the number of fibers with starlight, one of {1,2}
 if(nobj eq 2) then begin
-  if(objecst(0) ne 'THAR' and objects(1) ne 'THAR') then begin
+  if(objects(0) ne 'THAR' and objects(1) ne 'THAR') then begin
     print,'FAIL in plot_quick:  no ThAr fiber'
     goto,fini
   endif else begin

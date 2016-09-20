@@ -94,7 +94,7 @@ case type of
   'TARGET': begin
   if(verbose) then print,'###TARGET block'
   calib_extract,flatk=0
-stop
+;stop
   autoguider
   expmeter
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
@@ -104,6 +104,7 @@ stop
 ; spec_classify
 ; obs2txt                ; writes all metadata to obs.txt
   plot_quick             ; writes quick-look postscript plot
+  plot_qc                ; writes extract and thar quality control plot
   end
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv

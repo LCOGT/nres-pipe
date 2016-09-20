@@ -160,7 +160,7 @@ for iter=0,1 do begin
   prod1=dfpdy*rebin(reform(exdy,nx,1,nord,mfib),nx,cowid,nord,mfib)*$
           rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
   diff=ebox-prodc-prod0-prod1
-stop
+;stop
   diffe=ebox(*,1:cowid-2,*,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord,mfib)
   for i=0,nord-1 do begin
