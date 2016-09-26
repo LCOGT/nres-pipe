@@ -37,42 +37,41 @@ fprofile=sprofile
 ;dfpdy=rebin(dfpdy,nx,cowid,nord,mfib)
 ;dfpdy=dfpdy(0:nx-1,*,*,*)
 ; now make cross-dispersion sums of products for use in the fit
-acc=reform(cowid*rebin(unity^2*ewts,nx,1,nord,mfib))
-ac0=reform(cowid*rebin(unity*fprofile*ewts,nx,1,nord,mfib))
-a0c=ac0
-ac1=reform(cowid*rebin(unity*dfpdy*ewts,nx,1,nord,mfib))
-a1c=ac1
+;acc=reform(cowid*rebin(unity^2*ewts,nx,1,nord,mfib))
+;ac0=reform(cowid*rebin(unity*fprofile*ewts,nx,1,nord,mfib))
+;a0c=ac0
+;ac1=reform(cowid*rebin(unity*dfpdy*ewts,nx,1,nord,mfib))
+;a1c=ac1
 a00=reform(cowid*rebin(fprofile^2*ewts,nx,1,nord,mfib))
 a01=reform(cowid*rebin(fprofile*dfpdy*ewts,nx,1,nord,mfib))
 a10=a01
 a11=reform(cowid*rebin(dfpdy^2*ewts,nx,1,nord,mfib))
-yc=reform(cowid*rebin(unity*ebox*ewts,nx,1,nord,mfib))
+;yc=reform(cowid*rebin(unity*ebox*ewts,nx,1,nord,mfib))
 y0=reform(cowid*rebin(fprofile*ebox*ewts,nx,1,nord,mfib))
 y1=reform(cowid*rebin(dfpdy*ebox*ewts,nx,1,nord,mfib))
 ; solve the linear equations by determinents, vector-wise
-;det=a00*a11-a01*a01
-;d1=y0*a11-a01*y1
-;d2=a00*y1-y0*a01
-det=acc*(a00*a11-a01*a10) - ac0*(a0c*a11-a01*a1c) + ac1*(a0c*a10-a00*a1c)
-;dc=yc*(a00*a11-a01*a10) - ac0*(y0*a11-a01*y1) + ac1*(y0*a1c-a00*y1)
-;d0=acc*(y0*a11-a01*y1) - yc*(a0c*a11-a01*a1c) + ac1*(a0c*y1-y0*a1c)
-;d1=acc*(a00*y1-y0*a01) - ac0*(a0c*y1-y0*a1c) + y0*(a0c*a10-a00*a1c)
-dc=yc*(a00*a11-a10*a01) - y0*(a0c*a11-a1c*a01) + y1*(a0c*a10-a1c*a00)
-d0=acc*(y0*a11-a10*y1) - ac0*(yc*a11-a1c*y1) + ac1*(yc*a10-a1c*y0)
-d1=acc*(a00*y1-y0*a01) - ac0*(a0c*y1-yc*a01) + ac1*(a0c*y0-yc*a00)
+det=a00*a11-a01*a01
+d1=y0*a11-a01*y1
+d2=a00*y1-y0*a01
+;det=acc*(a00*a11-a01*a10) - ac0*(a0c*a11-a01*a1c) + ac1*(a0c*a10-a00*a1c)
+;dc=yc*(a00*a11-a10*a01) - y0*(a0c*a11-a1c*a01) + y1*(a0c*a10-a1c*a00)
+;d0=acc*(y0*a11-a10*y1) - ac0*(yc*a11-a1c*y1) + ac1*(yc*a10-a1c*y0)
+;d1=acc*(a00*y1-y0*a01) - ac0*(a0c*y1-yc*a01) + ac1*(a0c*y0-yc*a00)
 
 ; make output arrays, and nominal displacement of order from box center
 s=where(det ne 0.,ns)
 excon=fltarr(nx,nord,mfib)
-excon(s)=dc(s)/det(s)
+;excon(s)=dc(s)/det(s)
 exintn=fltarr(nx,nord,mfib)
-exintn(s)=d0(s)/det(s)
+exintn(s)=d1(s)/det(s)
 exsig=fltarr(nx,nord,mfib)
 exdy=fltarr(nx,nord,mfib)
-exdy(s)=d1(s)/det(s)
+exdy(s)=d2(s)/det(s)
 s1=where(exintn ne 0.)
 exdy(s1)=exdy(s1)/exintn(s1)             ; puts exdy in pixel units
 svbox=cowid*reform(rebin(vbox,nx,1,nord,mfib),nx,nord,mfib)
 exsig(s)=sqrt(svbox(s))
+
+stop
 
 end

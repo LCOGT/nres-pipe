@@ -85,6 +85,4 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov
     return,rhs
     end
 
-stop
-
   end

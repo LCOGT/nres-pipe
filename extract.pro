@@ -60,7 +60,7 @@ for i=0,nord-1 do begin
       for k=0,cowid-1 do begin
         sy=ny*(ordbot(s,i,j)+k) + x(s)
         ebox(s,k,i,j)=cordat(sy)
-        vbox(s,k,i,j)=varmap(sy)
+        vbox(s,k,i,j)=varmap(sy)    ; contains variance from background est.
       endfor
     endfor
   endif
@@ -81,8 +81,13 @@ for iter=0,1 do begin
   mom1(s0)=mom1(s0)/mom0(s0)
   mom2(s0)=sqrt(mom2(s0)/mom0(s0) > 0.)
 
-; make expected fractional pixel shift of profile from order center
-  orddy=ordvec-ordbot-cowid/2.
+; make estimated pixel shift of obsd profile from order center, averaged
+; over orders, using only illuminated stellar orders.  A scalar value.
+  dymed=dymedian(mom0,mom1)
+
+; make expected fractional pixel shift of profile from order center,
+; corrected by dymed
+  orddy=ordvec-ordbot-cowid/2.+dymed
 
 ; make estimate of cross-dispersion profile, corrected for estimated shifts
 ; make one such profile per extraction block.  (This is arbitrary, may want
@@ -93,6 +98,8 @@ for iter=0,1 do begin
 ; with interpolation weights in wtsfall
   profall=fltarr(nx,cowid+4,nord,mfib)    ; to hold shifted obs'd profiles
   wtsfall=fltarr(nx,cowid+4,nord,mfib)    ; to hold weights for each cowid row
+
+stop
 
 ; now average results over x, within blocks.  Add zeros at end of x range
 ; to make nx divisible by nblock, if needed
@@ -127,12 +134,14 @@ for iter=0,1 do begin
         sy=nx*(k+1-iddy(s))+s
         sprofile(s,k,i,j)=tofprofile(sy)*(-sddy) + $
                           tofprofile(sy+nx)*(1.+sddy)
-        spwts(s,k,i,j)=tofwts(sy)*(-sddy) + $
-                       tofwts(sy+nx)*(1.+sddy)
+;       spwts(s,k,i,j)=tofwts(sy)*(-sddy) + $
+;                      tofwts(sy+nx)*(1.+sddy)
       endfor
     endfor
   endfor
-    
+        ; contains variance from background est.
+stop
+
 ; make cross-dispersion derivative of profiles
   dfpdy=fltarr(nx,cowid,nord,mfib)
   for i=0,nx-1 do begin
@@ -143,9 +152,12 @@ for iter=0,1 do begin
     endfor
   endfor
 
+stop
+
 ; make optimal extraction weights, but only on the first iteration
   if(iter eq 0) then begin
-    ewts=1./((ebox > 1.)^.65+rn)     ; gain in e-/ADU, rn in e-
+;   ewts=1./((ebox > 1.)^.65+rn)     ; gain in e-/ADU, rn in e-
+    ewts=sprofile^2/(vbox > 1.)      ; optimum a la Horne
 ;   ewts=fltarr(nx,cowid,nord,mfib)+1. ; try constant weights
 ;   ewts(*,0,*,*)=0.                   ; don't fit to boundary points in profile
 ;   ewts(*,cowid-1,*,*)=0.
@@ -155,12 +167,12 @@ for iter=0,1 do begin
   extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,exintn,exsig,exdy,excon
 
 ; subtract profile*intensity from observations, look for high-sigma outliers
-  prodc=rebin(reform(excon,nx,1,nord,mfib),nx,cowid,nord,mfib)
-  prod0=fprofile*rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
+; prodc=rebin(reform(excon,nx,1,nord,mfib),nx,cowid,nord,mfib)
+  prod0=sprofile*rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
   prod1=dfpdy*rebin(reform(exdy,nx,1,nord,mfib),nx,cowid,nord,mfib)*$
           rebin(reform(exintn,nx,1,nord,mfib),nx,cowid,nord,mfib)
-  diff=ebox-prodc-prod0-prod1
-;stop
+  diff=ebox-prod0-prod1
+stop
   diffe=ebox(*,1:cowid-2,*,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord,mfib)
   for i=0,nord-1 do begin
@@ -176,11 +188,13 @@ for iter=0,1 do begin
 
 ; if iter=0, redo optimal extraction weights, 
   if(iter eq 0) then begin
-    ewts=1./((ebox > 1.)^.65+rn)
-    wts=fltarr(nx,cowid,nord,mfib)+1. 
+    modlvar=(prod0+prod1)*gain+rn^2
+    ewts=sprofile^2/modlvar
+;   ewts=1./((ebox > 1.)^.65+rn)
+;   wts=fltarr(nx,cowid,nord,mfib)+1. 
 ;   ewts(*,0,*,*)=0.                   ; don't fit to boundary points in profile
 ;   ewts(*,cowid-1,*,*)=0.
-    ewts(sbad)=0.                  ; give no weight to adjusted data points
+    if(nsbad gt 0) then ewts(sbad)=0.  ; give no weight to adjusted data points
   endif
 
 ; redo the intensity estimates to account for cosmics.
