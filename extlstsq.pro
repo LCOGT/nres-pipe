@@ -1,4 +1,5 @@
-pro extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,exintn,exsig,exdy,excon
+pro extlstsq,sprofile,dfpdy,d2fpdy2,ebox,vbox,ewts,datparms,exintn,exsig,$
+    exdy,excon,exdy2
 ; This routine performs the weighted least-squares fit to estimate total
 ; counts across the order profiles, and shift of the profiles relative to
 ; the extraction box centers.  On input
@@ -34,6 +35,24 @@ unity=fltarr(nx,cowid,nord,mfib)+1.
 ;fprofile=rebin(rprofile,nx+remain,cowid,nord,mfib)
 ;fprofile=fprofile(0:nx-1,*,*,*)
 fprofile=sprofile
+
+; renormalize profiles so that total(profile(y)^2) is constant for all x
+; This is necessary because the profile interpolation process results in
+; profiles of slightly different width, depending on what fraction of a
+; a pixel they are shifted by. This in turn leads to variable response to
+; the same optical profile, as a function of distance from profile center
+; to pixel center coord.
+;
+fprof2=cowid*rebin(fprofile^2,nx,1,nord,mfib)
+fprof2=rebin(fprof2,nx,cowid,nord,mfib)
+mpro2=fltarr(nord,mfib)
+for i=0,nord-1 do begin
+  for j=0,mfib-1 do begin
+    mpro2(i,j)=median(fprof2(*,0,i,j))
+    fprofile(*,*,i,j)=fprofile(*,*,i,j)*mpro2(i,j)/fprof2(*,*,i,j)
+  endfor
+endfor
+
 ;dfpdy=rebin(dfpdy,nx,cowid,nord,mfib)
 ;dfpdy=dfpdy(0:nx-1,*,*,*)
 ; now make cross-dispersion sums of products for use in the fit

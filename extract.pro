@@ -10,6 +10,16 @@ pro extract,ierr
 ; All inputs and outputs come from and go back to the nres common block;
 ; outputs are mostly in the structure echdat.
 ;
+; The procedure varies, depending on what kind and quality of data are
+; present in the input image:
+; If all illuminated fibers are ThAr, or if no illuminated fiber has a median
+; signal above a threshold, then the trace positions are taken
+; from the identified trace file, without modification.
+; If one or more fibers are identified as 'target' or 'flat', and at least one
+; has a signal above threshold, then the fiber with the greatest signal
+; is used to estimate the mean order shift in the cross-dispersion direction,
+; and this shift is applied to the trace positions for all fibers.
+
 ; extracta is modified from extract in two ways:
 ; (1) The position of the extracted cross-dispersion profile is taken to be
 ; fixed.  Hence cross-dispersion moment mom1 is not used to modify the
@@ -40,13 +50,17 @@ gain=1.8        ; CCD gain in e-/ADU
 rn=7.           ; read noise in e-
 sigc=10.         ; threshold for bad data (cosmics), in sigma
 
+; determine whether to fit for trace cross-disp shift.  If so, which fiber 
+; to use to estimate this shift.
+
+
 ; make arrays containing the data from the extraction boxes specified in trace,
 ; and the variance map in the same boxes.
 ; also the nominal displacement of the order center from the center of the
 ; extraction box, and the order rms width
 ebox=fltarr(nx,cowid,nord,mfib)
 vbox=fltarr(nx,cowid,nord,mfib)
-ordbot=long(ordvec-ord_wid/2)             ; bottom boundaries of order boxes
+ordbot=round(ordvec-cowid/2.)          ; bottom boundaries of order boxes
 ordtop=ordbot+cowid-1                  ; top boundary ditto.
 
 ; strip out the desired data
@@ -66,11 +80,17 @@ for i=0,nord-1 do begin
   endif
 endfor
 
-; do a pass with raw intensity data, identify likely cosmic rays, iterate.
-for iter=0,1 do begin
+; do two iterations with raw intensity data, first estimating cross-
+; dispersion shifts from moments, then with y-derivative of profile.  
+; Then fit for 2nd derivative to allow for width variations, and make
+; model profile.  Use residuals to identify likely cosmic rays.
+; Last, do the final fit with frozen shifts, width corrections, to estimate 
+; profile intnsity.
+for iter=0,3 do begin
 
 ; make arrays with raw intensity, shift (1st moment) and width (2nd moment)
-  yy=rebin(reform((findgen(cowid)-cowid/2.),1,cowid),nx,cowid)
+  yy=rebin(reform((findgen(cowid)-cowid/2.+0.5),1,cowid),nx,cowid)
+; yy contains the pixel coords of the centers of pixels
   yy=reform(yy,nx,cowid,1,1)
   yy=rebin(yy,nx,cowid,nord,mfib)
   yy2=yy^2
@@ -82,7 +102,8 @@ for iter=0,1 do begin
   mom2(s0)=sqrt(mom2(s0)/mom0(s0) > 0.)
 
 ; make estimated pixel shift of obsd profile from order center, averaged
-; over orders, using only illuminated stellar orders.  A scalar value.
+; over orders, using only fiber selected above, and only illuminated stellar 
+; orders.  A scalar value.
   dymed=dymedian(mom0,mom1)
 
 ; make expected fractional pixel shift of profile from order center,
@@ -98,8 +119,6 @@ for iter=0,1 do begin
 ; with interpolation weights in wtsfall
   profall=fltarr(nx,cowid+4,nord,mfib)    ; to hold shifted obs'd profiles
   wtsfall=fltarr(nx,cowid+4,nord,mfib)    ; to hold weights for each cowid row
-
-stop
 
 ; now average results over x, within blocks.  Add zeros at end of x range
 ; to make nx divisible by nblock, if needed
@@ -140,14 +159,18 @@ stop
     endfor
   endfor
         ; contains variance from background est.
-stop
 
-; make cross-dispersion derivative of profiles
+; make cross-dispersion derivatives of profiles
   dfpdy=fltarr(nx,cowid,nord,mfib)
+  d2fpdy2=fltarr(nx,cowid,nord,mfib)
   for i=0,nx-1 do begin
     for j=0,nord-1 do begin
       for k=0,mfib-1 do begin
-        dfpdy(i,*,j,k)=reform(deriv(sprofile(i,*,j,k)),1,cowid)
+        py=sprofile(i,*,j,k)
+        dpydy=deriv(py)
+        d2pydy2=deriv(dpydy)
+        dfpdy(i,*,j,k)=reform(dpydy,1,cowid)
+        d2fpdy2(i,*,j,k)=reform(d2pdy2,1,cowid)
       endfor
     endfor
   endfor
@@ -164,7 +187,8 @@ stop
   endif
 
   datparms={nx:nx,cowid:cowid,nord:nord,nfib:nfib,mfib:mfib,remain:remain}
-  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,exintn,exsig,exdy,excon
+  extlstsq,sprofile,dfpdy,d2fpdy2,ebox,vbox,ewts,datparms,exintn,exsig,$
+    exdy,excon,exdy2
 
 ; subtract profile*intensity from observations, look for high-sigma outliers
 ; prodc=rebin(reform(excon,nx,1,nord,mfib),nx,cowid,nord,mfib)

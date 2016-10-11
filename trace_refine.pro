@@ -15,7 +15,7 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg
 ; which is dimensioned tracprof(nc,nord,nfib,nblock+1)
 ; where nc is (cowid > nleg).
 ; tracprof(0:nleg-1,*,*,0) contains trace legendre coeffs trace1(nleg,nord,nfib)
-; tracprof(0:cowid-1,*,*,1:nblock-1) contains cross-dispersion profile functions
+; tracprof(0:cowid-1,*,*,1:nblock) contains cross-dispersion profile functions
 ;  prof1(cowid,nord,nfib,nblock)
 ; For fibers that are not illuminated (as indicated by fib0,fib1, and the
 ; number of input files), all corresponding tracprof values are set to zero.
@@ -143,7 +143,7 @@ endif
 tdy=1.e9                              ; total rms y displacement
 for iter=0,itermax do begin
 
-  ordbot=long(ord_vectors-ord_wid/2)         ; bottom boundaries of order boxes
+  ordbot=round(ord_vectors-cowid/2.)     ; bottom boundaries of order boxes
   ordbota=ordbot
   orddy=ord_vectors-ordbot-cowid/2.
   ordtop=ordbot+cowid-1                  ; top boundary ditto.
@@ -232,8 +232,6 @@ for iter=0,itermax do begin
   for i=0,nord-1 do begin
     for j=0,nfib-1 do begin
       if(j ne zdark) then begin
-        print,j,i
-        if(j eq 0 and i eq 62) then stop
         cc=lstsqr(mom1(*,i,j),legs,wtss(*,i,j),nleg,rms,chisq,outp,1,cov)
         trace1(*,i,j)=trace1(*,i,j)+cc
         rmsa(i,j)=rms
@@ -244,7 +242,8 @@ for iter=0,itermax do begin
 ; print rms deviation
   trms=total(abs(rmsa(0:nord-3,*)))
   print,'total rms =',trms
-  if(abs(tdy-trms) le .01) then goto,done
+  if(trms gt tdy or abs(tdy-trms) le .01) then goto,done
+  tdy=trms
   
 ; make new ord_vectors, except for last iter
   if(iter ne itermax) then order_cen,trace1,ord_vectors
@@ -258,16 +257,39 @@ done:
 
 ; interpolate and scrunch values in ebox1, ebox2 to yield estimates of
 ; cross-dispersion profiles, on a per-block basis.
-ordbot=long(ord_vectors-ord_wid/2)
-dy=ord_vectors(*,*,0:nfib-1)-ord_wid/2-ordbot(*,*,0:nfib-1)    ; in range [0,1]
+ordbot=round(ord_vectors-cowid/2.)
+dy=ord_vectors(*,*,0:nfib-1)-cowid/2.-ordbot(*,*,0:nfib-1)  ; in range [-.5,.5]
 dyr=rebin(reform(dy,nx,1,nord,nfib),nx,cowid,nord,nfib)
+sp=where(dyr ge 0.,nsp)
+sm=where(dyr lt 0.,nsm)
 ebox1e=fltarr(nx,cowid+2,nord,nfib)
 if(ninfil eq 2) then ebox2e=fltarr(nx,cowid+2,nord,nfib)
 ebox1e(*,1:cowid,*,*)=ebox1
 if(ninfil eq 2) then ebox2e(*,1:cowid,*,*)=ebox2
-ebox1i=ebox1e(*,0:cowid-1,*,*)*(1.-dyr) + ebox1e(*,1:cowid,*,*)*dyr
-if(ninfil eq 2) then ebox2i=ebox2e(*,0:cowid-1,*,*)*(1.-dyr) + $ 
-    ebox2e(*,1:cowid,*,*)*dyr
+
+; set up subarrays to facilitate interpolation
+ebox1em=ebox1e(*,0:cowid-1,*,*)
+ebox1e0=ebox1e(*,1:cowid,*,*)
+ebox1ep=ebox1e(*,2:cowid+1,*,*)
+if(ninfil eq 2) then begin
+  ebox2em=ebox2e(*,0:cowid-1,*,*)
+  ebox2e0=ebox2e(*,1:cowid,*,*)
+  ebox2ep=ebox2e(*,2:cowid+1,*,*)
+endif
+
+ebox1i=fltarr(nx,cowid,nord,nfib)
+ebox2i=fltarr(nx,cowid,nord,nfib)
+if(nsm gt 0) then ebox1i(sm)=ebox1em(sm)*(-dyr(sm))+ebox1e0(sm)*(1.+dyr(sm))
+if(nsp gt 0) then ebox1i(sp)=ebox1e0(sp)*(1.-dyr(sp))+ebox1ep(sp)*dyr(sp)
+if(ninfil eq 2) then begin
+  if(nsm gt 0) then ebox2i(sm)=ebox2em(sm)*(-dyr(sm))+$
+                     ebox2e0(sm)*(1.+dyr(sm))
+  if(nsp gt 0) then ebox2i(sp)=ebox2e0(sp)*(1.-dyr(sp))+$
+                     ebox2ep(sp)*(dyr(sp))
+endif
+;ebox1i=ebox1e(*,1:cowid,*,*)*(1.-dyr) + ebox1e(*,2:cowid+1,*,*)*dyr
+;if(ninfil eq 2) then ebox2i=ebox2e(*,1:cowid,*,*)*(1.-dyr) + $ 
+;   ebox2e(*,2:cowid+1,*,*)*dyr
 
 ; sum the valid fibers of ebox1i and ebox2i
 eboxsi=fltarr(nx,cowid,nord,nfib)
