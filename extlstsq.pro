@@ -129,27 +129,6 @@ end
 
 endcase
 
-;acc=reform(cowid*rebin(unity^2*ewts,nx,1,nord,mfib))
-;ac0=reform(cowid*rebin(unity*fprofile*ewts,nx,1,nord,mfib))
-;a0c=ac0
-;ac1=reform(cowid*rebin(unity*dfpdy*ewts,nx,1,nord,mfib))
-;a1c=ac1
-;a00=reform(cowid*rebin(fprofile^2*ewts,nx,1,nord,mfib))
-;a01=reform(cowid*rebin(fprofile*dfpdy*ewts,nx,1,nord,mfib))
-;a10=a01
-;a11=reform(cowid*rebin(dfpdy^2*ewts,nx,1,nord,mfib))
-;yc=reform(cowid*rebin(unity*ebo*ewts,nx,1,nord,mfib))
-;y0=reform(cowid*rebin(fprofile*ebo*ewts,nx,1,nord,mfib))
-;y1=reform(cowid*rebin(dfpdy*ebo*ewts,nx,1,nord,mfib))
-; solve the linear equations by determinents, vector-wise
-;det=a00*a11-a01*a01
-;d1=y0*a11-a01*y1
-;d2=a00*y1-y0*a01
-;det=acc*(a00*a11-a01*a10) - ac0*(a0c*a11-a01*a1c) + ac1*(a0c*a10-a00*a1c)
-;dc=yc*(a00*a11-a10*a01) - y0*(a0c*a11-a1c*a01) + y1*(a0c*a10-a1c*a00)
-;d0=acc*(y0*a11-a10*y1) - ac0*(yc*a11-a1c*y1) + ac1*(yc*a10-a1c*y0)
-;d1=acc*(a00*y1-y0*a01) - ac0*(a0c*y1-yc*a01) + ac1*(a0c*y0-yc*a00)
-
 ; make output arrays, and nominal displacement of order from box center
 exintn=fitc(*,*,0)
 sg=where(exintn gt 0.,nsg)

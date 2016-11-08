@@ -9,7 +9,7 @@ pro plot_qc
 ; echdat.spectrum = intensity integrated across dispersion
 ;  plotted against x values for center 25% of standard order
 ;  median over center 25% of x values plotted vs order number
-; echdat.specon = constant term in cross-dispersion profile fit, medianed
+; echdat.specdy2 = 2md deriv term in cross-dispersion profile fit, medianed
 ;  over center 25% of x values, plotted vs order number
 ; echdat.specdy = displacement of data from extraction block center (pix)
 ;  plotted vs x for standard order (nord*0.4) and
@@ -125,14 +125,14 @@ for i=0,nplot-1 do begin
   ordindx=findgen(nord)
   xtit='Order Index'
   ytit0='Summed Inten (kADU)'
-  ytit1='Constant Val (kADU)'
+  ytit1='2nd Deriv (Normalized)'
   ytit2='Profile dY (pix)'
   tit='Median Over Center 25 Percent'
 
 ; compute the stuff to plot
   medintn=median(echdat.spectrum(xbot:xtop,*,ifib),dimension=1)
   meddy=median(echdat.specdy(xbot:xtop,*,ifib),dimension=1)
-  medcon=median(echdat.specon(xbot:xtop,*,ifib),dimension=1)
+  meddy2=median(echdat.specdy2(xbot:xtop,*,ifib),dimension=1)
   nelecs='nElectron='+string(echdat.nelectron(ifib),format='(e8.2)')
   ncray='CRbadpix='+string(echdat.craybadpix,format='(i5)')
   
@@ -143,8 +143,8 @@ for i=0,nplot-1 do begin
      tit=tit,charsiz=cs0,thick=2
   xyouts,3,0.1*yran(1),nelecs,charsiz=cs1
 
-  yran=[0.,1.05*max(medcon)/1e3]
-  plot,ordindx,medcon/1e3,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
+  yran=[0.,1.05*max(meddy2)]
+  plot,ordindx,meddy2,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
      tit=tit,charsiz=cs0,thick=2
 
   yran=[floor(min(meddy)),ceil(max(meddy))]

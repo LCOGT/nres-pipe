@@ -113,14 +113,22 @@ endelse
 ; Last, do the final fit with frozen shifts, width corrections, to estimate 
 ; profile intnsity.
 
+; set up output data arrays,
 ; loop over fibers, in the order listed in array sobjg.  If the first one,
 ; and if shiftme=1, then compute an offset in y = dymed to be applied to all 
-; fibers and orders.  Otherwise, leave dymed=0. 
+; fibers and orders.  Otherwise, leave dymed value alone
+spectrum=fltarr(nx,nord,mfib)
+specrms=fltarr(nx,nord,mfib)
+specdy=fltarr(nx,nord,mfib)
+specdy2=fltarr(nx,nord,mfib)
+specwid=fltarr(nx,nord,mfib)
 dymed=0.
+
 for ifib=0,mfib-1 do begin
   jfib=sobjg(ifib)
   ebo=ebox(*,*,*,jfib)
   vbo=vbox(*,*,*,jfib)
+
 
 ; make arrays with raw intensity, shift (1st moment) and width (2nd moment)
   yy=rebin(reform((findgen(cowid)-cowid/2.+0.5),1,cowid),nx,cowid)
@@ -135,10 +143,11 @@ for ifib=0,mfib-1 do begin
   mom1(s0)=mom1(s0)/mom0(s0)
   mom2(s0)=sqrt(mom2(s0)/mom0(s0) > 0.)
 
-; make estimated pixel shift of obsd profile from order center, averaged
-; over orders, using only fiber selected above, and only illuminated stellar 
-; orders.  A scalar value.
-  dymed=dymedian(mom0,mom1)
+; estimate an order-independent cross-dispersion shift, if 1st fiber
+; and shiftme is set
+  if(shiftme eq 1 and ifib eq 0) then begin
+    dymed=dymedian(mom0,mom1)
+  endif
 
 ; make expected fractional pixel shift of profile from order center,
 ; corrected by dymed
@@ -188,8 +197,6 @@ for ifib=0,mfib-1 do begin
     endfor
   endfor
 
-stop
-
 ; make cross-dispersion derivatives of profiles
   dfpdy=fltarr(nx,cowid,nord)
   d2fpdy2=fltarr(nx,cowid,nord)
@@ -203,23 +210,14 @@ stop
     endfor
   endfor
 
-stop
-
-; make optimal extraction weights, but only on the first iteration
-;   ewts=1./((ebox > 1.)^.65+rn)     ; gain in e-/ADU, rn in e-
+; make optimal extraction weights
   ewts=sprofile^2/(vbo > 1.)      ; optimum a la Horne
-;   ewts=fltarr(nx,cowid,nord,mfib)+1. ; try constant weights
-;   ewts(*,0,*,*)=0.                   ; don't fit to boundary points in profile
-;   ewts(*,cowid-1,*,*)=0.
 
   datparms={nx:nx,cowid:cowid,nord:nord,nfib:nfib,mfib:mfib,remain:remain}
-
-    nfun=3
-    ifun=[0,2,3]
+  nfun=3
+  ifun=[0,2,3]
 
   extlstsq,sprofile,dfpdy,d2fpdy2,ebo,vbo,ewts,datparms,nfun,ifun,fitc
-
-stop
 
 ; subtract profile*intensity from observations, look for high-sigma outliers
   prod0=sprofile*rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
@@ -228,31 +226,38 @@ stop
   prod3=dfpdy*rebin(reform(fitc(*,*,3),nx,1,nord),nx,cowid,nord)*$
           rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
   diff=ebo-prod0-prod2-prod3
-stop
   diffe=ebo(*,1:cowid-2,*,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord)
   for i=0,nord-1 do begin
       rms(i)=stddev(diffe(*,*,i))   ; ignore outer pix, which get 0 wts
       sbad=where(abs(diffe(*,*,i)) gt sigc*rms(i),nsbad)
-; remove these, identified as cosmics, but only for iter=0
-      if(nsbad gt 0 and iter eq 0) then begin
+; remove these, identified as cosmics
+      if(nsbad gt 0) then begin
 ; ***** put sigma clipping code here.  Changes values in arrays ebo, vbo
       endif
   endfor
 
+; This looks like a bad idea in cases where (eg because of saturation) the
+; real profile is a poor fit to the parameterized one prod0+prod2+prod3.
+; The latter often gives small or negative predicted intensities, hence
+; bad variance estimates.  Comment it out, for now.
 ; if iter=0, redo optimal extraction weights, 
-  if(iter eq 0) then begin
-    modlvar=(prod0+prod1)*gain+rn^2
-    ewts=sprofile^2/modlvar
-;   ewts=1./((ebo > 1.)^.65+rn)
-;   wts=fltarr(nx,cowid,nord,mfib)+1. 
-;   ewts(*,0,*,*)=0.                   ; don't fit to boundary points in profile
-;   ewts(*,cowid-1,*,*)=0.
-    if(nsbad gt 0) then ewts(sbad)=0.  ; give no weight to adjusted data points
-  endif
+; if(iter eq 0) then begin
+;   modlvar=((prod0+prod2+prod3) > 1.)*gain+rn^2
+;   ewts=sprofile^2/modlvar
+;   if(nsbad gt 0) then ewts(sbad)=0.  ; give no weight to adjusted data points
+; endif
 
 ; redo the intensity estimates to account for cosmics.
-  extlstsq,sprofile,dfpdy,ebox,vbox,ewts,datparms,spectrum,specrms,specdy,specon
+; comment out for now, since we have not yet done anything about cosmics.
+; extlstsq,sprofile,dfpdy,d2fpdy2,ebo,vbo,ewts,datparms,nfun,ifun,fitc
+
+; fill in the output arrays for the current fiber
+  spectrum(*,*,jfib)=fitc(*,*,0)
+  specrms(*,*,jfib)=fitc(*,*,4)
+  specdy(*,*,jfib)=fitc(*,*,2)
+  specdy2(*,*,jfib)=fitc(*,*,3)
+  specwid(*,*,jfib)=mom2
 
 endfor
 
@@ -263,8 +268,8 @@ if(ix eq 0) then spectrum(nx-1,*,*)=spectrum(nx-2,*,*)
 ; useful values go into common structure echdat, including a lot of
 ; place-holding nulls, to be filled in by calib_extract.
 nelectron=reform(nx*nord*rebin(spectrum,1,1,mfib))
-echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specon:specon,$
-    specwid:mom2,$
+echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specdy2:specdy2,$
+    specwid:specwid,$
     diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjd:0.d0,origname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
     nelectron:nelectron,craybadpix:nsbad}
