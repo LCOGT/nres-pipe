@@ -27,6 +27,33 @@ filename=strtrim(filin,2)
 dat=readfits(filename,dathdr)
 type=strtrim(sxpar(dathdr,'OBSTYPE'),2)
 
+; #########
+; Hack to accommodate fl09 images from BPL
+; if array is 4095 x 4072, replicate in x and y to make 4096 x 4096
+sz=size(dat)
+nx=sz(1)
+ny=sz(2)
+if(nx eq 4095 and ny eq 4072) then begin
+  dato=fltarr(4096,4096)
+  dato(0:4094,0:4071)=dat
+  daty=dat(*,4048:4071)
+  dato(0:4094,4072:4095)=daty
+  datx=dato(4094,*)
+  dato(4095,*)=datx
+  dat=dato
+  sxaddpar,dathdr,'NAXIS1',4096
+  sxaddpar,dathdr,'NAXIS2',4096
+  objs=sxpar(dathdr,'OBJECTS')
+  words=get_words(objs,nw,delim='&')
+  if(words(1) eq 'thar') then begin
+    sxaddpar,dathdr,'OBJECTS','thar&thar&none'
+  endif
+endif
+nx=4096
+ny=4096
+; #########  End hack
+
+
 ; allow 'SPECTRUM' and 'EXPERIMENTAL' for testing
 if((type ne 'TARGET') and (type ne 'DARK') and (type ne 'FLAT') and $
    (type ne 'BIAS') and (type ne 'DOUBLE') and (type ne 'SPECTRUM')) $
@@ -52,7 +79,9 @@ endif else begin
   fib1=2
 endelse
 s=where(strupcase(wobjects) ne 'NONE',ns)
-mfib=ns > 2
+;mfib=ns > 2
+; ###### see what this breaks
+mfib=ns
 
 ; make the creation dates that will appear in all the headers, etc related
 ; to this input file

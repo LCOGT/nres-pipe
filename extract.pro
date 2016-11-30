@@ -45,6 +45,11 @@ if(mfib eq 2) then begin
   if(fib0 eq 0) then ordvec=tracedat.ord_vectors(*,*,0:1)
   if(fib0 eq 1) then ordvec=tracedat.ord_vectors(*,*,1:2)
 endif
+; ####### hack for bifurcated fiber
+if(mfib eq 1) then begin
+  ordvec=tracedat.ord_vectors(*,*,2)
+endif
+; ###### end hack
 britethrsh=nx*nord*200.        ; threshold for dy shift calculation is 200 ADU
                                ; per pixel, on avg.
 ;***** put the following stuff in the spectrographs.csv file
@@ -179,6 +184,10 @@ for ifib=0,mfib-1 do begin
 ; values resulting from low signal.
   fprofile=rprofile
   sprofile=fltarr(nx,cowid,nord)
+; test
+  qsprofile=fltarr(nx,cowid,nord)
+  qpprofile=fltarr(nx,cowid,nord)
+; end test
   spwts=fltarr(nx,cowid,nord)
   ofprofile=fltarr(nx,cowid+4,nord)        ; interpolate from this array
   ofprofile(*,2:cowid+1,*)=fprofile
@@ -188,12 +197,24 @@ for ifib=0,mfib-1 do begin
     tofprofile=ofprofile(*,*,i)
     tofwts=ofwts(*,*,i)
     iddy=floor(orddy(s,i))              ; in range [-2,1]
-    sddy=iddy-orddy(s,i)               ; in range [0,1]
+    sddy=iddy-orddy(s,i)               ; in range [-1,0]
     for k=0,cowid-1 do begin
       sy=nx*(k+1-iddy(s))+s
-      sprofile(s,k,i)=tofprofile(sy)*(-sddy) + $
-                        tofprofile(sy+nx)*(1.+sddy)
+; linear interpolation, involving 2 data points surrounding target
+;     sprofile(s,k,i)=tofprofile(sy)*(-sddy) + $   
+;                       tofprofile(sy+nx)*(1.+sddy)
 ; It might be worthwhile to do higher-order interpolation here.
+;  Quadratic interpolation
+      pddy=sddy+1.                        ; in range [0,1]
+      l0m=sddy*(sddy-1.)/2.               ; Lagrange interpolating polynomials
+      l1m=-(sddy+1.)*(sddy-1.) 
+      l2m=sddy*(sddy+1.)/2.
+      l0p=pddy*(pddy-1.)/2.               ; same as above, but shifted 1 pix
+      l1p=-(pddy+1.)*(pddy-1.)
+      l2p=pddy*(pddy+1)/2.
+      summ=tofprofile(sy)*l0m + tofprofile(sy+nx)*l1m + tofprofile(sy+2*nx)*l2m
+      sump=tofprofile(sy-nx)*l0p + tofprofile(sy)*l1p + tofprofile(sy+nx)*l2p
+      sprofile(s,k,i)=(summ+sump)/2.      ; involves 4 data points surrounding target
     endfor
   endfor
 
@@ -223,19 +244,52 @@ for ifib=0,mfib-1 do begin
   prod0=sprofile*rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
   prod2=dfpdy*rebin(reform(fitc(*,*,2),nx,1,nord),nx,cowid,nord)*$
           rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
-  prod3=dfpdy*rebin(reform(fitc(*,*,3),nx,1,nord),nx,cowid,nord)*$
+  prod3=d2fpdy2*rebin(reform(fitc(*,*,3),nx,1,nord),nx,cowid,nord)*$
           rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
   diff=ebo-prod0-prod2-prod3
-  diffe=ebo(*,1:cowid-2,*,*)                ; ignore outer pix, which get 0 wts
+  diffe=diff(*,1:cowid-2,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord)
+; for this next bit to work properly, need to subtract a scaled (by x posn) version
+; of the average of diff over x, computed separately for each block, order.
   for i=0,nord-1 do begin
-      rms(i)=stddev(diffe(*,*,i))   ; ignore outer pix, which get 0 wts
-      sbad=where(abs(diffe(*,*,i)) gt sigc*rms(i),nsbad)
+; extend diff array to make its row length divisible by nblock
+    diffe=fltarr(nx+remain,cowid)
+    diffe(0:nx-1,*)=diff(*,*,i)
+    diffe(nx:nx+remain-1,*)=diffe(nx-remain:nx-1,*)
+
+; average over blocks, expand back to extended length, truncate added pixels
+    diffes=rebin(diffe,nblock,cowid)      ; diffe smoothed using linear interpolation
+    diffes=rebin(diffes,nx+remain,cowid) ; across blocks, by not specifying /samp
+    diffs=diffes(0:nx-1,*)
+
+; fit out the cross-disp shape for each x point
+    sumd=rebin(diff*diffs,nx,1)    ; project out diffs(x,y) from diff(x,y), for each x
+    sumd2=rebin(diffs^2,nx,1)
+    ratd=sumd/sumd2              ; amplitude of local diffs(x,*) in diff(x,*) 
+
+; median-filter result, to suppress outliers
+    ratd=smooth(median(ratd,7),5)
+
+; expand this to full cross-dispersion width, subtract it from diff
+    difff=diff-diffs*rebin(ratd,nx,cowid)   ; residuals after cross-disp fit
+
+; compute rms by block
+    difffe=fltarr(nx+remain,cowid)
+    difffe(0:nx-1,*)=difff
+    difffe(nx:nx+remain-1,*)=difffe(nx-remain:nx-1,*)
+    difffea=rebin(difffe^2,nblock,1)
+    rmse=sqrt(rebin(difffea,nx+remain,cowid))
+    rms=rmse(0:nx-1,*)
+
+; search for multiple-sigma outliers
+
+    sbad=where(abs(difff) gt sigc*rms,nsbad)
 ; remove these, identified as cosmics
       if(nsbad gt 0) then begin
 ; ***** put sigma clipping code here.  Changes values in arrays ebo, vbo
       endif
   endfor
+stop
 
 ; This looks like a bad idea in cases where (eg because of saturation) the
 ; real profile is a poor fit to the parameterized one prod0+prod2+prod3.

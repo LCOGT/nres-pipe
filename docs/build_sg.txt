@@ -1,0 +1,204 @@
+Assembling the Spectrograph On Site
+
+Materials Needed
+	Folding table 18" x 30"
+	Small stool
+	Nitrile gloves (S,M,L)
+	Hair nets
+	Face masks
+	Box wrenches for cryotiger connection (details?)
+	Box wrenches for grating mount assembly
+	Metric ball-end hex wrench set, including 1.27mm = 0.05"
+	Spectrograph components in shipping containers
+		Sinistro
+		Cryotiger w/ hoses, dessicator
+		Collimator
+		Grating
+		Prism
+		Exposure meter box
+		Exposure meter alignment eyepiece adapter, eyepiece, Orion 
+			camera
+	LED flashlights (2) w/ extra batteries
+	LED light stick w/ extra batteries
+	Plan drawing of optical table, with critical dimensions
+
+
+Assumptions
+	Igloo commissioned and emptied of unneeded gear.
+	Igloo cleaned (floor and walls swabbed)
+	HEPA filter inside and running
+	Dehumidifier inside and running
+	Cradle in position, commissioned
+	Thermal lid removed from cradle, bagged and stored outside Igloo
+	Pressure lid removed from cradle, placed on end opposite gas bottles
+
+Preparation
+	Find a clean place outside of the Igloo to store components in their 
+	shipping containers, and to store the empty containers.
+	Place folding table in Igloo on side away from gas bottles.  You will
+	need it for unpacking optics.
+	Pick a day of decent weather --  no snow, no dust storms.  Igloo will
+	have to be open for much of this procedure, with exposed optics.
+	Use gloves, masks, and hairnets for all optical assembly!
+
+Assembly
+	Optical table
+	Unbolt the optical table brackets from the chamber base and from
+	the optical table.  
+	Lower the table onto the chamber base.
+	Secure antivibration pads into their cups on the chamber base.
+	Visual inspection:  be sure components and cables on table appear
+	to be undamaged and in their correct locations; check input optics
+	turning mirror; be sure table has no loose or unneeded components
+	on it; check all witness marks.
+
+	Sinistro
+	(CS fill in here)
+
+	Grating
+	Clean folding table, place 2 layers of clean low-fiber towels on 
+	  left half.
+	Unpack grating mount base, baffles and cover.  Remove cover and store
+	  base+baffles and cover on optical table.  Remove packing material 
+          from Igloo and store it.
+	Place grating in its shipping container face-down on towels.
+	Remove cellophane and tape from container (save the cellophane).
+	Attach grating handles to pucks.  Check to be sure epoxy holding pucks
+	  is secure.
+	Remove grating from container, place it face-down on bare tabletop. 
+	  Note that pucks prevent grating from touching table.  DO NOT place
+	  on a towel, or anything that might touch the grating surface.
+	Reassemble container and place it out of the way.
+	Unpack grating mount legs and bolts; store on chamber base.  Check
+	  to assure that lok-tite markers on joints are unbroken.
+	Carefully turn grating face-up, using handles.  Place it on towels,
+	  resting on the handles.
+	Attach the 3 mounting feet to the grating pucks.  With the grating
+	  facing up and the high end towards you, place feet #1,2,3 at
+	  3 o'clock, 6 o'clock, and 9 o'clock, respectively.  Feet are labeled
+	  with labels facing outward when the feet are screwed fully into
+	  their pucks.  Tighten only finger tight.  DO NOT twist aluminum
+	  feet to tighten screws.
+	Using the handles, invert grating so it stands face-down on its legs,
+	  on the towels.
+	Move the grating mount+baffles assembly onto the table.
+	Pick up the grating by the handles, and carefully lower it onto the
+	  grating mount.  The 2 front grating legs go between the 2 central
+	  baffles.  Once grating is down, slide it forward so that leg screw
+	  holes align with threaded holes in base.
+	Using 23mm box wrench and ??mm box wrench, tighten legs so that feet
+	  are square with mount base, and screw holes align.  Use the ??mm
+	  wrench to minimize torque applied to grating pucks.
+	Bolt grating legs securely to mount base (3.5mm? hex key).
+	Remove the grating handles.  These come into pieces when removed;
+	  don't drop any.
+	Photograph the grating number for the record.
+	Carefully slide grating cover onto grating base+baffles assembly.
+	  Bolt it onto sides of the base (4 bolts, 4mm? hex key).
+	Make sure the grating position on the optical table is clear.
+	Carefully transfer the grating mount, grating and all to its place
+	  on the optical table.  Gently slide it so its 2 side bolt-down
+	  points make contact with the 3 push-screws already on the table.
+	Bold down the grating mount with 3 slotted large circular washers
+	  (5mm hex key).
+	Cover the grating cover with cellophane (remember the cellophane?).
+	Store the grating shipping container (with insert) outside the Igloo,
+	  in the place assigned.
+
+	Collimator
+	Bring collimator shipping container into Igloo.  Open and remove foam
+	  as necessary to reach the bagged collimator.
+	Note that on the CCD end of the collimator (not the prism end), the
+	  outermost 2 tube segments are attached with RTV, not bolts.
+	  DO NOT lift the collimator by these segments, or stand it upright
+	  on them.
+	Remove the baffle retaining rings (2) from the Pelican box, and place
+	  them on the small table.
+	Stand the collimator upright (glued rings up) in its Pelican box, and
+	  remove its bag.
+	Carefully lift the collimator out of its Pelican box, and place it
+	  upright on the optical table, near the grating.
+	Identify the baffle retaining ring with the large flat segment
+          on the internal edge.  On the front face of this ring (where the
+	  mounting hole countersinks are), back out the ghost baffle set screws
+	  until they do not protrude beyond the back face of the ring.
+	Remove the cover plate from the CCD end (2.5mm hex wrench), and 
+	  replace it with the baffle retaining ring just identified.
+	  Note that only 3 holes get screws;  the others allow access to 
+	  alignment divots.
+	Photograph the collimator number for the record.
+	Carefully lift the collimator and settle it into its stage.  This is
+	  a 2-person job.  The tooling ball on the side of the collimator tube
+	  goes into the central hole (with spring push-screw) in the stage.
+	Remove the cover on the prism end of the collimator.  Be careful the
+	  baffles behind the cover do not fall out.  Attach the baffle retaining
+	  ring with 3 screws (2.5mm hex wrench).
+	Close the collimator Pelican box (with bag and all foam), and store it
+	  outside the Igloo, in the place assigned.
+
+	Prism
+	Bring the prism shipping box and the prism cover box into Igloo.  
+	From the prism box, remove the foam insert containing the prism and 
+	  place it on the small table, label up.  Place the box aside.
+	Remove the tape between halves of the foam insert.
+	Remove the top half of the foam insert.  Carefully invert the open
+	  insert and prism, and slide the prism in its wrapping paper
+	  onto the towels.
+	Undo the wrapping paper.  Note the prism has 2 optical faces and 3
+	  that are rough-ground.  Handle it only by the rough-ground faces.
+	Check that the 3 mounting hemispheres glued to the bottom face of the 
+          prism are firmly attached.
+	Photograph the prism ID number for the record.
+	Remove the prism cover from its shipping box and bag.  Place it on
+	  the small table.
+	Remove the top and back side of the prism cover from the base
+	  (3 screws 4mm hex, and 1 thumbscrew).
+	Place the prism on the towels on the face opposite its vertex, and 
+	  slide it into the mount, until the mounting hemispheres engage the
+	  V-slots in the base.
+	Tip the prism holder and prism upright, and replace the cover
+	  back/top.  Tighten all screws;  thumbscrew with spring should 
+	  compress the spring about halfway.
+	Photograph the grating cover number for the record.
+	Place the prism on its mount.
+	Verify that the prism+cover is solidly in place on the mounting
+	  tooling balls.
+	Verify that the glue joints on the prism mounting hemispheres look
+	  good.
+	Replace the packing material in the prism and prism mount shipping
+	  boxes, and store them outside the Igloo, in the place assigned.
+
+	Ghost Baffle
+	Remove the ghost baffle from its shipping box (which box is this?).
+	Slide the baffle tab behind the collimator baffle retaining ring,
+	  between the collimator and the CCD.  Be careful not to touch optical
+	  surfaces on either side.
+	Adjust ghost baffle position so its end rests lightly against the
+	  post carrying the turning mirror, and its tab is fully inserted
+	  behind the collimator baffle retaining ring.
+	Tighten the two set screws on the baffle retaining ring (1.5mm hex key)
+	  to lock the baffle in place.  Note this process can be awkward,
+	  because of strong magnets on the nearby input optics holders.
+
+	Input Optics
+	Remove the L0 lens and mount and trifurcated fiber input mount
+	  from their shipping box, and their bags.
+	Carefully insert the L0 mount into the space between the input fiber
+	  holder and the turning mirror.  Take care that the strong magnets
+	  on the L0 post do not snap the mount out of your grasp.  (This
+	  means put it down one corner first, ideally with a fingertip wedged
+	  between mount and post.  Then squeeze the finger out.)
+	Check that the L0 mount is snug in its v-groove mounts.  When properly
+	  positioned, the mount as seen from above should be rotated about
+	  5 degrees CW from the x-y axes of the optical table.
+	Insert the fake (for exposure meter setup) trifurcated fiber into the
+	  fiber input mount, and secure it by tightening the set screw onto
+	  the flat surface on the top of the fiber ferrule (1.5mm hex key).
+	Insert the fiber input mount into its hole in the mount on the
+	  fiber input post.  This mount also has strong magnets, so use
+	  two hands and ease the mount in on one edge first, then allowing
+	  the mount to rotate into full contact.
+
+	Exposure Meter
+
+System Testing

@@ -11,16 +11,16 @@ comparing measured star fluxes (measured in the stellar spectrum) with
 sky fluxes.
 
 1. Measure the total count rate through the AGU narrow-band filter from
-a bright standard star, on a transparent night.  For an exposure time s_AGU,
+a bright standard star onto the Atik CCD, on a transparent night.  For an exposure time s_AGU,
 this yields
-ADU/s_AGU = flux_star * Area_tel * Trans_atmos * Trans_telesc * Trans_filter * 
-     dlam * AGUDet_effic
+AGUADU/s_AGU = flux_star * Area_tel * Trans_atmos * Trans_telesc * 
+     Trans_filter * dlam * AGUDet_effic
  (units) =       erg/cm^2-s-AA * cm^2 * 1 * 1 * 1 * AA * AGUADU/erg = ADU/s
 
 Then the AGUdetector-telescope response is AGUtel_resp = AGUADU/(s_AGU * 
     flux_star * Area_tel * Trans_atmos * Trans_filter * dlam) = AGUADU/erg
 
-2. Measure the flux from some broadband flat-field source (eg daytime sky).
+2. Measure the flux from some broadband flat-field source (eg daytime sky), into an area of 1 pixel^2.
 This gives flux_sky = AGUADU/(s_AGU * pixel^2)  (units AGUADU/(s-pix^2)   
 
 3. Measure the area of the stellar pickoff fiber fib_area in units of AGUpix^2, 
@@ -48,7 +48,8 @@ measurement.
 6. Estimate the spectrograph detector reciprocal gain gain_spec (e-/ADU) from 
 a photon transfer curve, or by some other method.
 
-Then the optical efficiency of the telescope/spectrograph system is
+Then the optical efficiency of the spectrograph system at the nominal filter
+wavelength is
 the ratio of the energy detected by the spectrograph to that entering the fiber,
 ie
 
