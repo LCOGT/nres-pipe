@@ -5,7 +5,7 @@ pro rd_ig_temp_press,names,odat
 
 ; constants
 hdrfile='~/Downloads/   '
-datfile='~/Downloads/superfin_analog_in_out_dt-20161128-0833.txt'
+datfile='~/Downloads/superfin_analog_in_out_dt-20161130-0948.txt'
 
 names=['Time_Stamp', 'P regulator control', 'DAC loopback output', $
 'Instrument P', 'Atmospheric P', 'Internal regulator P', 'P regulator control',$

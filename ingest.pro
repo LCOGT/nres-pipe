@@ -54,7 +54,7 @@ ny=4096
 ; #########  End hack
 
 
-; allow 'SPECTRUM' and 'EXPERIMENTAL' for testing
+; allow 'SPECTRUM' and 'EXPERIMENTAL' and 'ARC' for testing
 if((type ne 'TARGET') and (type ne 'DARK') and (type ne 'FLAT') and $
    (type ne 'BIAS') and (type ne 'DOUBLE') and (type ne 'SPECTRUM')) $
    and (type ne 'EXPERIMENTAL') then begin
