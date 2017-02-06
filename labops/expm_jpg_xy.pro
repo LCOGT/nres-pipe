@@ -30,7 +30,7 @@ xx=fltarr(nt)
 yy=fltarr(nt)
 
 ; make distances from x0,y0
-dd=findgen(2*xwid+1)-xwid
+;dd=findgen(2*xwid+1)-xwid
 
 ; loop over list of input files
 for i=0,nt-1 do begin
@@ -55,7 +55,7 @@ for i=0,nt-1 do begin
     sx=where(ixxn gt 0.9)
     sy=where(iyyn gt 0.9)
     gx=10.*(ixxn(sx)-0.9)
-    gy=10.*(1yyn(sy)-0.9)
+    gy=10.*(iyyn(sy)-0.9)
     window(sx)=window(sx)*0.5*(1.+cos(!pi*gx))
     window(sy)=window(sy)*0.5*(1.+cos(!pi*gy))
     fastd=fft(astd*window,-1)
@@ -69,17 +69,25 @@ for i=0,nt-1 do begin
 ; shift to put zero in center of image
   cc=shift(cc,nx/2.,ny/2.)
 
-
 ; zx=reform(rebin(a(*,y0-2:y0+2),nx,1),nx)
 ; zy=reform(rebin(a(x0-2:x0+2,*),1,ny),ny)
 ; zx=smooth(zx,5)
 ; zy=smooth(zy,5)
 ; xcen=total(dd*zx(x0-xwid:x0+xwid))/total(zx(x0-xwid:x0+xwid))
 ; ycen=total(dd*zy(y0-xwid:y0+xwid))/total(zy(y0-xwid:y0+xwid))
+  maxcc=max(cc,ixc)
+  iym=ixc/nx
+  ixm=ixc-iym*nx
+  ccx=cc(ixm-1:ixm+1,iym)
+  ccy=reform(cc(ixm,iym-1:iym+1))
+  xcen=ixm-nx/2.-0.5*(ccx(2)-ccx(0))/(ccx(0)+ccx(2)-2.*ccx(1))
+  ycen=iym-ny/2.-0.5*(ccy(2)-ccy(0))/(ccy(0)+ccy(2)-2.*ccy(1))
+
+  
   xx(i)=xcen
   yy(i)=ycen
 
-  filesh=strmid(filin,35,14)
+  filesh=strmid(filin,0,14)
   iyr=long(strmid(filesh,0,4))
   imo=long(strmid(filesh,4,2))
   ida=long(strmid(filesh,6,2))

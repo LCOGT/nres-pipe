@@ -85,6 +85,7 @@ nx=specdat['nx']
 nord=specdat['nord']
 nfib=specdat['nfib']
 ny=nx            # assume square input data array until told otherwise
+mm=specdat['ord0']+np.arange(nord)   # diffraction order of each order index
 
 # vars connected with input file main data segment
 filname='null'   # original filename ('ORIGNAME') of the input data file
