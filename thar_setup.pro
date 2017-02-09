@@ -15,12 +15,12 @@ pro thar_setup,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
 @nres_comm
 
 ; constants
-nresroot=getenv('NRESROOT')
-linelist=nresroot+'reduced/config/arc_ThAr_Redman.txt'
+;nresroot=getenv('NRESROOT')
+linelist=nresrooti+'reduced/config/arc_ThAr_Redman.txt'
 if(keyword_set(tharlist)) then begin
-  linelist=nresroot+'reduced/config/'+strtrim(tharlist,2)
+  linelist=nresrooti+'reduced/config/'+strtrim(tharlist,2)
 endif
-;linelist=nresroot+'reduced/config/arc_Thar0.txt'
+;linelist=nresrooti+'reduced/config/arc_Thar0.txt'
 radian=180.d0/!pi
 thrshamp=4.5        ; accept obs'd lines with amplitudes above thrshamp*sigma
                     ; where sigma is based on the amplitude in e-

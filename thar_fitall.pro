@@ -21,7 +21,8 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 ; constants
 radian=180.d0/!pi
 nresroot=getenv('NRESROOT')
-outpath=nresroot+'reduced/thar/'
+nresrooti=nresroot+getenv('NRESINST')
+outpath=nresrooti+'reduced/thar/'
 dw=0.1         ; (nm) unmatched lines get their difference against model set to
                ; this value.
 ierr=0

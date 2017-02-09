@@ -11,8 +11,9 @@ pro old_red_compare,za,filout
 thrsh=0.3                 ; match tolerance (AA)
 tight_thrsh=0.005         ; tight match tolerance (AA)
 nresroot=getenv('NRESROOT')
+nresrooti=nresroot+getenv('NRESINST')
 
-oldlines=nresroot+'reduced/config/arc_ThAr0.txt'
+oldlines=nresrooti+'reduced/config/arc_ThAr0.txt'
 
 ; read the old list
 openr,iun,oldlines,/get_lun
@@ -95,7 +96,7 @@ lamdif=lamdif(1:*)
 jmatch=jmatch(1:*)
 st=where(abs(lamdif) le tight_thrsh,nst)
 if(nst gt 0) then begin
-  openw,iun,nresroot+'reduced/config/'+filout,/get_lun
+  openw,iun,nresrooti+'reduced/config/'+filout,/get_lun
   printf,iun,'Selected Redman 2013 ThAr lines.  Vacuum lam from energy levels.'
   printf,iun,'lambda(nm)    Bright  dlambda(nm)'
   for i=0,nst-1 do begin

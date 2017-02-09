@@ -13,6 +13,9 @@ pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 ;      containing filename root:
 ;   If type = TARGET:
 ;     temp/xxx.obs.txt: list of header metadata to go into obs database table
+;  in the following, the 'reduced' directory is 
+;  actually 'nresroot/$NRESINST/reduced', where $NRESINST is the reduction
+;  instance.
 ;     reduced/autog/xxx.ag.csv: contains autoguider stats
 ;     reduced/expm/xxx.exp.csv: contains exposure meter stats
 ;     reduced/thar/xxx.thar.csv:  contains lambda solution coeffs, stats
@@ -59,6 +62,8 @@ pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
 
 nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
+stop
 tempdir='temp/'
 agdir='reduced/autog/'
 biasdir='reduced/bias/'

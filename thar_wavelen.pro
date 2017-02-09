@@ -33,8 +33,8 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 ; constants, header data
 ncoefs_c=15            ; number of coefs for restricted cubic fits
 jd=sxpar(dathdr,'MJD-OBS')+2400000.5d0
-nresroot=getenv('NRESROOT')
-matchedlines=nresroot+'reduced/config/mtchThAr.txt' ; name of output file
+;nresroot=getenv('NRESROOT')
+matchedlines=nresrooti+'reduced/config/mtchThAr.txt' ; name of output file
                            ; for well-matched ThAr lines
 
 ; want lamp IDs, etc too
@@ -250,7 +250,7 @@ fxaddpar,hdr,'OBSTYPE','THAR'
 fxaddpar,hdr,'EXPTIME',exptime
 
 tharo='THAR'+datestrc+'.fits' 
-tharout=nresroot+thardir+tharo
+tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr
 ;stds_addline,'THAR',tharo,1,site,camera,jdc,'0000'
 fxwrite,tharout,hdr,lam_all

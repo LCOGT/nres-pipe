@@ -125,10 +125,10 @@ if(~keyword_set(flatk)) then begin
 
   if(keyword_set(dble)) then begin
     speco='DBLE'+datestrc+'.fits'
-    specout=nresroot+'/'+dbledir+speco
+    specout=nresrooti+'/'+dbledir+speco
   endif else begin
     speco='SPEC'+datestrc+'.fits'
-    specout=nresroot+'/'+specdir+speco
+    specout=nresrooti+'/'+specdir+speco
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects

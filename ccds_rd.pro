@@ -4,7 +4,8 @@ pro stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
 ; Column names are returned in the string array stdhdr.
 
 nresroot=getenv('NRESROOT')
-stdfile=nresroot+'reduced/csv/standards.csv'
+nresrooti=nresroot+getenv('NRESINST')
+stdfile=nresrooti+'reduced/csv/standards.csv'
 dat=read_csv(stdfile,header=stdhdr)
 types=dat.field1
 fnames=dat.field2

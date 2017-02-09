@@ -58,7 +58,7 @@ mjd=jd-2400000.5d0
 daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 fout='FLAT'+datestrc+'.fits'
-filout=nresroot+flatdir+fout
+filout=nresrooti+flatdir+fout
 
 ; make header for FITS file
 mkhdr,hdr,flat
@@ -78,7 +78,7 @@ sxaddpar,hdr,'FIB1',fib1
 speco='FLAT'+datestrc+'.fits'
 objects=sxpar(dathdr,'OBJECTS')
 sxaddpar,hdr,'OBJECTS',objects
-specout=nresroot+'/'+flatdir+speco
+specout=nresrooti+'/'+flatdir+speco
 writefits,filout,flat,hdr
 
 ; add line to standards.csv

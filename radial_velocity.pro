@@ -248,7 +248,7 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
 ; procedures to rvdir as a multi-extension fits file.
 
 rvname='RADV'+datestrc+'.fits'
-rvout=nresroot+rvdir+rvname
+rvout=nresrooti+rvdir+rvname
 
 fxhmake,hdr,/extend                        ; no primary data segment
 fxaddpar,hdr,'OBJECTS',targnames(0)+'&'+targnames(1)

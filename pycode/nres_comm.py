@@ -16,6 +16,7 @@ filin0='null'    # string name of input data file or calibration file currently
 
 # All of the following are set in muncha
 nresroot='null'  # content of $NRESROOT environment var.
+nresrooti='null' # nresroot+ $NRESINST = top level dir of reduced data instance
 tempdir='null'   # dir for temporary data storage during reduction, if needed.
 expmdir='null'   # dir for output from expmeter.pro reduction step
 thardir='null'   # dir for output from tharwavelen.pro reduction step

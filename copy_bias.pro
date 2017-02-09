@@ -19,7 +19,7 @@ sxaddpar,hdr,'OBSTYPE','BIAS'
 exptime=sxpar(dathdr,'EXPTIME')
 sxaddpar,hdr,'EXPTIME',exptime
 biaso='BIAS'+datestrc+'.fits'
-biasout=nresroot+biasdir+biaso
+biasout=nresrooti+biasdir+biaso
 
 ; Create directory if not present:
 save_dir = file_dirname(biasout)

@@ -7,8 +7,7 @@ pro ccd_find,err
 
 @nres_comm
 
-nresroot=getenv('NRESROOT')
-ccdfile=nresroot+'reduced/csv/ccds.csv'
+ccdfile=nresrooti+'reduced/csv/ccds.csv'
 datc=read_csv(ccdfile,header=stdhdr)
 cameras=datc.field1
 nxc=datc.field2

@@ -17,7 +17,8 @@ pro fake_stddat,n,nx,ny,nord,nfib,site,camera,target,iyr,imo,ida,teff,logg
 jd0=julday(imo,ida,iyr,12,34,56.0)
 mjd0=jd0-2400000.5d0
 
-nresroot=getenv('NRESROOT')+'/reduced/'
+nresroot=getenv('NRESROOT')
+nresrooto=nresroot+getenv('NRESINST')+'/reduced/'
 tempdir='temp/'
 agdir='autog/'
 biasdir='bias/'
@@ -53,7 +54,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'OBSTYPE','BIAS'
   sxaddpar,hdr,'EXPTIME',0.0
   biasname=biasdir+'BIAS'+datestr+'.fits'
-  biasout=nresroot+biasname
+  biasout=nresrooto+biasname
   writefits,biasout,bias,hdr
   stds_addline,'BIAS',biasname,1,site,camera,jd,'0000'
 
@@ -65,7 +66,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'FILENAME1','lab_fl01_17760704.0016.fits','1st filename'
   sxaddpar,hdr,'NFRAVGD',10,'Avgd this many frames'
   darkname=darkdir+'DARK'+datestr+'.fits'
-  darkout=nresroot+darkname
+  darkout=nresrooto+darkname
   writefits,darkout,dark,hdr
   stds_addline,'DARK',darkname,1,site,camera,jd,'0000'
 
@@ -87,7 +88,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'OBSTYPE','FLAT'
   sxaddpar,hdr,'EXPTIME',1.0
   flatname=flatdir+'FLAT'+datestr+'.fits'
-  flatout=nresroot+flatname
+  flatout=nresrooto+flatname
   writefits,flatout,flat,hdr
   stds_addline,'FLAT',flatname,7,site,camera,jd,'0000'
 
@@ -105,7 +106,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'LOGG',logg
   sxaddpar,hdr,'NRESTARG',target
   zeroname=zerodir+'ZERO'+datestr+'.fits'
-  zeroout=nresroot+zeroname
+  zeroout=nresrooto+zeroname
   writefits,zeroout,zero,hdr
   zeros_addline,zeroname,2,site,camera,jd,target,teff,logg,-9.99,0.65,'0000'
 
@@ -125,7 +126,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'OBSTYPE','TRIPLE'
   sxaddpar,hdr,'EXPTIME',3.0
   tripname=tripdir+'TRIP'+datestr+'.fits'
-  tripout=nresroot+tripname
+  tripout=nresrooto+tripname
   writefits,tripout,triple,hdr
   stds_addline,'TRIPLE',tripname,4,site,camera,jd,'0000'
 
@@ -147,7 +148,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'OBSTYPE','TRACE'
   sxaddpar,hdr,'EXPTIME',15.0
   tracname=tracedir+'TRAC'+datestr+'.fits'
-  tracout=nresroot+tracname
+  tracout=nresrooto+tracname
   writefits,tracout,trace,hdr
   stds_addline,'TRACE',tracname,8,site,camera,jd,'0000'
 

@@ -16,9 +16,9 @@ pro thar_plot,thar,dd0,a0,x0,z0,f0,g0,lam
 
 ; constants
 ;linelist='~/Thinkpad2/nres/svncode/nres/pipeline/arc_Thar0.txt'
-nresroot=getenv('NRESROOT')
-linelist=nresroot+'reduced/config/arc_ThAr_Redman.txt'
-;linelist=nresroot+'reduced/config/arc_ThAr0.txt'
+;nresroot=getenv('NRESROOT')
+linelist=nresrooti+'reduced/config/arc_ThAr_Redman.txt'
+;linelist=nresrooti+'reduced/config/arc_ThAr0.txt'
 ymax=40000.            ; max y to plot
 
 nord=specdat.nord

@@ -10,7 +10,7 @@ pro rv_setup,ierr
 ; constants
 null=-99.9
 nresroot=getenv('NRESROOT')
-zeroroot=nresroot+'reduced/'
+zeroroot=nresrooti+'reduced/'
 ierr=0
 
 ; count star fibers; return target structure(s) with info on target(s)

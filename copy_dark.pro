@@ -27,7 +27,7 @@ sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','DARK'
 sxaddpar,hdr,'EXPTIME',exptime
 darko='DARK'+datestrc+'.fits'
-darkout=nresroot+darkdir+darko
+darkout=nresrooti+darkdir+darko
 writefits,darkout,dark,hdr
 stds_addline,'DARK','dark/'+darko,1,site,camera,jdc,'0000'
 

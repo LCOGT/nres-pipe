@@ -6,6 +6,7 @@ pro nres_copy,dirname
 ; a subdirectory of the CWD, named dirname.
 
 nresroot=getenv('NRESROOT')
+nresrooti=nresroot+getenv('NRESINST')
 
 tdn=strtrim(dirname,2)
 
@@ -33,44 +34,44 @@ stop
 spawn,cmd
 cmd='cp -r '+nresroot+'code/* '+tdn+'/code'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/config/*.txt '+tdn+'/reduced/config'
+cmd='cp '+nresrooti+'reduced/config/*.txt '+tdn+'/reduced/config'
 spawn,cmd
-;cmd='cp '+nresroot+'reduced/csv/template*.txt '+tdn+'/reduced/csv'
+;cmd='cp '+nresrooti+'reduced/csv/template*.txt '+tdn+'/reduced/csv'
 ;spawn,cmd
-cmd='cp '+nresroot+'reduced/csv/targets.csv '+tdn+'/reduced/csv'
+cmd='cp '+nresrooti+'reduced/csv/targets.csv '+tdn+'/reduced/csv'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/csv/zeros.csv '+tdn+'/reduced/csv'
+cmd='cp '+nresrooti+'reduced/csv/zeros.csv '+tdn+'/reduced/csv'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/csv/spectrographs.csv '+tdn+'/reduced/csv'
+cmd='cp '+nresrooti+'reduced/csv/spectrographs.csv '+tdn+'/reduced/csv'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/csv/ccds.csv '+tdn+'/reduced/csv'
+cmd='cp '+nresrooti+'reduced/csv/ccds.csv '+tdn+'/reduced/csv'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/csv/rv.csv '+tdn+'/reduced/csv'
+cmd='cp '+nresrooti+'reduced/csv/rv.csv '+tdn+'/reduced/csv'
 spawn,cmd
 
 goto,skip
 
-cmd='cp '+nresroot+'reduced/trip/* '+tdn+'/reduced/trip'
+cmd='cp '+nresrooti+'reduced/trip/* '+tdn+'/reduced/trip'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/bias/* '+tdn+'/reduced/bias'
+cmd='cp '+nresrooti+'reduced/bias/* '+tdn+'/reduced/bias'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/dark/* '+tdn+'/reduced/dark'
+cmd='cp '+nresrooti+'reduced/dark/* '+tdn+'/reduced/dark'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/dble/* '+tdn+'/reduced/dble'
+cmd='cp '+nresrooti+'reduced/dble/* '+tdn+'/reduced/dble'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/flat/* '+tdn+'/reduced/flat'
+cmd='cp '+nresrooti+'reduced/flat/* '+tdn+'/reduced/flat'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/spec/* '+tdn+'/reduced/spec'
+cmd='cp '+nresrooti+'reduced/spec/* '+tdn+'/reduced/spec'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/thar/* '+tdn+'/reduced/thar'
+cmd='cp '+nresrooti+'reduced/thar/* '+tdn+'/reduced/thar'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/trace/* '+tdn+'/reduced/trace'
+cmd='cp '+nresrooti+'reduced/trace/* '+tdn+'/reduced/trace'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/trip/* '+tdn+'/reduced/trip'
+cmd='cp '+nresrooti+'reduced/trip/* '+tdn+'/reduced/trip'
 spawn,cmd
-cmd='cp '+nresroot+'reduced/zero/* '+tdn+'/reduced/zero'
+cmd='cp '+nresrooti+'reduced/zero/* '+tdn+'/reduced/zero'
 spawn,cmd
-cmd='cp '+nresroot+'rawdat/labcam-fl01-20160228*.fits '+tdn+'/rawdat'
+cmd='cp '+nresrooti+'rawdat/labcam-fl01-20160228*.fits '+tdn+'/rawdat'
 spawn,cmd
 
 skip:

@@ -1,6 +1,7 @@
 ; common data for NRES image reduction routines
 common nres,filin0,nfib,mfib,fib0,fib1,$
-       nresroot,tempdir,expmdir,thardir,specdir,ccordir,rvdir,classdir,diagdir,$
+       nresroot,nresrooti,tempdir,expmdir,thardir,specdir,ccordir,rvdir,$
+       classdir,diagdir,$
        csvdir,biasdir,darkdir,flatdir,tracedir,dbledir,tripdir,zerodir,$
        jdc,mjdc,datestrc,$
        filname,dat,dathdr,cordat,varmap,corspec,rmsspec,speco,$
