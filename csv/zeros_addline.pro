@@ -6,7 +6,8 @@ pro zeros_addline,fname,navg,site,camera,jdate,targname,teff,logg,bmv,jmk,flag
 ; to be sorted into time order, without otherwise changing it.
 
 nresroot=getenv('NRESROOT')
-zerofile=nresroot+'reduced/csv/zeros.csv'
+nresrooti=nresroot+getenv('NRESINST')
+zerofile=nresrooti+'reduced/csv/zeros.csv'
 
 zeros_rd,fnames,navgs,sites,cameras,jdates,targnames,teffs,loggs,bmvs,jmks,flags,zerohdr
 

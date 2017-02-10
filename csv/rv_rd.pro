@@ -8,7 +8,8 @@ pro rv_rd,targnames,crdates,bjds,sites,exptimes,orgnames,specos,nmatchs,$
 ; Column names are returned in the string array rvhdr.
 
 nresroot=getenv('NRESROOT')
-rvfile=nresroot+'reduced/csv/rv.csv'
+nresrooti=nrestoot+getenv('NRESINST')
+rvfile=nresrooti+'reduced/csv/rv.csv'
 dat=read_csv(rvfile,header=rvhdr)
 targnames=dat.field01
 crdates=dat.field02

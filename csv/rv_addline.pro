@@ -7,7 +7,8 @@ pro rv_addline,targname,crdate,bjd,site,exptime,orgname,speco,nmatch,amoerr,$
 ; to be sorted into time order, without otherwise changing it.
 
 nresroot=getenv('NRESROOT')
-rvfile=nresroot+'reduced/csv/rv.csv'
+nresrooti=nresroot+getenv('NRESINST')
+rvfile=nresrooti+'reduced/csv/rv.csv'
 
 rv_rd,targnames,crdates,bjds,sites,exptimes,orgnames,specos,nmatchs,amoerrs,$
       rmsgoods,mgbdisps,rvkmpss,ampccs,widccs,lammids,baryshifts,$

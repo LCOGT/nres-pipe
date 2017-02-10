@@ -3,19 +3,29 @@ How to do a COLD START of the analysis routines for a new spectrograph
 Spectrograph should be focused and tweaked so spectra are in final or
 near-final positions.
 
-(1) Set up the environment variables NRESROOT, NRESCODE, and NRESRAWDAT.  
+(1) Set up the environment variables NRESROOT, NRESCODE, NRESINST, 
+and NRESRAWDAT.  
 These point to the root directory of the NRES directory structure, to 
-its "code" subdirectory, and to the root directory of the raw data storage,
-respectively.  Put the latest release of NRES code into the code directory,
-and csv templates into $NRESROOT/reduced/csv.  Put the current list
+its "code" subdirectory, to the "instance" subdirectory of NRESROOT where the
+relevant "reduced" directory is to be found, 
+and to the root directory of the raw data storage, respectively.
+Put the latest release of NRES code (from git) into the code directory.
+Put a standards.csv starter file into 
+$NRESROOT/$NRESINST/reduced/csv/standards.csv.  The first entry should be
+a plausible standards file entry with the last column (flags) containing
+"xxxx", or some other 4-character string that is obviously not a numeric value.
+Other csv templates into $NRESROOT/$NRESINST/reduced/csv:  Put the current list
 of stellar targets into the reduced/csv/targets.csv file.  Put the existing
 ZERO files in reduced/zeros, and the existing reduced/csv/zeros.csv in
-its place in the new directory structure.  All this is 
-probably best done with an "NRES_blank" pre-loaded directory structure,
-created with a "copy_nres" script.
+its place in the new directory structure.  
+**** DO NOT USE copy_nres UNTIL FURTHER NOTICE.  IT IS OUT OF DATE.
+**** All this is 
+**** probably best done with an "NRES_blank" pre-loaded directory structure,
+**** created with a "copy_nres" script.
+****
 
 (2) Under $NRESROOT, set up the NRES directory structure described in
-$NRESROOT/notes.txt.
+$NRESROOT/code/docs/notes.txt.
 
 (3) In NRESRAWDAT or one of its subdirectories, put data files of these types:
 BIAS --  5 or more is better, but only 1 required to begin
@@ -37,7 +47,7 @@ degree of polynomial used in each order for traces.
 
 (4) Run "muncha, biasname" as needed to ingest the bias images
 
-(4a) If you have multiple biases, run "mk_biasavg" to make an average bias.
+(4a) If you have multiple biases, run "mk_supercal" to make an average bias.
 
 (5) Run "muncha, darkname" as needed to ingest the darks
 

@@ -6,7 +6,8 @@ pro stds_addline,type,fname,navg,site,camera,jdate,flag
 ; to be sorted into time order, without otherwise changing it.
 
 nresroot=getenv('NRESROOT')
-stdfile=nresroot+'reduced/csv/standards.csv'
+nresrooti=nresroot+getenv('NRESINST')
+stdfile=nresrooti+'reduced/csv/standards.csv'
 
 stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
 

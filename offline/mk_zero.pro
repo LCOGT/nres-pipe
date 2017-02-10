@@ -35,7 +35,7 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 @thar_comm
 
 ; constants
-nresroot=getenv('NRESROOT')
+; nresroot=getenv('NRESROOT')
 c=299792.458d0               ; light speed in km/s
 
 ; make creation jd
@@ -45,7 +45,7 @@ sxaddpar,hdro,'MJDC',mjdc
 daterealc=date_conv(jdc,'R')
 datestrc=string(daterealc,format='(f13.5)')
 fileout='zero/ZERO'+datestrc+'.fits'
-filepath=nresroot+'/reduced/'+fileout
+filepath=nresrooti+'/reduced/'+fileout
 
 ; read the list
 flist=['']
@@ -64,7 +64,7 @@ nfiles=n_elements(flist)
 
 ; read the first file, get sizes of things
 ; put data into nres_comm or thar_comm variables, as appropriate
-fname=nresroot+'/reduced/spec/'+flist(0)
+fname=nresrooti+'/reduced/spec/'+flist(0)
 dd=readfits(fname,hdr)
 sz=size(dd)
 nx=sz(1)
@@ -100,7 +100,7 @@ zout(*,*,1)=dd(*,*,ifib1)            ; the ThAr spectrum
 mjdavg=0.d0
 navg=1
 for i=1,nfiles-1 do begin
-  fname=nresroot+'/reduced/spec/'+flist(i)
+  fname=nresrooti+'/reduced/spec/'+flist(i)
   dd=readfits(fname,hdr)
   zout(*,*,0)=zout(*,*,0)+dd(*,*,ifib0)
   zout(*,*,1)=zout(*,*,1)+dd(*,*,ifib1)

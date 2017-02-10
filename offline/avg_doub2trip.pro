@@ -31,8 +31,8 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
-nresroot=getenv('NRESROOT')
-reddir=nresroot+'reduced/'
+;nresroot=getenv('NRESROOT')
+reddir=nresrooti+'reduced/'
 
 ; read flist if necessary, or copy to array 'files'
 if(keyword_set(array)) then begin

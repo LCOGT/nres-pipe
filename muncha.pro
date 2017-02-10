@@ -63,7 +63,6 @@ verbose=1                         ; 0=print nothing; 1=dataflow tracking
 
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
-stop
 tempdir='temp/'
 agdir='reduced/autog/'
 biasdir='reduced/bias/'

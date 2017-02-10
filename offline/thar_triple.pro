@@ -43,9 +43,9 @@ pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
-nresroot=getenv('NRESROOT')
-reddir=nresroot+'reduced/'
-tripdir=nresroot+'reduced/trip/'
+; nresroot=getenv('NRESROOT')
+reddir=nresrooti+'reduced/'
+tripdir=nresrooti+'reduced/trip/'
 
 ; read input files, decide if we have 2 fibers or 3
 fnam01=reddir+strtrim(fil01,2)

@@ -22,7 +22,7 @@ pro get_calib,stype,filename,cdat,chdr,gerr
 @nres_comm
 
 gerr=0
-rootname=getenv('NRESROOT')
+;rootname=getenv('NRESROOT')
 
 ; read the standards.csv file.
 ; **** note that as get_calib is used, multiple reads of standards.csv are done
@@ -75,7 +75,7 @@ endif else begin
 endelse
 
 ; read the file
-path=rootname+'/reduced/'+filename
+path=nresrooti+'/reduced/'+filename
 cdat=readfits(path,chdr)     ; requires all these types of std files to
                              ; be standard FITS files, not tables. 
 fini:

@@ -4,7 +4,8 @@ pro zeros_write,fnames,navgs,sites,cameras,jdates,targnames,teffs,loggs,$
 ; overwriting whatever was there.  No warnings are issued.
 
 nresroot=getenv('NRESROOT')
-zerofile=nresroot+'reduced/csv/zeros.csv'
+nresrooti=nresroot+getenv('NRESINST')
+zerofile=nresrooti+'reduced/csv/zeros.csv'
 hdrs=['Filename','Navg','Site','Camera','JDdata','Targname','Teff','logg','B-V','J-K','Flags']
 nline=n_elements(fnames)
 

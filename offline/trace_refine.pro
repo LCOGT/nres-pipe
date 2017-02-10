@@ -35,7 +35,7 @@ ninfil=n_params()-1
 ; set up needed directories, constants in common
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
 
-nresroot=getenv('NRESROOT')
+; nresroot=getenv('NRESROOT')
 biasdir='reduced/bias/'
 darkdir='reduced/dark/'
 specdir='reduced/spec/'
@@ -46,7 +46,7 @@ tracedir='reduced/trace/'
 filin0=tracein
 
 ; read the input trace file, unpack it, stick needed stuff into common
-tracefil=nresroot+tracedir+tracein
+tracefil=nresrooti+tracedir+tracein
 tracea=readfits(tracefil,tracehdr)
 nx=sxpar(tracehdr,'NX')
 ; set nx for size of arrays with overscan trimmed off
@@ -365,7 +365,7 @@ daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 strput,datestrc,'00',0
 fout='TRAC'+datestrc+'.fits'
-filout=nresroot+tracedir+fout
+filout=nresrooti+tracedir+fout
 
 mkhdr,hdr,tracprof
 sxaddpar,hdr,'NX',nx

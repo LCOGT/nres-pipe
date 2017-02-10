@@ -3,7 +3,8 @@ pro stds_write,types,fnames,navgs,sites,cameras,jdates,flags,hdrs
 ; overwriting whatever was there.  No warnings are issued.
 
 nresroot=getenv('NRESROOT')
-stdfile=nresroot+'reduced/csv/standards.csv'
+nresrooti=nresroot+getenv('NRESINST')
+stdfile=nresrooti+'reduced/csv/standards.csv'
 hdrs=['Type','Filename','Navg','Site','Camera','JDdata','Flags']
 
 write_csv,stdfile,types,fnames,navgs,sites,cameras,jdates,flags,header=hdrs

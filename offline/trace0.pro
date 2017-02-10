@@ -31,7 +31,7 @@ pro trace0,filin,sitec,camerac
 @nres_comm
 
 ; constants
-nresroot=getenv('NRESROOT')
+; nresroot=getenv('NRESROOT')
 site=sitec               ; stick site, camera inputs into common
 camera=camerac
 
@@ -170,7 +170,7 @@ daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 strput,datestrc,'00',0
 fout='trace/TRAC'+datestrc+'.fits'
-filout=nresroot+'reduced/'+fout
+filout=nresrooti+'reduced/'+fout
 
 mkhdr,hdr,tracprof
 sxaddpar,hdr,'NX',nx

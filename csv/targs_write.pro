@@ -4,7 +4,8 @@ pro targs_write,names,ras,decs,vmags,bmags,gmags,rmags,imags,jmags,kmags,$
 ; overwriting whatever was there.  No warnings are issued.
 
 nresroot=getenv('NRESROOT')
-targfile=nresroot+'reduced/csv/targets.csv'
+nresrooti=nresroot+getenv('NRESINST')
+targfile=nresrooti+'reduced/csv/targets.csv'
 hdrs=['Targname','RA','Dec','Vmag','Bmag','gmag','rmag','imag','Jmag','Kmag',$
       'PMRA','PMDE','Plax','RV','Teff','Logg','ZERO']
 nline=n_elements(names)

@@ -13,7 +13,8 @@ pro avg_biasdark,type,flist,array=array
 
 ; make pathnames
 nresroot=getenv('NRESROOT')
-root=nresroot+'reduced/'
+nresrooti=nresroot+getenv('NRESINST')
+root=nresrooti+'reduced/'
 biasdir=root+'bias/'
 darkdir=root+'dark/'
 
@@ -59,6 +60,7 @@ camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
 datin=fltarr(nx,ny,nfile)
 datin(*,*,0)=dd
 gooddat=lonarr(nfile)
+gooddat(0)=1
 for i=1,nfile-1 do begin
   fn=root+files(i)
   dd=float(readfits(fn,hdr))

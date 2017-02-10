@@ -6,7 +6,8 @@ pro zeros_rd,fnames,navgs,sites,cameras,jdates,targnames,teffs,loggs,bmvs,jmks,f
 ; Column names are returned in the string array stdhdr.
 
 nresroot=getenv('NRESROOT')
-zerofile=nresroot+'reduced/csv/zeros.csv'
+nresrooti=nresroot+getenv('NRESINST')
+zerofile=nresrooti+'reduced/csv/zeros.csv'
 zstruc=read_csv(zerofile,header=zerohdr)
 
 ; make output data arrays

@@ -23,7 +23,8 @@ smwid=51                     ; smoothing width for low- high-pass split, in pix
 
 ; make pathnames
 nresroot=getenv('NRESROOT')
-root=nresroot+'reduced/'
+nresrooti=nresroot+getenv('NRESINST')
+root=nresrooti+'reduced/'
 flatdir=root+'flat/'
 darkdir=root+'dark/'
 

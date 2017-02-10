@@ -7,39 +7,44 @@ nodbase
         ***IDL code for reduction
     rawdat
         ***raw data files to be processed.  Will be superceded after early tests
-    reduced
-        ***intermediate and final results of reductions
-        autog -- *** output of autoguider.pro
-        bias --  *** bias standard files
-        ccor --  *** output of cross_correl.pro
-        class --  *** output of spec_classify.pro
-        config -- *** configuration files for spectrographs, CCDs, etc
-            spec_SQA_config.txt
-            CCD_fl01_config.txt
-            CCD_at07_config.txt
-            etc......
-            tharlist.txt --  ThAr wavelengths list
-        csv -- ***pseudo-database files
-            standards.csv
-               FLAGS entries: 1st character: 0 = ok, 1 = don't use
-            targets.csv
-            zeros.csv
-               FLAGS entries: 1st char: 0 = ok, 1 = don't use
-                              2nd char: 0 = normal, 1 = ok for 'blind' standard
-            obs.csv (?)
-            ccds.csv
-            spectrographs.csv --  *** configuration data per spectrograph
-            rv.csv -- *** output of radial_velocity.pro
-        dark -- *** dark standard files
-        diag -- *** diagnostic plots for inclusion in "real" DB
-        expm -- *** output of expmeter.pro
-        flat -- *** flat-field standard files
-        rv --  *** output of radial_velocity.pro
-        spec -- *** output of calib_extract.pro
-        thar -- *** output of tharwavelen.pro
-        trace -- *** trace standard files
-        trip --  *** triple standard files
-        zero -- *** ZERO standard files
+    RDblahblah
+        *** "instance" directory allowing multiple independent "reduced" dirs
+        reduced
+            ***intermediate and final results of reductions
+            autog -- *** output of autoguider.pro
+            bias --  *** bias standard files
+            ccor --  *** output of cross_correl.pro
+            class --  *** output of spec_classify.pro
+            config -- *** configuration files for spectrographs, CCDs, etc
+                spec_SQA_config.txt
+                CCD_fl01_config.txt
+                CCD_at07_config.txt
+                etc......
+                tharlist.txt --  ThAr wavelengths list
+            csv -- ***pseudo-database files
+                standards.csv
+                   FLAGS entries: 1st character: 0 = ok, 1 = don't use
+                targets.csv
+                zeros.csv
+                   FLAGS entries: 1st char: 0 = ok, 1 = don't use
+                                  2nd char: 0 = normal, 1 = ok for 'blind' std
+                obs.csv (?)
+                ccds.csv
+                spectrographs.csv --  *** configuration data per spectrograph
+                rv.csv -- *** output of radial_velocity.pro
+            dark -- *** dark standard files
+            dble -- *** DOUBLE standard files
+            diag -- *** diagnostic plots for inclusion in "real" DB
+            expm -- *** output of expmeter.pro
+            flat -- *** flat-field standard files
+            plot -- *** contains plots for inclusion in output package
+            rv --  *** output of radial_velocity.pro
+            spec -- *** output of calib_extract.pro
+            temp -- *** holds temp data written by calib averaging routines
+            thar -- *** output of tharwavelen.pro
+            trace -- *** trace standard files
+            trip --  *** triple standard files
+            zero -- *** ZERO standard files
     temp
         ***temporary data storage during reduction 
 

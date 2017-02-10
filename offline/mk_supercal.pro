@@ -26,7 +26,8 @@ pro mk_supercal,type,site,camera,dateran,object
 
 ; constants
 nresroot=getenv('NRESROOT')
-tempdir='temp/'
+nresrooti=nresroot+getenv('NRESINST')
+tempdir='reduced/temp/'
 biasdir='reduced/bias/'
 darkdir='reduced/dark/'
 flatdir='reduced/flat/'
@@ -84,7 +85,7 @@ if(type eq 'FLAT') then begin
 ; if all flag2 values are the same, then we must examine NAXIS3, else not
   se=where(flagg eq flagg(0),nse)
   if(nse eq nsg) then begin           ; all flag values are the same
-    filet=nresroot+'reduced/'+files(0)   ; first file in list
+    filet=nresrooti+'reduced/'+files(0)   ; first file in list
     dat=readfits(filet,hdr)
     nax3=sxpar(hdr,'NAXIS3')
 ; relax rule prohibiting 3 fibers with only 2 illuminated
@@ -97,7 +98,7 @@ endif
 
 ; write out the temporary file with input file names, print number of files
 ; found
-flist=nresroot+tempdir+'avglist.txt'
+flist=nresrooti+tempdir+'avglist.txt'
 print,nsg,' files of type ',type,' found in mk_supercal'
 openw,iun,flist,/get_lun
 for i=0,nsg-1 do begin

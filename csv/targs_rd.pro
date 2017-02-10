@@ -6,7 +6,8 @@ pro targs_rd,names,ras,decs,vmags,bmags,gmags,rmags,imags,jmags,kmags,$
 ; Column names are returned in the string array targhdr.
 
 nresroot=getenv('NRESROOT')
-targfile=nresroot+'reduced/csv/targets.csv'
+nresrooti=nresroot+getenv('NRESINST')
+targfile=nresrooti+'reduced/csv/targets.csv'
 
 tstruc=read_csv(targfile,header=targhdr)
 

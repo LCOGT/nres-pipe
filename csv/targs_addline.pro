@@ -7,7 +7,8 @@ pro targs_addline,name,ra,dec,vmag,bmag,gmag,rmag,imag,jmag,kmag,$
 ; to be sorted into RA order, without otherwise changing it.
 
 nresroot=getenv('NRESROOT')
-targfile=nresroot+'reduced/csv/targets.csv'
+nresrooti=nresroot+getenv('NRESINST')
+targfile=nresrooti+'reduced/csv/targets.csv'
 targhdr=['Targname','RA','Dec','Vmag','Bmag','gmag','rmag','imag','Jmag','Kmag',$
       'PMRA','PMDE','Plax','RV','Teff','Logg','ZERO']
 
