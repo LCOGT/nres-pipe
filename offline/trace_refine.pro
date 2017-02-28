@@ -35,7 +35,9 @@ ninfil=n_params()-1
 ; set up needed directories, constants in common
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
 
-; nresroot=getenv('NRESROOT')
+nresroot=getenv('NRESROOT')
+; normally don't expect nres_comm to be populated before this routine is called
+nresrooti=nresroot+getenv('NRESINST')
 biasdir='reduced/bias/'
 darkdir='reduced/dark/'
 specdir='reduced/spec/'
@@ -75,6 +77,7 @@ prof=tracea(0:cowid-1,*,*,1:*)
 ;end
 
 ; Are there dark fibers?  Happens iff nfib=3 and nfilin=1
+stop
 if(nfib eq 3 and ninfil eq 1) then begin
   if(fib0 eq 0) then zdark=2 else zdark=0
 endif else begin
@@ -82,7 +85,8 @@ endif else begin
 endelse
 
 ; read the input image file(s) main data segment
-dat1=readfits(flatin1,hdr1)
+imagein1=getenv('NRESRAWDAT')+flatin1
+dat1=readfits(imagein1,hdr1)
 site1=strupcase(strtrim(sxpar(hdr1,'SITEID'),2))
 camera1=strtrim(sxpar(hdr1,'INSTRUME'),2)
 if(strtrim(site1,2) ne strtrim(site,2) or strtrim(camera1,2) $
@@ -116,16 +120,21 @@ ny=sz(2)
 ; subtract the background
 order_cen,trace,ord_vectors
 objs=sxpar(hdr1,'OBJECTS')
-backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
+; if they are not set, put in defaults for ord_wid and nfib
+if(ord_wid eq 0.) then ord_wid=10.5
+if(nfib eq 0) then nfib=3
+if(medboxsz eq 0) then medboxsz=23
+;backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
 
 ; if there are 2 input files, read and process the 2nd one
 if(ninfil eq 2) then begin
-  dat2=readfits(flatin2,hdr2)
+  imagein2=getenv('NRESRAWDAT')+flatin2
+  dat2=readfits(imagein2,hdr2)
 ; assume same site, camera, exposure time.  Ignore change in MJD.
   cordat2=dat2-bias
   cordat2=cordat2-exptime*dark
   if(sz(1) eq 2080) then cordat2=cordat2(0:2047,*)
-  backsub,cordat2,ord_vectors,ord_wid,nfib,medboxsz
+; backsub,cordat2,ord_vectors,ord_wid,nfib,medboxsz
 endif
 
 ; iterate on: extract orders & y displacements, fit new order posns,
@@ -232,6 +241,7 @@ for iter=0,itermax do begin
   for i=0,nord-1 do begin
     for j=0,nfib-1 do begin
       if(j ne zdark) then begin
+        if(max(abs(mom1(*,i,j))) eq 0.) then stop
         cc=lstsqr(mom1(*,i,j),legs,wtss(*,i,j),nleg,rms,chisq,outp,1,cov)
         trace1(*,i,j)=trace1(*,i,j)+cc
         rmsa(i,j)=rms

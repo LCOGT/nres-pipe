@@ -11,8 +11,8 @@ err=0
 radian=180.d0/!pi
 
 ; read the csv file
-root=getenv('NRESROOT')
-filin=root+'/reduced/csv/spectrographs.csv'
+nresroot=getenv('NRESROOT')
+filin=nresrooti+'/reduced/csv/spectrographs.csv'
 dats=read_csv(filin,header=spechdr)
 
 ; find data for correct site

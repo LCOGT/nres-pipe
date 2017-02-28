@@ -56,6 +56,26 @@ if(errsum gt 0) then begin
   goto,fini
 endif
 
+; if either fiber0 or fiber2 profile data exist and are all zero, fill 
+; values in from the other one.
+sz=size(tracprof)
+cnfib=sz(3)
+cnblk=sz(4)
+if(cnfib eq 3) then begin
+  v0=max(abs(tracprof(*,*,0,1:*)))
+  v2=max(abs(tracprof(*,*,2,1:*)))
+  if(((v0 ne 0.) or (v2 ne 0)) and not ((v0 eq 0) and (v2 eq 0))) then begin
+; do this if either v0 or v2 = 0, but not both
+    if(v0 eq 0) then begin
+      tracprof(*,*,0,1:*)=tracprof(*,*,2,1:*)
+    endif else begin
+      tracprof(*,*,2,1:*)=tracprof(*,*,0,1:*)
+    endelse
+  endif
+endif
+
+;stop
+
 ; debias
 cordat=dat-bias
 mk_variance              ; compute variance map and hold it in common, too

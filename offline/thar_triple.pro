@@ -43,7 +43,9 @@ pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
-; nresroot=getenv('NRESROOT')
+nresroot=getenv('NRESROOT')
+nresinst=getenv('NRESINST')
+nresrooti=nresroot+'/'+nresinst
 reddir=nresrooti+'reduced/'
 tripdir=nresrooti+'reduced/trip/'
 
@@ -109,14 +111,30 @@ io01=matchord_c
 ll01=matchlam_c
 er01=matcherr_c
 
+stop
+
 ; repeat for fil12
 objects=strupcase(sxpar(hdr12,'OBJECTS'))
 words=get_words(objects,nwords,delim='&')
 nfib=nwords
 nfiba=0
 if(nwords eq 3 and words(0) eq 'THAR' and words(1) eq 'THAR') then nfiba=3
-if(nwords eq 3 and words(1) eq 'THAR' and words(2) eq 'THAR') then nfiba=3
-if(nwords eq 2 and words(0) eq 'THAR' and words(1) eq 'THAR') then nfiba=2
+
+if(nwords eq 3 and keyword_set(force2) and words(1) eq 'THAR' and $
+    (words(0) eq 'THAR' or words(2) eq 'THAR')) then begin
+  nfiba=2                            ; nfiba forced to 2
+  if(words(0) eq 'THAR') then fib0=0 else fib0=2
+endif
+
+if(nwords eq 2 and words(0) eq 'THAR' and words(1) eq 'THAR') then begin
+  nfiba=2
+  fib0=0
+endif
+
+
+
+;if(nwords eq 3 and words(1) eq 'THAR' and words(2) eq 'THAR') then nfiba=3
+;if(nwords eq 2 and words(0) eq 'THAR' and words(1) eq 'THAR') then nfiba=2
 if(nfiba eq 0) then begin
   print,'Input file fil12 not ThAr DOUBLE in thar_triple
   stop

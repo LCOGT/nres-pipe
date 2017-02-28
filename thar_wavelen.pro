@@ -223,6 +223,8 @@ tharred={fibth:sth,lam:lam_all,sinalp:sinalp_all,fl:fl_all,y0:y0_all,$
       rmsgood:rmsgood_all,mgbdisp:mgbdisp_all,lammid:lammid_all,$
       site:site,jd:jd}
 
+stop
+
 ; Write the contents of this structure out as a multi-extension fits file,
 ; with lam(nx,nord,nfib) as the main table, sgparms(4,nfib) as the first
 ; binary table, and sgcoefs(ncoef,nfib) as the 2nd binary table.`

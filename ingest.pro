@@ -1,6 +1,7 @@
 pro ingest,filin,ierr
 ; This routine opens the multi-extension file filin and reads its contents
 ; (headers and data segments) into the nres common data area.
+; The name filin should be relative to the $NRESRAWDAT data directory.
 ; It also exracts certain of the header data that will be of general use
 ; later, and places their values in common.
 ; On normal return ierr=0, but if expected data are not found or fail basic
@@ -23,7 +24,8 @@ if(verbose) then begin
 endif
 
 ; open the input FITS file, read the main data segment and header
-filename=strtrim(filin,2)
+nresrawdat=getenv('NRESRAWDAT')
+filename=nresrawdat+strtrim(filin,2)
 dat=readfits(filename,dathdr)
 type=strtrim(sxpar(dathdr,'OBSTYPE'),2)
 

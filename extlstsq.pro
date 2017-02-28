@@ -76,7 +76,7 @@ funs(*,*,*,3)=d2fpdy2
 fewts=ewts
 febo=ebo
 
-fitc=fltarr(nx,nord,5)
+fitc=fltarr(nx*nord,5)
 
 ; now make cross-dispersion sums of products for use in the fit
 ; distinguish cases for how many coefficients
@@ -84,7 +84,9 @@ case nfun of
 1: begin
 a00=reform(cowid*rebin(funs(*,*,*,ifun(0))^2*fewts,nx,1,nord))
 y0=reform(cowid*rebin(funs(*,*,*,ifun(0))*febo*fewts,nx,1,nord))
-fitc(*,*,ifun(0))=y0/a00
+sn=where(a00 ne 0.,nsn)
+fitc(sn,ifun(0))=y0(sn)/a00(sn)
+fitc=reform(fitc,nx,nord,5)
 end
 
 2: begin
@@ -98,8 +100,10 @@ y1=reform(cowid*rebin(funs(*,*,*,ifun(1))*febo*fewts,nx,1,nord))
 det=a00*a11-a01*a10
 d0=y0*a11-a01*y1
 d1=a00*y1-y0*a01
-fitc(*,*,ifun(0))=d0/det
-fitc(*,*,ifun(1))=d1/det
+sn=where(det ne 0.,nsn)
+fitc(sn,ifun(0))=d0/det
+fitc(sn,ifun(1))=d1/det
+fitc=reform(fitc,nx,nord,5)
 end
 
 3: begin
@@ -122,11 +126,15 @@ det=a22*(a00*a11-a01*a10) - a20*(a02*a11-a01*a12) + a21*(a02*a10-a00*a12)
 d0=a22*(y0*a11-a10*y1) - a20*(y2*a11-a12*y1) + a21*(y2*a10-a12*y0)
 d1=a22*(a00*y1-y0*a01) - a20*(a02*y1-y2*a01) + a21*(a02*y0-y2*a00)
 d2=y2*(a00*a11-a10*a01) - y0*(a02*a11-a12*a01) + y1*(a02*a10-a12*a00)
-fitc(*,*,ifun(0))=d0/det
-fitc(*,*,ifun(1))=d1/det
-fitc(*,*,ifun(2))=d2/det
+sn=where(det ne 0.,nsn)
+;fitc(*,*,ifun(0))=d0/det
+;fitc(*,*,ifun(1))=d1/det
+;fitc(*,*,ifun(2))=d2/det
+fitc(sn,ifun(0))=d0(sn)/det(sn)
+fitc(sn,ifun(1))=d1(sn)/det(sn)
+fitc(sn,ifun(2))=d2(sn)/det(sn)
+fitc=reform(fitc,nx,nord,5)
 end
-
 endcase
 
 ; make output arrays, and nominal displacement of order from box center

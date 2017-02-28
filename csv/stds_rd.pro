@@ -6,6 +6,7 @@ pro stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+getenv('NRESINST')
 stdfile=nresrooti+'reduced/csv/standards.csv'
+
 dat=read_csv(stdfile,header=stdhdr)
 types=dat.field1
 fnames=dat.field2

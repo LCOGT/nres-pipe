@@ -54,23 +54,36 @@ degree of polynomial used in each order for traces.
 (5a) If you have multiple darks, run "mk_darkavg" to make an average dark.
 
 (8) Make a TRACE file, so that spectra can be extracted.
-With ds9, examine (by hand) the file FLAT1, and create the file
+If you have a reasonable trace file for a similar spectrograph (NRES-1,2,3,4)
+then use routine trace1.pro with input consisting of the starting trace file,
+and a spectrum image containing a sky object (Sun or star) in fiber0
+or fiber2, and Tungsten-Halogen in fiber1.  Order 10 of the spectrum (counting
+up from the bottom of the image) should contain the strong O2 A-band lines
+in its sky-object fiber, and none in fiber1.  Follow instructions for routine
+trace1, and a file will be produced that should be a suitable starting point
+for routine trace_refine (see below)
+If no starting file is available, then
+with ds9, examine (by hand) the file FLAT1, and create the file
 site_trace0.txt.  This contains the center y-coordinates for at least 5 x-coords
 per order for both fibers and for at least 5 (10 is better) well-spaced 
 orders in the flat field spectrum.  Put into the header lines the information
 describing the spectrograph configuration.  See trace0.pro in-line documentation
 for details.  Run trace0.pro with site_trace0.txt as input.  This generates
-a rough trace file for the spectrograph.  Then run "trace_refine.pro" with
+a rough trace file for the spectrograph.  
+Last, run "trace_refine.pro" with
 FLAT1 and (if needed, for 3-fiber systems) FLAT2 as input. This creates an
 improved trace file.  Both the rough and refined trace files are placed
 in reduced/trace/*.fits, and pointers to them are put in the 
 /reduced/csv/standards.csv file.
+You will get one output line per fiber giving "total rms" = the sum over
+orders of the order position error rms, in pixels.  This should be pretty
+nearly nord/2 for each fiber.  If so, you probably have a good fit.
 
-(9) Make a standard flat file.  Run "muncha,FLAT1,/flat" and
+(9) Make a standard flat file.  Run "muncha,FLAT1,/flatk" and
 "muncha,FLAT2,/flat" to ingest the Tungsten-Halogen flats, (do all of them,
 if there is more than one flat per fiber), and then run
-"mk_flat2" to generate the average(s) and combine the two fiber configurations
-into one 3-fiber flat, if necessary.
+"mk_supercal" to generate the average(s) and combine the two fiber 
+configurations into one 3-fiber flat, if necessary.
  
 (10) Make wavelength solution file(s).  To get a solution from scratch with 
 the requisite accuracy requires a bootstrap procedure:

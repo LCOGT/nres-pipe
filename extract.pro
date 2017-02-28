@@ -57,7 +57,6 @@ gain=1.8        ; CCD gain in e-/ADU
 rn=7.           ; read noise in e-
 sigc=10.         ; threshold for bad data (cosmics), in sigma
 
-
 ; make arrays containing the data from the extraction boxes specified in trace,
 ; and the variance map in the same boxes.
 ; also the nominal displacement of the order center from the center of the
@@ -83,6 +82,7 @@ for i=0,nord-1 do begin
     endfor
   endif
 endfor
+
 
 ; determine whether to fit for trace cross-disp shift.  If so, which fiber 
 ; to use to estimate this shift.
@@ -289,7 +289,7 @@ for ifib=0,mfib-1 do begin
 ; ***** put sigma clipping code here.  Changes values in arrays ebo, vbo
       endif
   endfor
-stop
+;stop
 
 ; This looks like a bad idea in cases where (eg because of saturation) the
 ; real profile is a poor fit to the parameterized one prod0+prod2+prod3.

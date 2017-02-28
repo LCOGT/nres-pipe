@@ -49,7 +49,6 @@ nfile=n_elements(files)
 ; read the data files and their headers
 ; get the first one, check each successive one for size, type, site, camera
 fn=root+files(0)
-stop
 dd=float(readfits(fn,hdr0))
 nx=sxpar(hdr0,'NAXIS1')
 nord=sxpar(hdr0,'NAXIS2')
