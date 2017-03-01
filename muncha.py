@@ -94,7 +94,11 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
 
     import copy_bias
 
-    copy_bias.copy_bias()
+    done=copy_bias.copy_bias()
+
+    #next couple lines can be removed when done, here for testing
+    print(done)
+    print(ierr)
 
     #Do some error handling here if ingest returns an error
 

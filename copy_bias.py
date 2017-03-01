@@ -1,6 +1,6 @@
 
 import nres_comm as nr
-
+import os.path
 
 def copy_bias():
     """This routine takes the main data segment of the current data file from
@@ -14,7 +14,7 @@ def copy_bias():
     #grab the data file from nres_common, make the header
     from astropy.io import fits
 
-    nr.bias = nr.dat.astype(float)
+    bias = nr.dat.astype(float)
 
     prihdr = fits.Header()
     prihdr['MJD'] = nr.mjdc, 'Creation date'
@@ -24,47 +24,32 @@ def copy_bias():
     prihdr['INSTRUME'] = nr.camera, ' '
     prihdr['OBSTYPE'] = 'BIAS', ' '
     prihdr['EXPTIME'] = nr.exptime, ' '
-    prihdu = fits.PrimaryHDU(header=prihdr)
+    #prihdu = fits.PrimaryHDU(header=prihdr)  Don't think I need.
 
-    # Test and make directory if not present, abort if non-writable
-    # Also have to update out name and location, also trigger csv update
+    biaso='BIAS'+str(nr.datestrc)+'.fits'
+    biasdir=nr.nresroot+nr.biasdir
+    biasout=nr.nresroot+nr.biasdir+biaso
 
-    fits.writeto('BIASOUT.fits', nr.bias, prihdu)
+    if not os.path.exists(biasdir):
+           os.makedirs(biasdir)
 
+    fits.writeto(biasout, bias, prihdr)
 
-    #Test and make directory if not present, abort if non-writable
+    import stds_addline
+    stds_addline.stds_addline('BIAS','bias/'+biaso,1,nr.site,nr.camera,nr.jdc,'0000')
 
-
-
-
-    #need to make header with something like this
-    #prihdr = fits.Header()
-    #prihdr['MJD'] = nr.mjdc,'Creation date'
-    #prihdr['NFRAVGD'] = 1,'avgd this many frames'
-    #prihdr['ORIGNAME'] = nr.filename,'1st filename'
-    #prihdr['SITEID'] = nr.site,' '
-    #prihdr['INSTRUME'] = nr.camera,' '
-    #prihdr['OBSTYPE'] = 'BIAS',' '
-    #prihdr['EXPTIME'] = nr.exptime,' '
-    #prihdu = fits.PrimaryHDU(header=prihdr)
-    #fits.writeto('out.fits', nr.bias, prihdr)
-
-
+    if nr.verbose==1:
+        print('*** copy_bias ***')
+        print('File In = ', nr.filin0)
+        naxes = nr.dathdr, ['NAXIS']
+        nx = nr.dathdr, ['NAXIS1']
+        ny = nr.dathdr, ['NAXIS2']
+        print('Naxes, Nx, Ny = ', naxes, nx, ny)
+        print('Wrote file to bias dir:')
+        print(biasout)
+        print('Added line to reduced/csv/standards.csv')
 
 
-    #tbhdu=tbhdu = fits.BinTableHDU.from_columns(nr.dathdr)
-
-    #    nr.dathdr
-#thdulist = fits.HDUList([prihdu, tbhdu])
-#thdulist.writeto('table.fits')
-
-#fits.getdata(filin, header=True)
 
 
-#prihdr = fits.Header()
-#prihdr['OBSERVER'] = 'Edwin Hubble',testing
-#prihdr['COMMENT'] = "Here's some commentary about this FITS file.",test2
-#prihdu = fits.PrimaryHDU(header=prihdr)
-#
-#fits.writeto('out.fits', nr.bias, prihdr)
 

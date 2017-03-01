@@ -1,5 +1,6 @@
 import nres_comm as nr
-
+import os.path
+import numpy as np
 
 def copy_dark():
     """This routine takes the main data segment of the current data file from
@@ -13,7 +14,7 @@ def copy_dark():
     #grab the data file from nres_common, make the header
     from astropy.io import fits
 
-    nr.dark = nr.dat.astype(float)
+    dark = nr.dat.astype(float)
 
     #here is where all the magic happens with the get calib function
 
