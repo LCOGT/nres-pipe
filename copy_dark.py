@@ -29,7 +29,7 @@ def copy_dark():
     prihdr['INSTRUME'] = nr.camera, ' '
     prihdr['OBSTYPE'] = 'BIAS', ' '
     prihdr['EXPTIME'] = nr.exptime, ' '
-    prihdu = fits.PrimaryHDU(header=prihdr)
+    prihdu = fits.PrimaryHDU(header=prihdr)  Dont think I need this line, need to test out
 
     # Test and make directory if not present, abort if non-writable
     # Also have to update out name and location, also trigger csv update
