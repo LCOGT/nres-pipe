@@ -13,7 +13,6 @@ def ingest(filin):
 
     """
 
-#What does this Hack do, do I need to replicate it?
 
     from astropy.io import fits
     from astropy.time import Time
