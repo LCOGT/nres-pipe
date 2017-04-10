@@ -1,6 +1,6 @@
 pro plot_quick
 ; This routine writes a quick-look postscript file to directory
-; reduced/plot
+; instance/reduced/plot
 ; The file has a name tied to the open-shutter time and the site.
 ; A suffix _0 or _2 identifies the active fiber.  If 2 fibers have starlight,
 ; then two plots are generated, one for each fiber.
@@ -12,8 +12,9 @@ pro plot_quick
 @thar_comm
 
 ; constants
-root=getenv('NRESROOT')
-plotdir=root+'reduced/plot/'
+nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
+plotdir=nresrooti+'reduced/plot/'
 c=299792.458d0               ; light speed in km/s
 black=0
 blue=192
@@ -63,7 +64,7 @@ for i=0,1 do begin
            string(ras(2),format='(f5.2)')
   decs=sixty(targdec(i))
   if(targdec(i) ge 0) then sgn='+' else sgn='-'
-  decstr(i)=sgn+string(decs(0),format='(i2.2,":")') + $
+  decstr(i)=sgn+string(decs(0),format='(i3.2,":")') + $
                 string(decs(1),format='(i2.2,":")') + $
                 string(decs(2),format='(f4.1)')
 endfor
@@ -86,7 +87,7 @@ if(nobj eq 3) then begin
     print,'FAIL in plot_quick:  no ThAr fiber'
     goto,fini
   endif
-  if(objects(0) ne 'NONE' and objects(1) ne 'NONE') then begin
+  if(objects(0) ne 'NONE' and objects(2) ne 'NONE') then begin
 ; get here if 2 fibers have starlight
     nplot=2
     iplot0=0

@@ -24,6 +24,7 @@ objects=get_words(sxpar(dathdr,'OBJECTS'),nwd,delim='&')
 objects=strupcase(objects)
 centtimes=expmred.expfwt     ; flux-weighted mean exp JD
 baryshifts=dblarr(2)            ; barycentric z for each target at centtimes
+coosrc=lonarr(2)             ; source for target coords: 0 = csv, 1 = targhdr
 tlat=sxpar(dathdr,'LATITUDE')        ; telescope latitude
 tlon=sxpar(dathdr,'LONGITUD')      ; telescope E. longitude
 talt=sxpar(dathdr,'HEIGHT')        ; telescope elevation ASL (m) 
@@ -55,12 +56,19 @@ if(nfib eq 2) then begin
   targnames(1)=strcompress(strupcase(objects(1)),/remove_all)
   targra(1)=sxpar(tel2hdr,'RA')
   targdec(1)=sxpar(tel2hdr,'DEC')
-  baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
-     tlat,tlon,talt)
   targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
 ; get_targ_props returns a structure containing name, RA, DEC, Vmag, B-V,
 ; logg, PMRA, PMDEC.  If no name or position match, get a structure full
 ; of nulls.
+  if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
+    coosrc(1)=1
+; coosrc identifies whether (0) coords from targets.csv or (1) from telhdr.
+  if(coosrc(1) eq 0) then begin
+    targra(1)=targ1struc.ra
+    targdec(1)=targ1struc.dec
+  endif
+  baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
+     tlat,tlon,talt)
 endif
 
 if(nfib eq 3) then begin
@@ -76,9 +84,15 @@ if(nfib eq 3) then begin
     targnames(0)=strcompress(strupcase(objects(0)),/remove_all)
     targra(0)=sxpar(tel1hdr,'RA')
     targdec(0)=sxpar(tel1hdr,'DEC')
-    baryshifts(1)=nresbarycorr(targnames(0),centtimes(0),targra(0),targdec(0),$
-       tlat,tlon,talt)
     targ0struc=get_targ_props(targnames(0),targra(0),targdec(0))
+    if(targra(0) eq 0.d0 and targdec(0) eq 0.d0) then coosrc(0)=0 else $
+      coosrc(0)=1
+    if(coosrc(0) eq 0) then begin
+      targra(0)=targ0struc.ra
+      targdec(0)=targ0struc.dec
+    endif
+    baryshifts(0)=nresbarycorr(targnames(0),centtimes(0),targra(0),targdec(0),$
+       tlat,tlon,talt)
   endif else begin
     targnames(0)='NULL'
     zeronames(0)='NULL'
@@ -92,9 +106,15 @@ if(nfib eq 3) then begin
     targnames(1)=strcompress(strupcase(objects(2)),/remove_all)
     targra(1)=sxpar(tel2hdr,'RA')
     targdec(1)=sxpar(tel2hdr,'DEC')
+    targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
+    if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
+      coosrc(1)=1
+    if(coosrc(1) eq 0) then begin
+      targra(1)=targ0struc.ra
+      targdec(1)=targ0struc.dec
+    endif
     baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
        tlat,tlon,talt)
-    targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
   endif else begin
     targnames(1)='NULL'
     zeronames(1)='NULL'
@@ -145,12 +165,13 @@ for i=0,1 do begin
     endif
   endif
 
+
 endfor
 
 ; build output structure
 
   rvindat={targstrucs:targstrucs,zeronames:zeronames,zerotypes:zerotypes,$
-      baryshifts:baryshifts,zstar:zstar,zthar:zthar,zlam:zlam}
+      baryshifts:baryshifts,zstar:zstar,zthar:zthar,zlam:zlam,coosrc:coosrc}
 
 fini:
 

@@ -1,0 +1,719 @@
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8 :
+#
+#    Stitch together Sinistro images with overscan removal and gain matching.
+#
+# Rob Siverd
+# Created:       2015-02-05
+# Last modified: 2017-02-21
+#--------------------------------------------------------------------------
+#**************************************************************************
+#--------------------------------------------------------------------------
+
+## Current version:
+__version__ = "1.0.6"
+
+## Modules:
+import getopt
+import signal
+import os
+import sys
+import time
+import numpy as np
+
+## FITS I/O:
+try:
+   import astropy.io.fits as pf
+except ImportError:
+   try:
+      import pyfits as pf
+   except ImportError:
+      sys.stderr.write("\nError!  No FITS I/O module found!\n"
+            "Install either astropy.io.fits or pyfits and try again!\n\n")
+      sys.exit(1)
+
+##--------------------------------------------------------------------------##
+## Colors for fancy terminal output:
+NRED    = '\033[0;31m'   ;  BRED    = '\033[1;31m'
+NGREEN  = '\033[0;32m'   ;  BGREEN  = '\033[1;32m'
+NYELLOW = '\033[0;33m'   ;  BYELLOW = '\033[1;33m'
+NBLUE   = '\033[0;34m'   ;  BBLUE   = '\033[1;34m'
+NMAG    = '\033[0;35m'   ;  BMAG    = '\033[1;35m'
+NCYAN   = '\033[0;36m'   ;  BCYAN   = '\033[1;36m'
+NWHITE  = '\033[0;37m'   ;  BWHITE  = '\033[1;37m'
+ENDC    = '\033[0m'
+
+## Settings:
+debug = False
+timer = False
+vlevel = 0
+prog_name = 'nres-labstitch.py'
+full_prog = sys.argv[0]
+base_prog = os.path.basename(full_prog)
+num_todo = 0
+
+## Options:
+save_name = None
+#save_file = None
+keep_fits = True        # by default, write a FITS image
+want_keys = 1000        # pre-allocate space for these in FITS header
+#gain_calc = False    # if true, estimate quadrant gains and quit
+sub_xtalk = True        # if True, subtract crosstalk
+quad_base = None        # base of output file names for individual quadrants
+save_quad = False       # if True, save quadrants individually
+keep_rows = None        # by default, keep everything
+hdr_keys  = None        # global variable to carry raw image header
+
+## Intermediate data products:
+oscsub_save = None      # if set, write overscan-subtracted cube to this file
+
+##--------------------------------------------------------------------------##
+## Catch interruption cleanly:
+def signal_handler(signal, frame):
+    sys.stderr.write("\nInterrupted!\n\n")
+    sys.exit(1)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+##--------------------------------------------------------------------------##
+## How to check if argument is a number:
+def is_integer(asdf):
+    try:
+        int(asdf)
+        return True
+    except ValueError:
+        return False
+
+def is_float(asdf):
+    try:
+        float(asdf)
+        return True
+    except ValueError:
+        return False
+
+def argnear(vec, val):
+    return (np.abs(vec - val)).argmin()
+
+## Robust location/scale estimate using median/MAD:
+def calc_ls_med_MAD(a):
+    """Return median and median absolute deviation of *a* (scaled to normal)."""
+    med_val = np.median(a)
+    sig_hat = (1.482602218 * np.median(np.abs(a - med_val)))
+    return (med_val, sig_hat)
+
+## Robust location/scale estimate using median/IQR:
+def calc_ls_med_IQR(a):
+    """Return median and inter-quartile range of *a* (scaled to normal)."""
+    pctiles = np.percentile(a, [25, 50, 75])
+    med_val = pctiles[1]
+    sig_hat = (0.741301109 * (pctiles[2] - pctiles[0]))
+    return (med_val, sig_hat)
+
+##--------------------------------------------------------------------------##
+## Save FITS image with clobber (astropy / pyfits):
+def qsave(iname, idata, header=None, padkeys=1000, **kwargs):
+    sys.stderr.write("Writing to '%s' ... " % iname)
+    if header:
+        while (len(header) < padkeys):
+            header.append() # pad header
+    if os.path.isfile(iname):
+        os.remove(iname)
+    pf.writeto(iname, idata, header=header, **kwargs)
+    sys.stderr.write("done.\n")
+
+##--------------------------------------------------------------------------##
+##*********************     Help and options menu:     *********************##
+##--------------------------------------------------------------------------##
+
+## Syntax / how to run:
+def usage(stream):
+    stream.write("\n"
+        + "Usage: %s [options] image.fits\n" % base_prog
+        + "Stitch together sinistro images.\n"
+        + "Version: %s\n" % __version__
+        + "\n"
+        + "Procedure and I/O:\n"
+        + "   -g, --gaincalc       estimate per-quadrant gain and exit\n"
+        + "   -n, --nosave         do not save image anywhere (testing)\n"
+        + "   -o, --output=FILE    save results to FILE\n"
+        + "   -Q, --quad=BASE      save individual quadrants to BASE.n.fits\n"
+        + "   -r, --rows=N         specify number of rows to keep [def: all]\n"
+        + "\n"
+        + "Intermediate data products:\n"
+        + "       --oscsub=FILE    save cube to FILE after overscans removal\n"
+        + "\n"
+        + "Other options:\n"
+        + "   -h, --help           print this page\n"
+        + "   -q, --quiet          suppress unnecessary output\n"
+        + "   -t, --timer          report program run-time\n"
+        + "   -v, --verbose        more status updates\n"
+        + "\n")
+        #+ "   -n, --numtodo=N     stop after N iterations\n"
+        #+ "   -s, --sigcut=N      clip data beyond N*sigma\n"
+
+##--------------------------------------------------------------------------##
+##*********************       Parse command line:      *********************##
+##--------------------------------------------------------------------------##
+
+## Options:
+short_opts = 'gno:Q:r:hqtv' # n:s:
+long_opts = ['gaincalc', 'nosave', 'output=', 'quadsave=', 'rows=', 'oscsub=',
+      'help', 'quiet', 'timer', 'verbose']
+# 'numtodo=', 'sigcut='
+
+## GNU-style parsing (with exception handling):
+try:
+    options, remainder = getopt.gnu_getopt(sys.argv[1:], short_opts, long_opts)
+except getopt.GetoptError, err:
+    sys.stderr.write("%s\n" % str(err))
+    usage(sys.stderr)
+    sys.exit(2)
+
+## Handle selected options:
+for opt, arg in options:
+    # ------------------------------------------------
+    if (opt == '--debug'):
+        debug = True
+        sys.stderr.write(BRED + "\nDebugging output enabled!" + ENDC + "\n")
+    # ------------------------------------------------
+    #elif ((opt == '-n') or (opt == '--numtodo')):
+    #    if not is_integer(arg):
+    #        sys.stderr.write("Error!  Non-integer argument: %s\n\n" % arg)
+    #        sys.exit(1)
+    #    num_todo = int(arg)
+    #    if (vlevel >= 0):
+    #        msg = "Stopping after %d items." % num_todo
+    #        sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    #elif ((opt == '-g') or (opt == '--gaincalc')):
+    #    gain_calc = True
+    #    if (vlevel >= 0):
+    #        msg = "Gain estimation mode!"
+    #        sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '-n') or (opt == '--nosave')):
+        keep_fits = False
+        if (vlevel >= 0):
+            msg = "FITS output disabled."
+            sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '-o') or (opt == '--output')):
+        save_name = arg
+        if (vlevel >= 0):
+            msg = "Saving results to: " + arg
+            sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '-Q') or (opt == '--quadsave')):
+        save_quad = True
+        quad_base = arg
+        if (vlevel >= 0):
+            msg = "Saving quadrants as: %s.N.fits" % quad_base
+            sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '-r') or (opt == '--rows')):
+        if (not is_integer(arg)) or (int(arg) < 1):
+            msg = "Invalid rows (need positive integer): %s\n" % arg
+            sys.stderr.write(BRED + msg + ENDC + "\n")
+            sys.exit(1)
+        keep_rows = int(arg)
+        if (vlevel >= 0):
+            msg = "Keeping %d image rows!" % keep_rows
+            sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '--oscsub')):
+        oscsub_save = arg
+        if (vlevel >= 0):
+            msg = "Saving oscsub cube to: %s" % oscsub_save
+            sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    #elif ((opt == '-s') or (opt == '--sigcut')):
+    #    if not is_float(arg):
+    #        sys.stderr.write("Error!  Non-numeric argument: %s\n\n" % arg)
+    #        sys.exit(1)
+    #    sigcut = float(arg)
+    #    if (vlevel >= 0):
+    #        msg = "Using %.2f-sigma outlier threshold." % sigcut
+    #        sys.stderr.write(NYELLOW + msg + ENDC + "\n")
+    # ------------------------------------------------
+    elif ((opt == '-h') or (opt == '--help')):
+        usage(sys.stdout)
+        sys.exit(0)
+    elif ((opt == '-q') or (opt == '--quiet')):
+        vlevel -= 1
+    elif ((opt == '-t') or (opt == '--timer')):
+        timer = True
+    elif ((opt == '-v') | (opt == '--verbose')):
+        vlevel += 1
+        sys.stderr.write(NYELLOW + "Increasing verbosity." + ENDC + "\n")
+    # ------------------------------------------------
+    else:
+        msg = "Unhandled option: %s" % opt
+        sys.stderr.write(BRED + "\n" + msg + ENDC + "\n\n")
+        sys.exit(1)
+    pass
+
+## Verbosity:
+if (vlevel >= 1):
+    sys.stderr.write("%sVerbosity level: %d%s\n" % (NYELLOW, vlevel, ENDC))
+
+## Full command line if highly verbose:
+if (vlevel >= 2):
+    sys.stderr.write("%s\nFull command line:%s\n" % (NCYAN, ENDC))
+    sys.stderr.write("   %s\n" % sys.argv)
+
+##--------------------------------------------------------------------------##
+## Check for required non-option inputs:
+if (len(remainder) < 1):
+    sys.stderr.write(BRED + "\nInput file required!" + ENDC + "\n")
+    usage(sys.stderr)
+    sys.exit(1)
+
+data_file = remainder[0]
+if not os.path.isfile(data_file):
+    msg = "\nError!  Can't find file: %s\n" % data_file
+    sys.stderr.write(BRED + msg + ENDC + "\n")
+    sys.exit(1)
+
+##--------------------------------------------------------------------------##
+## Header keywords to add:
+div_txt = \
+    "-----------------------------------------------------------------------"
+c_list = []
+
+def add_divider(header):
+    header.append(("COMMENT", div_txt))
+
+
+## Useful image area depends on dimensions:
+#def prescan_oscan(image):
+#    if image.shape == (4, 2054, 2096):
+#        sys.stderr.write("Image flavor: pysinistro four-amplifier\n")
+#        sys.stderr.write("NOT YET IMPLEMENTED!\n")
+#        sys.exit(1)
+#    elif image.shape == (1, 4108, 4146):
+#        sys.stderr.write("Image flavor: pysinistro single-amplifier\n")
+#        
+#first_oscan = 2049   # skip a column, avoids spill-over
+
+## Overscan area:
+#last_good_x = 2048
+#first_oscan = 2049   # skip a column, avoids spill-over
+
+## Quadrant gains:
+gain0 = 2.1
+gain1 = gain0 * 1.0000
+gain2 = gain0 * 1.0084
+gain3 = gain0 * 1.0284
+gain4 = gain0 * 1.0054
+
+## Extract image, subtract overscan, correct gain:
+def append_header_qstats(header, quad, avg, std, med, mad):
+    #sys.stderr.write("quad=%d, len(header): %d\n" % (quad, len(header)))
+    # average:
+    kword = "Q%d_OSAVG" % quad
+    kcomm = "[adu] quadrant %d overscan mean" % quad
+    header.append((kword, avg, kcomm), bottom=True)
+    # standard deviation:
+    kword = "Q%d_OSSTD" % quad
+    kcomm = "[adu] quadrant %d overscan stddev" % quad
+    header.append((kword, std, kcomm), bottom=True)
+    # median:
+    kword = "Q%d_OSMED" % quad
+    kcomm = "[adu] quadrant %d overscan median" % quad
+    header.append((kword, med, kcomm), bottom=True)
+    # median absolute deviation (MAD), scaled to normal:
+    kword = "Q%d_OSMAD" % quad
+    kcomm = "[adu] quadrant %d overscan scaled MAD" % quad
+    header.append((kword, mad, kcomm), bottom=True)
+    add_divider(header)
+
+## Extract image, subtract overscan, correct gain:
+def quadsplit(quad_img, col_spec):
+    nprescan, noverscan = col_spec
+    #image_data = quad_img[:, :2048]     # first 2048 columns
+    #oscan_data = quad_img[:, 2049:]     # 2050 to end (skip 2049)
+    image_data = quad_img[:, nprescan:-noverscan]
+    oscan_data = quad_img[:, -noverscan+1:]
+    return image_data, oscan_data
+
+## Trim off and subtract overscan:
+def sub_oscan(quad_img, qnum, col_spec, header):
+    idata, odata = quadsplit(quad_img, col_spec)
+    o_med, o_mad = calc_ls_med_MAD(odata)        # robust stats
+    o_avg, o_std = odata.mean(), odata.std()     # typical stats
+    append_header_qstats(hdr_keys, qnum, o_avg, o_std, o_med, o_mad)
+    sys.stderr.write("Overscan level: %10.3lf +/- %8.2f (%10.3lf +/- %8.2f)\n" \
+            % (o_med, o_mad, o_avg, o_std))
+    #idata -= o_med
+    #return idata
+    return (idata - o_med)
+
+## Fix quadrant (subtract overscan, correct gain):
+def quadfix(quad_img, gain, qnum, col_spec):
+    idata = sub_oscan(quad_img, qnum, col_spec)
+    idata *= gain
+    return idata
+
+##--------------------------------------------------------------------------##
+## Load FITS image:
+all_vals, hdr_keys = pf.getdata(data_file, header=True)
+raw_keys = hdr_keys.copy()
+#hdr_keys = raw_keys.copy()
+#hdr_keys = raw_keys.copy()
+
+add_divider(hdr_keys)
+#sys.exit(0)
+#while (len(hdr_keys) < want_keys):
+#    hdr_keys.append()   # pad header
+
+#img_vals *= np.arange(4)[:, np.newaxis, np.newaxis]
+try:
+    camid = hdr_keys.get('INSTRUME')
+except:
+    camid = 'flxx'
+
+## Note day-obs:
+dayobs = int(hdr_keys['origname'].split('-')[2])
+
+##--------------------------------------------------------------------------##
+## By default, no trimming within quadrants:
+missing_row = False
+bot_yrange = slice(None, None)
+top_yrange = slice(None, None)
+col_spec = (0, 32)
+
+trimsec = {}
+
+## Trim rows for modern pysinistro images:
+if all_vals.shape == (4, 2054, 2096):
+    bot_yrange = slice(None, -6)
+    #top_yrange = slice(5, None)
+    top_yrange = slice(None, -5)
+    col_spec = (0, 30)
+
+### Identify old libccd images (missing row):
+#if all_vals.shape == (4, 2048, 2080):
+#    missing_row = True
+#    col_spec = (0, 32)
+#
+### New libccd images (with central row):
+#if all_vals.shape == (4, 2052, 2080):
+#    missing_row = False
+#    bot_yrange = slice(None, -4)
+#    top_yrange = slice(3, None)
+#    col_spec = (0, 32)
+
+### fl04:
+#if all_vals.shape == (4, 2058, 2080):
+#    missing_row = False
+#    bot_yrange = slice(None, -10)
+#    top_yrange = slice(9, None)
+#    col_spec = (0, 32)
+
+## Unified handling:
+nquads, nrows, ncols = all_vals.shape
+if (nquads == 4) and (ncols == 2080) and (nrows >= 2049):
+    sys.stderr.write("Detected 4 x N x 2080!\n")
+    sys.stderr.write("Rows: %d\n" % nrows) 
+    missing_row = False
+    lower_xtras = nrows - 2048
+    upper_xtras = lower_xtras - 1   # top half has 1 more row
+    bot_yrange = slice(None, -lower_xtras)
+    top_yrange = slice(None, -upper_xtras)
+    #top_yrange = slice(upper_xtras, None)
+    col_spec = (0, 32)
+
+##--------------------------------------------------------------------------##
+## Subtract quadrant-specific overscan:
+q1, q2, q3, q4 = all_vals
+qlist = [q1, q2, q3, q4]
+for i in range(len(qlist)):
+    qlist[i] = sub_oscan(qlist[i], i+1, col_spec, hdr_keys)
+
+img_vals = np.array(qlist)
+
+## Save overscan-subtracted cube if requested:
+if oscsub_save:
+    qsave(oscsub_save, img_vals, hdr_keys, 1000)
+
+## Note instrument:
+sys.stderr.write("camid: %s\n" % camid)
+#sys.exit(0)
+
+##--------------------------------------------------------------------------##
+## By default, set cross-talk coefficients to zero:
+clist = None
+
+## fl01 cross-talk coefficients:
+ctc1 = np.array([0.00000, 0.00100, 0.00105, 0.00110])
+ctc2 = np.array([0.00100, 0.00000, 0.00108, 0.00110])
+ctc3 = np.array([0.00108, 0.00145, 0.00000, 0.00100])
+ctc4 = np.array([0.00150, 0.00108, 0.00100, 0.00000])
+if camid == 'fl01':
+    clist = [ctc1, ctc2, ctc3, ctc4]
+
+## fl08 cross-talk coefficients (DUMMY):
+ctc1 = np.array([0.00000, 0.00100, 0.00100, 0.00100])
+ctc2 = np.array([0.00100, 0.00000, 0.00100, 0.00100])
+ctc3 = np.array([0.00100, 0.00100, 0.00000, 0.00100])
+ctc4 = np.array([0.00100, 0.00100, 0.00100, 0.00000])
+if camid == 'fl08':
+    clist = [ctc1, ctc2, ctc3, ctc4]
+
+##--------------------------------------------------------------------------##
+## fl09 cross-talk coefficients (OLD):
+#if dayobs < 20161000:
+if camid == 'fl09':
+    if dayobs < 20161100:
+        # tuned with 20160918 image
+        sys.stderr.write("20160918 fl09 crosstalk coefficients!\n")
+        ctc1 = np.array([0.00000, 0.00075, 0.00105, 0.00110])
+        ctc2 = np.array([0.00070, 0.00000, 0.00108, 0.00110])
+        ctc3 = np.array([0.00080, 0.00100, 0.00000, 0.00100])
+        ctc4 = np.array([0.00110, 0.00130, 0.00100, 0.00000])
+    elif dayobs < 20161206:
+        sys.stderr.write("20161205 fl09 (near sat.) crosstalk coefficients!\n")
+        ctc1 = np.array([0.00000, 0.00075, 0.00105, 0.00110])
+        ctc2 = np.array([0.00070, 0.00000, 0.00108, 0.00110])
+        #ctc3 = np.array([0.00115, 0.00125, 0.00000, 0.00100])
+        ctc3 = np.array([0.00100, 0.00125, 0.00000, 0.00100])
+        ctc4 = np.array([0.00125, 0.00111, 0.00100, 0.00000])
+    elif dayobs < 20161207:
+        sys.stderr.write("20161207 fl09 crosstalk coefficients!\n")
+        ctc1 = np.array([0.00000, 0.00075, 0.00105, 0.00110])
+        ctc2 = np.array([0.00070, 0.00000, 0.00108, 0.00110])
+        ctc3 = np.array([0.00080, 0.00100, 0.00000, 0.00100])
+        ctc4 = np.array([0.00110, 0.00080, 0.00100, 0.00000])
+    else:
+        # tuned with 20161214 images
+        sys.stderr.write("20161214 fl09 crosstalk coefficients!\n")
+        ctc1 = np.array([0.00000, 0.00075, 0.00105, 0.00110])
+        ctc2 = np.array([0.00070, 0.00000, 0.00108, 0.00110])
+        ctc3 = np.array([0.00095, 0.00127, 0.00000, 0.00100])
+        ctc4 = np.array([0.00125, 0.00125, 0.00100, 0.00000])
+        #ctc1 = np.array([0.00000, 0.00075, 0.00105, 0.00110])
+        #ctc2 = np.array([0.00070, 0.00000, 0.00108, 0.00110])
+        #ctc3 = np.array([0.00116, 0.00127, 0.00000, 0.00100])
+        #ctc4 = np.array([0.00135, 0.00125, 0.00100, 0.00000])
+        pass
+    clist = [ctc1, ctc2, ctc3, ctc4]
+
+## Default to zeroes if nothing better available:
+if clist is None:
+    sys.stderr.write("Camera ID: %s\n" % camid)
+    sys.stderr.write("No known cross-talk coeffs, assuming zeroes!\n")
+    clist = [np.zeros(4), np.zeros(4), np.zeros(4), np.zeros(4)]
+
+## Custom coefficients (testing):
+#ctc1 = np.array([0.00000, 0.00100, 0.00105, 0.00110])
+#ctc2 = np.array([0.00100, 0.00000, 0.00108, 0.00110])
+#ctc3 = np.array([0.00108, 0.00145, 0.00000, 0.00100])
+#ctc4 = np.array([0.00150, 0.00108, 0.00100, 0.00000])
+#clist = [ctc1, ctc2, ctc3, ctc4]
+
+##--------------------------------------------------------------------------##
+## Subtract crosstalk signal:
+sys.stderr.write("\n")
+if sub_xtalk:
+    for i, coeffs in enumerate(clist):
+        sys.stderr.write("quad: %d, coeffs:  " % (i+1))
+        for cc in coeffs:
+            sys.stderr.write("%7.5f  " % cc)
+        sys.stderr.write("\n")
+        #sys.stderr.write("iquad.size: %s\n" % iquad.size)
+        #sys.stderr.write("iquad.shape: %s\n" % iquad.shape)
+        #print iquad.shape
+        ctalk = np.sum(coeffs[:, np.newaxis, np.newaxis] * img_vals, axis=0)
+        qlist[i] -= ctalk
+        #iquad = ctalk
+        #print ctalk.shape, ctalk.size
+    sys.stderr.write("\n")
+
+##--------------------------------------------------------------------------##
+## Save individual quadrants, if requested:
+if save_quad:
+    for i,qimg in enumerate(qlist):
+        qname = "%s.%d.fits" % (quad_base, i+1)
+        qsave(qname, qimg, hdr_keys, 1000)
+
+##--------------------------------------------------------------------------##
+## Correctly-oriented quadrants:
+#quad1 = quadfix(img_vals[0], gain1, 1)[   :,    :]    # lower left  (use as is)
+#quad2 = quadfix(img_vals[1], gain2, 2)[   :, ::-1]    # lower right (x-flipped)
+#quad3 = quadfix(img_vals[2], gain3, 3)[::-1, ::-1]    # upper right (x,y flips)
+#quad4 = quadfix(img_vals[3], gain4, 4)[::-1,    :]    # upper left  (y-flipped)
+
+#quad1 = (gain1 * qlist[0])[   :,    :]    # lower left  (use as is)
+#quad2 = (gain2 * qlist[1])[   :, ::-1]    # lower right (x-flipped)
+#quad3 = (gain3 * qlist[2])[::-1, ::-1]    # upper right (x,y flips)
+#quad4 = (gain4 * qlist[3])[::-1,    :]    # upper left  (y-flipped)
+
+### List gains, row-selection, and flips:
+#qgains = [gain1, gain2, gain3, gain4]
+#yrange = [bot_yrange, bot_yrange, top_yrange, top_yrange]
+#xflips = [slice(None, None, None), slice(None, None, -1),
+#            slice(None, None, -1), slice(None, None, None)]
+#yflips = [slice(None, None, None), slice(None, None, None),
+#            slice(None, None, -1), slice(None, None, -1)]
+
+## Correct gain, select useful rows, then apply flips:
+quad1 = (gain1 * qlist[0])[bot_yrange][   :,    :]    # lower left  (use as is)
+quad2 = (gain2 * qlist[1])[bot_yrange][   :, ::-1]    # lower right (x-flipped)
+quad3 = (gain3 * qlist[2])[top_yrange][::-1, ::-1]    # upper right (x,y flips)
+quad4 = (gain4 * qlist[3])[top_yrange][::-1,    :]    # upper left  (y-flipped)
+
+
+### Trim rows for modern pysinistro images:
+#if all_vals.shape == (4, 2054, 2096):
+#    bot_yrange = slice(None, -6)
+#    top_yrange = slice(5, None)
+
+## Assemble half images (AFTER FLIPPING):
+lower = np.hstack((quad1, quad2))
+upper = np.hstack((quad4, quad3))
+#lower = np.hstack((quad1, quad2))[bot_yrange]
+#upper = np.hstack((quad4, quad3))[top_yrange]
+
+## Interpolate missing row if needed:
+if missing_row:
+    bottom_half_top_row = lower[-1]
+    top_half_bottom_row = upper[ 0]
+    spoofed_missing_row = 0.5 * (bottom_half_top_row + top_half_bottom_row)
+    lower = np.vstack((lower, spoofed_missing_row))
+
+## Assemble full image (ALREADY FLIPPED):
+idata = np.vstack((lower, upper)).astype('float32')
+
+## Select image region:
+ysection = slice(None, keep_rows)
+xsection = slice(None, None)
+
+## Save output if requested:
+if keep_fits:
+    if save_name == None:
+        save_name = 'asdf.fits'
+    #qsave(save_name, idata, hdr_keys, 1000)
+    #qsave(save_name, idata, hdr_keys, 1000)
+    qsave(save_name, idata[ysection, xsection], hdr_keys, 1000)
+
+## Stop here:
+if debug == False:
+    sys.exit(0)
+
+
+
+######################################################################
+# CHANGELOG (nres-labstitch.py):
+#---------------------------------------------------------------------
+#
+#  2017-02-21:
+#     -- Increased __version__ to 1.0.6.
+#     -- Fixed bogus row ranges introduced with previous edits.
+#
+#  2017-02-19:
+#     -- Increased __version__ to 1.0.5.
+#     -- Overscan rows are now removed prior to X- and Y-flips to make the
+#           underlying operations a bit clearer.
+#     -- Now use copy() method on input image header to strip out trailing
+#
+#  2017-02-17:
+#     -- Increased __version__ to 1.0.0.
+#     -- Moved header padding loop to end of script, just prior to save.
+#     -- Now use copy() method on input image header to strip out trailing
+#           blanks and other weirdness prior to analysis.
+#     -- Investigating 773 '' cards in header error (fpacked files).
+#
+#  2017-02-09:
+#     -- Increased __version__ to 0.9.1.
+#     -- Date check for fl09 crosstalk is now INSIDE camid check.
+#
+#  2017-02-06:
+#     -- Increased __version__ to 0.9.0.
+#     -- Now enforce 32-bit floating-point results (otherwise get 64-bit).
+#     -- Now handle 4 x N x 2080 libccd images.
+#     -- Increased __version__ to 0.8.5.
+#     -- Now have two sets of crosstalk coefficients for fl09. A set is chosen
+#           based on the day-obs from the filename (~20161206 division).
+#     -- Added -r, --rows=N option to specify number of rows kept in output
+#           image (useful for cropping to 4K square for NRES).
+#
+#  2017-02-03:
+#     -- Increased __version__ to 0.8.3.
+#     -- Added default col_spec of (0, 32).
+#
+#  2016-12-07:
+#     -- Increased __version__ to 0.8.2.
+#     -- Updated fl09 crosstalk coefficients (new controller?).
+#     -- Added guesstimated fl08 crosstalk coefficients (all 0.001).
+#
+#  2016-11-15:
+#     -- Increased __version__ to 0.8.1.
+#     -- Disabled header padding for compatibility with instrument agent data.
+#
+#  2016-11-14:
+#     -- Increased __version__ to 0.8.0.
+#     -- Added shape handling for modern libccd images (with extra rows).
+#
+#  2016-10-25:
+#     -- Increased __version__ to 0.7.5.
+#     -- Now interpolate missing row for older libccd images.
+#     -- Now handle 4-amplifier pysinistro images (clip out dead middle rows).
+#
+#  2016-09-21:
+#     -- Increased __version__ to 0.7.0.
+#     -- Added empirical cross-talk coefficients for fl09.
+#     -- Cross-talk coefficients are now selected by camera ID.
+#
+#  2016-05-11:
+#     -- Increased __version__ to 0.6.5.
+#     -- Added new intermediate data output options:
+#     -- Updated qsave() to modern version.
+#
+#  2015-10-30:
+#     -- Increased __version__ to 0.6.0.
+#     -- Changed name from stitch.py to nres-labstitch.py and moved to
+#           centralized LCOGT script collection.
+#
+#  2015-07-15:
+#     -- Increased __version__ to 0.5.0.
+#     -- Increased Q2 crosstalk coefficients 3,4 from 0 to 0.001.
+#     -- Increased Q1 crosstalk coefficients 3,4 from 0 to 0.001.
+#     -- Added -Q, --quad=BASE option to save individual image quadrants.
+#     -- Added new padkeys argument to qsave().
+#     -- Indentation is now 4 spaces.
+#
+#  2015-06-28:
+#     -- Increased __version__ to 0.4.1.
+#     -- Updated crosstalk coefficients for modern images.
+#
+#  2015-06-25:
+#     -- Increased __version__ to 0.4.0.
+#     -- Now add/update DATASUM and CHECKSUM in output FITS header.
+#     -- Now pad FITS header with space for 1000 keywords.
+#
+#  2015-05-26:
+#     -- Increased __version__ to 0.3.6.
+#     -- On-screen crosstalk coefficient report is now more legible.
+#     -- Minor adjustments to crosstalk coefficients.
+#
+#  2015-04-20:
+#     -- Increased __version__ to 0.3.5.
+#     -- Updated crosstalk correction for upper quadrants.
+#
+#  2015-02-27:
+#     -- Increased __version__ to 0.3.0.
+#     -- Added crosstalk correction for lab sinistro.
+#
+#  2015-02-23:
+#     -- Increased __version__ to 0.2.5.
+#     -- Gain calculation mode no longer does anything (use gaincalc.py).
+#
+#  2015-02-17:
+#     -- Increased __version__ to 0.2.0.
+#     -- Added -n, --nosave option to disable FITS output (for testing).
+#     -- Now apply quadrant-specific gain correction.
+#     -- Now subtract overscan from each quadrant.
+#
+#  2015-02-05:
+#     -- First created stitch.py.
+#

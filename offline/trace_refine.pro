@@ -77,7 +77,6 @@ prof=tracea(0:cowid-1,*,*,1:*)
 ;end
 
 ; Are there dark fibers?  Happens iff nfib=3 and nfilin=1
-stop
 if(nfib eq 3 and ninfil eq 1) then begin
   if(fib0 eq 0) then zdark=2 else zdark=0
 endif else begin
@@ -399,7 +398,7 @@ if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
 stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jd,flags
 
-;stop
+stop
 
 fini:
 end

@@ -25,6 +25,7 @@ nresrooti=nresroot+getenv('NRESINST')
 outpath=nresrooti+'reduced/thar/'
 dw=0.1         ; (nm) unmatched lines get their difference against model set to
                ; this value.
+minmatch=20    ; must match at least this many lines to run thar_rcubic
 ierr=0
 
 ; get SG parameters, set up massaged input in common block
@@ -98,8 +99,10 @@ y0_c=y0_c+vals(2)
 z0_c=z0_c+vals(3)
 
 ; do weighted least-squares solution to restricted cubic functions of order
-; to minimize residuals.
-thar_rcubic,cubfrz=cubfrz
+; to minimize residuals.  Skip this in nmatch_c is too small
+if(nmatch_c ge minmatch) then begin
+  thar_rcubic,cubfrz=cubfrz
+endif
 
 ; no explicit output from this routine -- everything of interest lives
 ; in the common block thar_am
