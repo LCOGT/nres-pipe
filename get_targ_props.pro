@@ -9,7 +9,9 @@ function get_targ_props,targname,targra,targdec,ierr
 ; If no matches are found, return with ierr=1, else ierr=0.
 
 ; constants
-rcapbig=20./3600.         ; big capture radius in degrees
+;rcapbig=20./3600.         ; big capture radius in degrees
+rcapbig=400.              ; temporary hack until proper 2-telescope headers
+                          ; are in place
 rcapsm=2./3600.           ; small capture radius in degrees
 radian=180.d0/!pi
 
