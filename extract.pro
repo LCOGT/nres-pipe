@@ -83,7 +83,6 @@ for i=0,nord-1 do begin
   endif
 endfor
 
-
 ; determine whether to fit for trace cross-disp shift.  If so, which fiber 
 ; to use to estimate this shift.
 objects=sxpar(dathdr,'OBJECTS')
@@ -196,10 +195,13 @@ for ifib=0,mfib-1 do begin
     s=where(abs(orddy(*,i)) le 2.,ns)        ; expect this to be all points
     tofprofile=ofprofile(*,*,i)
     tofwts=ofwts(*,*,i)
-    iddy=floor(orddy(s,i))              ; in range [-2,1]
-    sddy=iddy-orddy(s,i)               ; in range [-1,0]
+;   iddy=floor(orddy(s,i))              ; in range [-2,1]
+;   sddy=iddy-orddy(s,i)               ; in range [-1,0]
+    iddy=floor(orddy(*,i))
+    sddy=iddy-orddy(*,i)
     for k=0,cowid-1 do begin
-      sy=nx*(k+1-iddy(s))+s
+;     sy=nx*(k+1-iddy(s))+s
+      sy=nx*(k+1-iddy)+lindgen(nx)
 ; linear interpolation, involving 2 data points surrounding target
 ;     sprofile(s,k,i)=tofprofile(sy)*(-sddy) + $   
 ;                       tofprofile(sy+nx)*(1.+sddy)
@@ -214,7 +216,10 @@ for ifib=0,mfib-1 do begin
       l2p=pddy*(pddy+1)/2.
       summ=tofprofile(sy)*l0m + tofprofile(sy+nx)*l1m + tofprofile(sy+2*nx)*l2m
       sump=tofprofile(sy-nx)*l0p + tofprofile(sy)*l1p + tofprofile(sy+nx)*l2p
-      sprofile(s,k,i)=(summ+sump)/2.      ; involves 4 data points surrounding target
+      sprofile(*,k,i)=(summ+sump)/2.    ; involves 4 points surrounding target
+    
+;   if(i eq 38 and ifib eq 0) then stop
+ 
     endfor
   endfor
 
@@ -239,6 +244,8 @@ for ifib=0,mfib-1 do begin
   ifun=[0,2,3]
 
   extlstsq,sprofile,dfpdy,d2fpdy2,ebo,vbo,ewts,datparms,nfun,ifun,fitc
+
+; stop
 
 ; subtract profile*intensity from observations, look for high-sigma outliers
   prod0=sprofile*rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
@@ -265,7 +272,7 @@ for ifib=0,mfib-1 do begin
 ; fit out the cross-disp shape for each x point
     sumd=rebin(diff*diffs,nx,1)    ; project out diffs(x,y) from diff(x,y), for each x
     sumd2=rebin(diffs^2,nx,1)
-    ratd=sumd/sumd2              ; amplitude of local diffs(x,*) in diff(x,*) 
+    ratd=sumd/(sumd2 > 1.)         ; amplitude of local diffs(x,*) in diff(x,*) 
 
 ; median-filter result, to suppress outliers
     ratd=smooth(median(ratd,7),5)

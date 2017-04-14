@@ -64,14 +64,14 @@ maxs=max(starzm,ix)
 iyx=long(ix/snx)
 ixx=ix-snx*iyx                           ; x, y coords of brightest point
 ; temporary override for Scheat image, which has much brighter star nearby.
-;ixx=342L
-;iyx=712L                   ; coords of tiny star on Rob's image
+ixx=688L
+iyx=446L                   ; coords of tiny star on Rob's image
 xx=findgen(snx)-ixx
 xx=rebin(xx,snx,sny)
 yy=reform(findgen(sny)-iyx,1,sny)
 yy=rebin(yy,snx,sny)
 rr=sqrt(xx^2+yy^2)
-s=where(rr le 9,ns)
+s=where(rr le 14,ns)
 fluxstar=gainstar*total(starz(s))/expstar   ; detected photoelectrons/s from star
                                             ; seen by Atik camera in filter band.
 
@@ -91,6 +91,7 @@ endif else begin
 endelse
 
 eff_tel=fluxstar/modlstar      ; efficiency through ATIK CCD
+stop
 eff_spec=0.
 if(keyword_set(broad)) then goto,fini
 

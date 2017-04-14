@@ -31,7 +31,9 @@ pro trace0,filin,sitec,camerac
 @nres_comm
 
 ; constants
-; nresroot=getenv('NRESROOT')
+nresroot=getenv('NRESROOT')
+instance=getenv('NRESINST')
+nresrooti=nresroot+strtrim(instance,2)
 site=sitec               ; stick site, camera inputs into common
 camera=camerac
 
@@ -92,6 +94,8 @@ for i=0,nord-1 do begin
     dat(*,i,j)=float(words(1:*))      ; y-positions of orders at given x values
   endfor
 endfor
+
+stop
 
 ; do 2nd-order (quadratic) Legendre polynomial fits to order positions
 xp=2.*(xx-nx/2.)/nx        ; x coords transformed to [-1,1]

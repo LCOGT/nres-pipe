@@ -59,7 +59,7 @@ if(nfib eq 3) then begin
   endif
   if(mfib eq 2) then begin      ; do this if 3 fibers, but only 2 illuminated
     if(fib0 eq 0) then begin    ; implies fiber 2 is dark
-      rspec(*,*,0)=corspec(*,*,0)
+      sspec(*,*,0)=corspec(*,*,0)
       slam(*,*,0)=tharred.lam(*,*,0)
     endif
     if(fib0 eq 1) then begin    ; implies fiber 0 is dark

@@ -17,6 +17,7 @@ s=where(flagc eq '1',ns)
 if(ns le 0) then begin
   print,'in get_best_zero, no entries with flags(1)=1'
   jerr=3
+  stop
   goto,fini
 endif else begin
 ; select the variables we are going to need

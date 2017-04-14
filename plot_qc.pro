@@ -2,7 +2,7 @@ pro plot_qc
 ; This routine makes a plot of quality control diagnostics for a single
 ; NRES image of type TARGET.  The postscript plot is written to
 ; reduced/plot/PLQCssyyyyddd.ttttt_o.ps, where 
-; sss= site name (lower case)
+; ss= site name (lower case)
 ; yyyyddd.ttttt = the image data date
 ; o = the target fiber (0 or 2) being plotted.
 ; Data plotted are
@@ -28,8 +28,9 @@ pro plot_qc
 
 ; constants
 c=299792.458d0              ; light speed in km/s
-root=getenv('NRESROOT')
-plotdir=root+'reduced/plot'
+nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
+plotdir=nresrooti+'reduced/plot'
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
@@ -51,6 +52,7 @@ if(nobj eq 2) then begin
   endif else begin
     nplot=1
     if(objects(0) ne 'THAR') then iplot0=0 else iplot0=1
+    object=strtrim(objects(iplot0),2)
   endelse
 endif
 if(nobj eq 3) then begin
@@ -59,7 +61,7 @@ if(nobj eq 3) then begin
     print,'FAIL in plot_quick:  no ThAr fiber'
     goto,fini
   endif
-  if(objects(0) ne 'NONE' and objects(1) ne 'NONE') then begin
+  if(objects(0) ne 'NONE' and objects(2) ne 'NONE') then begin
 ; get here if 2 fibers have starlight
     nplot=2
     iplot0=0
@@ -74,13 +76,14 @@ for i=0,nplot-1 do begin
   iplot=iplot0+2*i
   ip2=iplot/2
   ist=iplot-fib0             ; got lots of fiber indices here -- which to use?
+  object=strtrim(objects(iplot),2)
 
 ; code origin discontinuity here
 
 ; make output file path
   ifib=ist                        ; ###### guess
   fibs=strtrim(string(ifib),2)   ; string with index of fiber to plot
-  outpath=plotdir+'/PLQC'+strlowcase(site)+datestrc+'_'+fibs+'.ps'
+  outpath=plotdir+'/PLQC'+strmid(strlowcase(site),0,2)+datestrc+'_'+fibs+'.ps'
 
 ; compute standard order, bot and top x range
   stord=fix(nord*0.4)
@@ -104,11 +107,11 @@ for i=0,nplot-1 do begin
   yran=[0.8*(yrmin > 0.),1.05*yrmax]
   xtit='Wavelength (nm)'
   ytit='Summed Inten (kADU)'
-  tit=strlowcase(site)+datestrc
+  tit=object+' '+strmid(strlowcase(site),0,2)+datestrc+'_'+fibs
 
   spec=echdat.spectrum(xbot:xtop,stord,ifib)
   plot,lambda,spec/1e3,xran=xran,yran=yran,tit=tit,/xsty,/ysty,ytit=ytit,$
-      charsiz=cs0,thick=2
+      charsiz=cs2,thick=2
   xyouts,0.95*xran(0)+0.05*xran(1),0.9*yran(0)+0.1*yran(1),'Order='+$
       strtrim(string(stord),2),charsiz=cs1
 
@@ -119,7 +122,7 @@ for i=0,nplot-1 do begin
   yran=[floor(yrmin),ceil(yrmax)]
   ytit='Profile dY (pix)'
   plot,lambda,dy,xran=xran,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit,$
-      charsiz=cs0,thick=2
+      charsiz=cs2,thick=2
 
 ; plot things vs order number
   ordindx=findgen(nord)
@@ -140,26 +143,26 @@ for i=0,nplot-1 do begin
   !p.multi=[3,3,3]
   yran=[0.,1.05*max(medintn)/1e3]
   plot,ordindx,medintn/1e3,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit0,$
-     tit=tit,charsiz=cs0,thick=2
+     tit=tit,charsiz=cs2,thick=2
   xyouts,3,0.1*yran(1),nelecs,charsiz=cs1
 
   yran=[0.,1.05*max(meddy2)]
   plot,ordindx,meddy2,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
-     tit=tit,charsiz=cs0,thick=2
+     tit=tit,charsiz=cs2,thick=2
 
   yran=[floor(min(meddy)),ceil(max(meddy))]
   plot,ordindx,meddy,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit2,$
-     tit=tit,charsiz=cs0,thick=2
+     tit=tit,charsiz=cs2,thick=2
 
 ; new plot page --  do wavelength solution plots
   !p.multi=[0,1,2]
-  tit=strlowcase(site)+datestrc
+  tit=strmid(strlowcase(site),0,2)+datestrc
   xtit='Wavelength (nm)'
   ytit='lambda Mismatch (nm)'
   xran=[380,880]
   yran=[-.02,.02]
   plot,matchlam_c,matchdif_c,psym=4,xran=xran,yran=yran,/xsty,/ysty,$
-    xtit=xtit,ytit=ytit,tit=tit,charsiz=cs0,thick=2
+    xtit=xtit,ytit=ytit,tit=tit,charsiz=cs1,thick=2
   xyouts,390,-0.015,'nMatch='+strtrim(string(nmatch_c,format='(i4)'),2)
 
   xtit='Block Index'
@@ -181,7 +184,7 @@ for i=0,nplot-1 do begin
   psend
 endfor
 
-stop
+;stop
 
 !p.multi=[0,1,1]
 

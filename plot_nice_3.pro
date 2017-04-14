@@ -4,9 +4,10 @@ pro plot_nice_3,ps=ps
 ; The CaII 865 order is massaged to correct an evident flat-fielding
 ; failure.
 
-root=getenv('NRESROOT')
-dname=root+'reduced/spec/SPEC2016280.88409.fits'
-lname=root+'reduced/thar/THAR2016280.88409.fits'
+nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
+dname=nresrooti+'reduced/spec/SPEC2016280.88409.fits'
+lname=nresrooti+'reduced/thar/THAR2016280.88409.fits'
 dd=readfits(dname,hdrd)
 lam=readfits(lname,hdrl)
 
