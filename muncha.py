@@ -5,7 +5,7 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
      This is the main routine organizing the processing pipeline for NRES
      spectroscopic data.
      On input:
-       filin = the path to a FITS data file (with extensions) written by the
+       nr.filin0 = the path to a FITS data file (with extensions) written by the
      The routine also reads data from these config files:
        csv/spectrograph.csv
        csv/targets.csv:  target entries taken from POND before observing time
@@ -58,6 +58,8 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
 
     #Some testing code, Remove when done:
     #   filin='/Users/rolfsmei/Documents/research/pipeline/TestData/sqa0m801-en03-20150415-0001-e00.fits'
+    #   filin='/Users/rolfsmei/Documents/research/data/labcam-fl09-20170308-0095-d00.fits'
+    #labcam-fl09-20170310-0030-w00.fits
     #   import muncha
     #   muncha.muncha(filin)
     #
@@ -92,13 +94,20 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
     import ingest
     ierr = ingest.ingest(filin)
 
-    import copy_bias
 
-    done=copy_bias.copy_bias()
+    #Need to build each: bias, dark, target, flat, double
+    #Copy is done, run below to run, un comment out when each
+    #import copy_bias
+    #done=copy_bias.copy_bias()
+    #next 2 lines can be removed when done, here for testing copy_bias
+    #print(done)
+    #print(ierr)
 
-    #next couple lines can be removed when done, here for testing
+    import copy_dark
+    done=copy_dark.copy_dark()
     print(done)
     print(ierr)
+
 
     #Do some error handling here if ingest returns an error
 
