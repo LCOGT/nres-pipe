@@ -47,6 +47,7 @@ nord=nord_c
 baryshifts=c*rvindat.baryshifts          ; 2 elements, one per fiber
 targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]  ; decimal degree
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
 
@@ -62,11 +63,13 @@ for i=0,1 do begin
   rastr(i)=string(ras(0),format='(i2.2,":")') + $
            string(ras(1),format='(i2.2,":")') + $
            string(ras(2),format='(f5.2)')
+  if(coosrc(i) eq 0) then rastr(i)='['+rastr(i)+']'
   decs=sixty(targdec(i))
   if(targdec(i) ge 0) then sgn='+' else sgn='-'
   decstr(i)=sgn+string(decs(0),format='(i3.2,":")') + $
                 string(decs(1),format='(i2.2,":")') + $
                 string(decs(2),format='(f4.1)')
+  if(coosrc(i) eq 0) then decstr(i)='['+decstr(i)+']'
 endfor
 
 ; which fiber are we plotting?  If two, loop over them
@@ -160,8 +163,10 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   loadct,coltab
   minx=min(lam0)
   maxx=max(lam0)
-  miny=min(plt0)
-  maxy=ptile(plt0,98)
+  ny=n_elements(plt0)
+  plt0s=smooth(plt0,101)
+  miny=min(plt0s(ny/3:2*ny/3))
+  maxy=ptile(plt0s(ny/3:2*ny/3),98)
   xran=[minx,maxx]
   pran=maxy-miny
   yran=[(miny-0.15*pran) > 0.,maxy+0.05*pran]
@@ -212,42 +217,50 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
 
+; get sizes of plot vectors
+  ny3=n_elements(plt3)
+  ny4=n_elements(plt4)
+  ny5=n_elements(plt5)
+  ny6=n_elements(plt6)
+  ny7=n_elements(plt7)
+  ny8=n_elements(plt8)
+
 ; do the 'spectrum' plot
-  yran=[0.,1.15*ptile(plt3/1.e3,98)]
+  yran=[0.,1.15*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
   plot,lam3,plt3/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
     yran=yran,charsiz=cs2
 
 ; second page
   !p.multi=[0,2,2]
 
-  yran=[0.,1.20*ptile(plt4/1.e3,98)]
-  yspan=[ptile(plt4/1.e3,98),1.35*ptile(plt4/1.e3,98)]
+  yran=[0.,1.20*ptile(plt4(ny4/3:2*ny4/3)/1.e3,98)]
+  yspan=[ptile(plt4(ny4/3:2*ny4/3)/1.e3,98),1.35*ptile(plt4(ny4/3:2*ny4/3)/1.e3,98)]
   plot,lam4,plt4/1.e3,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
      /xsty,/ysty,charsiz=cs0
   oplot,10.*[lamplot(0),lamplot(0)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt5/1.e3,98)]
-  yspan=[ptile(plt5/1.e3,98),1.35*ptile(plt5/1.e3,98)]
+  yran=[0.,1.20*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
+  yspan=[ptile(plt5(ny5/3:2*ny5/3)/1.e3,98),1.35*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
   plot,lam5,plt5/1.e3,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(1),lamplot(1)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt6/1.e3,98)]
-  yspan=[ptile(plt6/1.e3,98),1.35*ptile(plt6/1.e3,98)]
+  yran=[0.,1.20*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
+  yspan=[ptile(plt6(ny6/3:2*ny6/3)/1.e3,98),1.35*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
   plot,lam6,plt6/1.e3,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(2),lamplot(2)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt7/1.e3,98)]
-  yspan=[ptile(plt7/1.e3,98),1.35*ptile(plt7/1.e3,98)]
+  yran=[0.,1.20*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
+  yspan=[ptile(plt7(ny7/3:2*ny7/3)/1.e3,98),1.35*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
   plot,lam7,plt7/1.e3,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(3),lamplot(3)],yspan,color=blue
   oplot,10.*[lamplot(4),lamplot(4)],yspan,color=blue
 
 ; last page
-  yran=[0.,1.20*ptile(plt3/1.e3,98)]
-  yspan=[ptile(plt3/1.e3,98),1.35*ptile(plt3/1.e3,98)]
+  yran=[0.,1.20*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
+  yspan=[ptile(plt3(ny3/3:2*ny3/3)/1.e3,98),1.35*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
   plot,lam8,plt8/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
 

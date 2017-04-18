@@ -305,10 +305,11 @@ fxbfinish,unit
 
 ; make an extension header for 3rd table, containing info about the
 ; matched ThAr lines.
-fxbhmake,hdr,nmatch_c
-dum0=fltarr(nmatch_c)
-dum1=dblarr(nmatch_c)
-dum2=lonarr(nmatch_c)
+nels=nmatch_c > 1
+fxbhmake,hdr,nels
+dum0=fltarr(nels)
+dum1=dblarr(nels)
+dum2=lonarr(nels)
 fxbaddcol,kn1,hdr,dum1(0),'matchlam','matchlam'
 fxbaddcol,kn2,hdr,dum0(0),'matchamp','matchamp'
 fxbaddcol,kn3,hdr,dum0(0),'matchwid','matchwid'

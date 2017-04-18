@@ -9,7 +9,7 @@ pro plot_qc
 ; echdat.spectrum = intensity integrated across dispersion
 ;  plotted against x values for center 25% of standard order
 ;  median over center 25% of x values plotted vs order number
-; echdat.specdy2 = 2md deriv term in cross-dispersion profile fit, medianed
+; echdat.specdy2 = 2nd deriv term in cross-dispersion profile fit, medianed
 ;  over center 25% of x values, plotted vs order number
 ; echdat.specdy = displacement of data from extraction block center (pix)
 ;  plotted vs x for standard order (nord*0.4) and
@@ -21,6 +21,10 @@ pro plot_qc
 ;   plotted vs order and block
 ;   median over valid (ne 0) shifts for all blocks, plotted vs order
 ;   median over valid shifts for all orders, plotted vs block #
+; echdat.spectrum plotted against wavelength for 4 narrow spectral ranges
+;   covering particular lines in the O2 A and B bands, with true vacuum
+;   wavelengths overplotted.  Intended as a measure of wavelength solution
+;   reliability.
 
 ; commons
 @nres_comm
@@ -31,6 +35,12 @@ c=299792.458d0              ; light speed in km/s
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 plotdir=nresrooti+'reduced/plot'
+black=0
+blue=192
+green=128
+red=64
+coltab=6                                  ; color table
+
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
@@ -97,7 +107,8 @@ for i=0,nplot-1 do begin
   psll,name=outpath,ys=20.
   device,set_font='Helvetica'
 
-!p.multi=[0,1,3]
+  !p.multi=[0,1,3]
+  loadct,coltab
 
 ; plot spectrum intensity vs x for standard order
   lambda=tharred.lam(xbot:xtop,stord,iplot)
@@ -141,6 +152,7 @@ for i=0,nplot-1 do begin
   
 ; do the plots
   !p.multi=[3,3,3]
+  loadct,coltab
   yran=[0.,1.05*max(medintn)/1e3]
   plot,ordindx,medintn/1e3,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit0,$
      tit=tit,charsiz=cs2,thick=2
@@ -156,6 +168,7 @@ for i=0,nplot-1 do begin
 
 ; new plot page --  do wavelength solution plots
   !p.multi=[0,1,2]
+  loadct,coltab
   tit=strmid(strlowcase(site),0,2)+datestrc
   xtit='Wavelength (nm)'
   ytit='lambda Mismatch (nm)'
@@ -179,6 +192,49 @@ for i=0,nplot-1 do begin
   for j=0,specdat.nblock-1 do begin
     jx=j*nord
     oplot,[jx,jx],[yran(0),yran(1)],line=2
+  endfor
+
+; new plot page --  plot spectra and vacuum line wavelengths for O2 A & B bands
+  !p.multi=[0,2,2]
+  loadct,coltab
+
+  tit=strmid(strlowcase(site),0,2)+datestrc
+  tit2=[' B-band',' B-band',' A-band',' A-band']
+  xtit='Wavelength (nm)'
+  ytit='Flux (kADU)'
+  lamline=[688.1829d0,688.57326d0,761.82397d0,762.30873d0]  ; line vac wavelengths
+  xra=[[687.98,688.38],[688.37,688.77],[761.70,762.10],[762.11,762.51]]
+  ordrs=[16,16,9,9]               ; orders where B, A-band are found.
+
+  iplot=iplot0+2*i
+  ip2=iplot/2
+  specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
+     grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
+      coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
+  xx=pixsiz_c*(findgen(nx_c)-nx_c/2.)
+; lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m,/air          ; air wavelengths
+  lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m          ; vacuum wavelengths
+
+  s0=where(lam(*,ordrs(0)) ge (xra(0,0)-.2) and lam(*,ordrs(0)) $
+    le xra(1,1)+.2,ns0)
+  s1=where(lam(*,ordrs(2)) ge (xra(0,2)-.2) and lam(*,ordrs(2)) $
+    le xra(1,3)+.2,ns1)
+  pdat0=corspec(s0,ordrs(0),ist)/1.e3
+  pdat1=corspec(s1,ordrs(2),ist)/1.e3
+  plam0=lam(s0,ordrs(0))
+  plam1=lam(s1,ordrs(2))
+  yra=[[0.,1.2*ptile(pdat0,90)],[0.,1.2*ptile(pdat1,90)]]
+  
+; do the plots
+  for j=0,1 do begin
+    plot,plam0,pdat0,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
+      ytit=ytit,/xsty,/ysty,charsiz=1.
+    oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
+  endfor
+  for j=2,3 do begin
+    plot,plam1,pdat1,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
+      ytit=ytit,/xsty,/ysty,charsiz=1.
+    oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
   endfor
 
   psend

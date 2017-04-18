@@ -102,7 +102,11 @@ z0_c=z0_c+vals(3)
 ; to minimize residuals.  Skip this in nmatch_c is too small
 if(nmatch_c ge minmatch) then begin
   thar_rcubic,cubfrz=cubfrz
-endif
+endif else begin
+  rms_c=0.
+  lammid_c=0.
+  mgbdisp_c=0.
+endelse
 
 ; no explicit output from this routine -- everything of interest lives
 ; in the common block thar_am

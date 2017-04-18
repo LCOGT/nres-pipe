@@ -111,7 +111,11 @@ vel=c*rmin*(findgen(nbig)-nbig/2.)
 ; find the maximum, estimate FWHM.
 mxcc=max(cc,ix)
 mxcch=mxcc/2.              ; halfway from max to zero
-ccm=cc(ix-400:ix+400)
+ibot=(ix-400) > 0
+itop=(ix+400) < (nbig-1) 
+ccm=cc(ibot:itop)
+lenc=n_elements(ccm)
+if(lenc lt 801) then ccm=[ccm,fltarr(801-lenc)]
 delx=findgen(801)-400.
 delv=delx*rmin*c           ; cc x-coord in velocity units (km/s)
 ssn=where(ccm le mxcch and delx lt 0.,nssn)

@@ -110,8 +110,8 @@ if(nfib eq 3) then begin
     if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
       coosrc(1)=1
     if(coosrc(1) eq 0) then begin
-      targra(1)=targ0struc.ra
-      targdec(1)=targ0struc.dec
+      targra(1)=targ1struc.ra
+      targdec(1)=targ1struc.dec
     endif
     baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
        tlat,tlon,talt)
