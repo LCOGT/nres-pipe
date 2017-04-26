@@ -35,7 +35,8 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 @thar_comm
 
 ; constants
-; nresroot=getenv('NRESROOT')
+ nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 c=299792.458d0               ; light speed in km/s
 
 ; make creation jd

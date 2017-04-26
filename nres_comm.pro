@@ -4,10 +4,12 @@ common nres,filin0,nfib,mfib,fib0,fib1,$
        classdir,diagdir,$
        csvdir,biasdir,darkdir,flatdir,tracedir,dbledir,tripdir,zerodir,$
        jdc,mjdc,datestrc,$
-       filname,dat,dathdr,cordat,varmap,corspec,rmsspec,speco,$
+       filname,dat,dathdr,cordat,varmap,$
+       corspec,blazspec,flatspec,rmsspec,speco,ampflat,$
        expmdat,expmhdr,expmvals,agu1,agu1hdr,agu2,agu2hdr,$
        teldat1,tel1hdr,tel2dat,tel2hdr,$
-       type,site,telescop,camera,exptime,ccd,specdat,orddiff,tracedat,echdat,$
+       type,site,telescop,camera,exptime,objects,$
+       ccd,specdat,orddiff,tracedat,echdat,$
        flatdat,agu1red,agu2red,$
        expmred,tharred,rvindat,rvred,spclassred,$
        verbose

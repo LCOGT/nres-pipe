@@ -92,7 +92,7 @@ for i=0,nplot-1 do begin
 
 ; make output file path
   ifib=ist                        ; ###### guess
-  fibs=strtrim(string(ifib),2)   ; string with index of fiber to plot
+  fibs=strtrim(string(iplot0),2)   ; string with index of fiber to plot
   outpath=plotdir+'/PLQC'+strmid(strlowcase(site),0,2)+datestrc+'_'+fibs+'.ps'
 
 ; compute standard order, bot and top x range

@@ -1,7 +1,6 @@
 pro run_muncha1,flist,flatk=flatk,nostar=nostar
 ; This routine reads a list of input filenames, and runs muncha.pro on
-; each.  It then repeats this process nord times, skipping a different
-; order in the wavelength solution each time.
+; each.
 
 nord=1
 

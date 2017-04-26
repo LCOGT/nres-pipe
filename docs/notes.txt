@@ -150,7 +150,11 @@ dat = raw science data array
 dathdr = header for raw input main data segment
 cordat = corrected (for bias, dark, background) and trimmed science data image
 varmap = 2D estimate of variance in corrected image
-corspec = corrected (for flat field) extracted spectrum (nx,nord,nfib)
+corspec = extracted spectrum (nx,nord,nfib)
+blazspec = corspec after subtracting fitted blaze function (nx,nord,nfib)
+flatspec = corspec divided by blaze function (flat-fielded) (nx,nord,nfib)
+ampflat = ampflat(iord,ifib)*flat(*,iord,ifib) is subtracted from extracted
+          spectrum to yield blazspec 
 
 expmdat = exposure meter data segment of input data file
 expmhdr = exposure meter header segment 

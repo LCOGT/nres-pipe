@@ -48,6 +48,11 @@ for i=0L,nord_c-1 do begin
 endfor
 
 dx=dx(1:*)
+
+; check to be sure lst sq fit will not fail for lack of data
+ndx=n_elements(dx)
+if(ndx le 10) then stop
+
 jx=jx(1:*)-nx_c/2.              ; convert x1, jord to centered coordinates
 jord=jord(1:*)-nord_c/2.
 err=err(1:*)

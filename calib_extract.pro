@@ -115,7 +115,7 @@ if(keyword_set(flatk)) then begin
   corspec=echdat.spectrum
   rmsspec=echdat.specrms
 endif else begin
-  apply_flat,flat
+  apply_flat2,flat
 endelse 
   
 ; make the header and fill it out

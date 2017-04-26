@@ -154,6 +154,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   fibstr='_'+string(iplot,format='(i1)')
   sitesh=strlowcase(strmid(site,0,2))
   plotname=plotdir+'/PLOT'+sitesh+datestrc+fibstr+'.ps'
+stop
   !p.font=0
   psll,name=plotname,ys=20.
   device,set_font='Helvetica'

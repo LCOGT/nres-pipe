@@ -2,6 +2,9 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 ; This routine combines a list of DOUBLE files into a single averaged
 ; TRIPLE file, saves the output into the /reduced/trip directory, and writes
 ; a summary line into the standards.csv file.
+; To facilitate copying results into a new line in spectrographs.csv, it
+; prints the spectrograph parms, coeffs, and fcoefs to the screen in a format
+; suitable for cutting and pasting into spectrographs.csv.
 ; On input, flist = the name of an ascii file containing the list of names
 ; of the input files,
 ; which are to be found in the reduced/dble directory.
@@ -31,8 +34,10 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
-;nresroot=getenv('NRESROOT')
+nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 reddir=nresrooti+'reduced/'
+radian=180.d0/!pi
 
 ; read flist if necessary, or copy to array 'files'
 if(keyword_set(array)) then begin
@@ -65,6 +70,7 @@ for i=0,nfile-1 do begin
     flag2(i)=fix(strmid(flags(s),2,1))
     if(i eq 0) then begin
       site=sites(s)
+      site=site(0)
       s0name=fnames(s)
     endif
     if(i gt 0) then begin
@@ -181,10 +187,9 @@ lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 ; different fibers
 
 ; make data date, output filename
-;jd=systime(/julian)      ; file creation time, for sorting similar calib files
-;mjd=jd-2400000.5d0
-jd=mjd+2400000.5d0
-daterealc=date_conv(jd,'R')
+jdc=systime(/julian)      ; file creation time, for sorting similar calib files
+mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
+daterealc=date_conv(jdc,'R')
 datestrc=string(daterealc,format='(f13.5)')
 fout='TRIP'+datestrc+'.fits'
 filout=tripdir+fout
@@ -251,6 +256,7 @@ for i=0,1 do begin
 endfor
 
 writefits,filout,lamav,hdrout
+print,'TRIPLE file written to ',filout
 
 ; write line into standards.csv
 case opt of
@@ -260,7 +266,7 @@ case opt of
   3: flg='0030'
   4: flg='0030'
 endcase
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,flg
+stds_addline,'TRIPLE',branch+fout,2,site,camera,jdc,flg
 
 ; write out log information.
 print,'*** avg_doub2trip ***'
@@ -275,9 +281,25 @@ print,'Naxes, Nx, Ny = ',naxes,nx,ny
 print,'Wrote file to trip/ dir:'
 print,branch+fout
 print,'Added line to reduced/csv/standards.csv'
+print,'Points to '+branch+fout
+print
+print
+print,'Values for spectrographs.csv'
+print,'GrInc,dGrInc,FL,dFL,Y0,dY0,Z0,dZ0'
+alp=asin(sinalpav)*radian
+dalp=0.01
+fvals=[alp,dalp,flav,dfl_c,y0av,dy0_c,z0av,dz0_c]
+svals=string(fvals,format='(f13.8)')
+svals=svals+','
+print,svals,format='(8a14)'
+scoefs=string(coefsav,format='(e16.8)')
+scoefs=scoefs+','
+print,scoefs,format='(15a17)'
+sfibc=string(reform(fibcoefs,20),format='(e16.8)')
+sfibc=sfibc+','
+print,sfibc,format='(20a17)'
+print
 
 fini:
-
-stop
 
 end

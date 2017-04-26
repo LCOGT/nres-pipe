@@ -45,7 +45,7 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 ; constants
 nresroot=getenv('NRESROOT')
 nresinst=getenv('NRESINST')
-nresrooti=nresroot+'/'+nresinst
+nresrooti=nresroot+nresinst
 reddir=nresrooti+'reduced/'
 tripdir=nresrooti+'reduced/trip/'
 
@@ -84,6 +84,9 @@ endif
 if(nfiba eq 2 and fib0 eq 0) then ifib=0
 if(nfiba eq 2 and fib0 eq 2) then ifib=1
 if(nfiba eq 3) then ifib=0
+print
+print,'thar_fitoff input = ',fnam01
+print
 thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil12 results
 ; name contains (input file # 0 or 1) (fiber # 0,1,2)
@@ -95,13 +98,16 @@ coefs00=coefs_c
 lam00=lam_c
 xp00=matchxpos_c
 io00=matchord_c
-ll00=matchlam_c
+ll00=matchline_c
 er00=matcherr_c
 
 ; repeat for reference fiber fil01 (always fiber 1) 
 if(nfiba eq 2 and fib0 eq 0) then ifib=1
 if(nfiba eq 2 and fib0 eq 2) then ifib=2
 if(nfiba eq 3) then ifib=1
+print
+print,'thar_fitoff input =',fnam12
+print
 thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
 sinalp01=sinalp_c
 fl01=fl_c
@@ -111,10 +117,10 @@ coefs01=coefs_c
 lam01=lam_c
 xp01=matchxpos_c
 io01=matchord_c
-ll01=matchlam_c
+ll01=matchline_c
 er01=matcherr_c
 
-stop
+;stop
 
 ; repeat for fil12
 objects=strupcase(sxpar(hdr12,'OBJECTS'))
@@ -159,7 +165,7 @@ if(nfiba eq 3) then begin
   lam11=lam_c
   xp11=matchxpos_c
   io11=matchord_c
-  ll11=matchlam_c
+  ll11=matchline_c
   er11=matcherr_c
 
 ; estimate wavelength solution for fiber 2 of fil12
@@ -173,7 +179,7 @@ if(nfiba eq 3) then begin
   lam12=lam_c
   xp12=matchxpos_c
   io12=matchord_c
-  ll12=matchlam_c
+  ll12=matchline_c
   er12=matcherr_c
 endif
 
@@ -288,9 +294,12 @@ for i=0,1 do begin
 endfor
     
 writefits,filout,lamav,hdrout
+print,'FITS:',filout
 
 ; write line into standards.csv
 stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,'0000'
+print,'standards.csv',branch+fout
 
 fini:
+
 end

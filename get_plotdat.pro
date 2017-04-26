@@ -1,7 +1,7 @@
 pro get_plotdat,lamin,spec,range,iord,lam,plt,noblaze=noblaze,norm=norm
 ; This routine accepts
 ;  lamin(nx,nord) = wavelength array (nm), giving lambda vs pixel and order
-;  spec(nx,nord) = extracted flux in ADU corredp to wavelengths in lamin
+;  spec(nx,nord) = extracted flux in ADU corresp to wavelengths in lamin
 ;   for correct star fiber.
 ;  range(2) = min, max wavelengths (nm) for which plotting is desired.
 ;  The routine identifies the order iord for which the largest fraction of
@@ -38,11 +38,12 @@ sg1=where(lamin(*,iord) ge range(0) and lamin(*,iord) le range(1),nsg1)
 lam=lamin(sg1,iord)*10.                  ; wavelength in AA
 plt=spec(sg1,iord)
 
+; for now, never do blaze removal
 ; normalize if needed
-if(not keyword_set(noblaze)) then begin
-  contnorm,plt,pltnorm,contout
-  plt=pltnorm
-endif
+;if(not keyword_set(noblaze)) then begin
+;  contnorm,plt,pltnorm,contout
+;  plt=pltnorm
+;endif
 
 ; normalize again (to unity) if norm keyword set
 if(keyword_set(norm)) then begin
