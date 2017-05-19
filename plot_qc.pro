@@ -187,8 +187,13 @@ for i=0,nplot-1 do begin
   yrmax=ptile(plotdat(sg),90) < 5.    ; biggest poss plot range is [-2,2] km/s
   yran=[yrmin,yrmax]
   indx=findgen(specdat.nblock*nord)
-  plot,indx(sg),plotdat(sg),psym=1,xtit=xtit,ytit=ytit,tit=tit,/xsty,/ysty,$
-     charsiz=cs0,thick=2,xran=xran,yran=yran
+  if(nsg gt 0) then begin
+    plot,indx(sg),plotdat(sg),psym=1,xtit=xtit,ytit=ytit,tit=tit,/xsty,/ysty,$
+       charsiz=cs0,thick=2,xran=xran,yran=yran
+  endif else begin
+    plot,indx,plotdat,psym=2,xtit=xtit,ytit=ytit,tit=tit,/xsty,/ysty,$
+       charsiz=cs0,thick=2,xran=xran,yran=[-1.,1.]
+  endelse
   for j=0,specdat.nblock-1 do begin
     jx=j*nord
     oplot,[jx,jx],[yran(0),yran(1)],line=2

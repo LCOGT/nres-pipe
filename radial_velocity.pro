@@ -1,10 +1,12 @@
-pro radial_velocity,ierr
+pro radial_velocity,ierr,nostar=nostar
 ; This routine computes radial velocity values based on wavelength-calibrated
 ; ZERO and current-spectrum data (both star and ThAr) stored in common 
 ; structure rvindat.
 ; meta- and ancillary data are returned in the common
 ; structure rvred, and the rv values and some metadata are written to a
 ; FITS binary table in directory reduce/rv
+; If keyword nostar is set, the routine does a minimal setup of common
+; variables, to keep subsequent diagnostic routines happy.
 
 @nres_comm
 
@@ -25,6 +27,8 @@ targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec]
 obsmjd=sxpar(dathdr,'MJD-OBS')
 baryshifts=rvindat.baryshifts        ;  r = z-1 elements for fibers 0,2
+
+; if(keyword_set(nostar)) then goto,skipall
 
 ; get useful metadata, make output arrays
 nx=specdat.nx
@@ -92,6 +96,15 @@ ccmo=fltarr(2,801)
 delvo=fltarr(2,801)
 rvvo=fltarr(2)
 
+; make rvred output structure, in case keyword nostar is set
+rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
+       bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
+       rcco:rcco,ampcco:ampcco,widcco:widcco}
+centtimes=expmred.expfwt
+bjdtdb_c=expmred.expfwt              ; ***temporary hack***
+
+if(keyword_set(nostar)) then goto,skipall
+       
 ; loop over star fibers.  Skip if target is NULL
 for i=0,1 do begin
   if(targnames(i) ne 'NULL') then begin
@@ -212,8 +225,6 @@ endfor                         ; end loop over fibers
 ; from correlation: barycentric RV, CC width, CC amplitude, noise estimate
 ; block-fitted avg redshift, median redshift, formal uncertainty of mean,
 ; more....
-centtimes=expmred.expfwt
-bjdtdb_c=expmred.expfwt              ; ***temporary hack***
 nmatcho=tharred.nmatch(1)
 amoerro=tharred.amoerr(1)
 rmsgoodo=tharred.rmsgood(1)

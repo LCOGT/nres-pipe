@@ -121,6 +121,8 @@ endelse
 ; make the header and fill it out
 ; do not do this if flatk is set, since it will be done in mk_flat1
 if(~keyword_set(flatk)) then begin
+
+; write corspec (raw/flat) first
   mjdobs=sxpar(dathdr,'MJD-OBS')
   latitude=sxpar(dathdr,'LATITUDE')
   longitud=sxpar(dathdr,'LONGITUD')
@@ -130,6 +132,7 @@ if(~keyword_set(flatk)) then begin
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
   sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+  sxaddpar,hdr,'FLATFILE',flatfile,'extracted flat filename'
   sxaddpar,hdr,'SITEID',site 
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
@@ -148,18 +151,42 @@ if(~keyword_set(flatk)) then begin
     specout=nresrooti+'/'+dbledir+speco
   endif else begin
     speco='SPEC'+datestrc+'.fits'
+    blazo='BLAZ'+datestrc+'.fits'
+    extro='EXTR'+datestrc+'.fits'
     specout=nresrooti+'/'+specdir+speco
+    blazout=nresrooti+'/'+blazdir+blazo
+    extrout=nresrooti+'/'+extrdir+extro
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
   writefits,specout,corspec,hdr
+
+; write extr = raw spectrum with low-signal ends trimmed
+  writefits,extrout,extrspec,hdr        ; same hdr as specout
+
+; then write blaze = raw - flat
+  hdrb=hdr
+  for j=0,mfib-1 do begin
+    sj=strtrim(string(j,format='(i1)'),2)
+    for i=0,nord-1 do begin
+      snn=strtrim(string(i,format='(i2)'),2)
+      if(strlen(snn) eq 1) then snn='0'+snn
+      snn=sj+snn
+      kwd='AMPFL'+snn
+      sxaddpar,hdrb,kwd,ampflat(i,j)
+    endfor
+  endfor
+  writefits,blazout,blazspec,hdrb
 endif
+
+;stop
 
 echdat.mjd=mjdc
 echdat.origname=filname
 echdat.siteid=site
 echdat.camera=camera
 echdat.exptime=exptime
+echdat.flatname=flatfile
 
 fini:
 

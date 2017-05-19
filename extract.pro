@@ -332,6 +332,7 @@ nelectron=reform(nx*nord*rebin(spectrum,1,1,mfib))
 echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specdy2:specdy2,$
     specwid:specwid,$
     diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjd:0.d0,origname:'NULL',$
+    flatname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
     nelectron:nelectron,craybadpix:nsbad}
 

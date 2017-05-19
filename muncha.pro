@@ -66,6 +66,8 @@ nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 tempdir='temp/'
 agdir='reduced/autog/'
 biasdir='reduced/bias/'
+blazdir='reduced/blaz/'
+extrdir='reduced/extr/'
 darkdir='reduced/dark/'
 dbledir='reduced/dble/'
 expmdir='reduced/expm/'
@@ -101,9 +103,9 @@ case type of
   autoguider
   expmeter
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
-  if(not keyword_set(nostar)) then begin
-    radial_velocity,ierr
-  endif
+; if(not keyword_set(nostar)) then begin
+    radial_velocity,ierr,nostar=nostar
+; endif else begin
 ; spec_classify
 ; obs2txt                ; writes all metadata to obs.txt
   plot_quick             ; writes quick-look postscript plot

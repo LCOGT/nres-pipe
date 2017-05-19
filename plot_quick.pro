@@ -113,24 +113,23 @@ for i=0,nplot-1 do begin
 
 ; get wavelengths and fluxes for the desired plots and plot intervals
   ist=iplot-fib0
-  pltspec=corspec(*,*,ist)
-  get_plotdat,lam,pltspec,[513.3,523.5],iord0,lam0,plt0,/norm   ; Mg b order
-  get_plotdat,lam,pltspec,[513.3,523.5],iord3,lam3,plt3,/noblaze; more Mg b
-  plt3=plt3*flat(*,iord3,iplot)
-  get_plotdat,lam,pltspec,[394.5,399.5],iord4,lam4,plt4,/noblaze  ; Ca H
-  plt4=plt4*flat(*,iord4,iplot)
-  get_plotdat,lam,pltspec,[652.0,664.5],iord5,lam5,plt5,/noblaze  ; H alpha
-  plt5=plt5*flat(*,iord5,iplot)
-  get_plotdat,lam,pltspec,[655.0,677.0],iord6,lam6,plt6,/noblaze  ; Li 6708
-  plt6=plt6*flat(*,iord6,iplot)
-  get_plotdat,lam,pltspec,[585.0,595.5],iord7,lam7,plt7,/noblaze  ; Na D
-  plt7=plt7*flat(*,iord7,iplot)
+  pltspec=corspec(*,*,ist)   ; flat-fielded
+  pltblaz=blazspec(*,*,ist)  ; blaze-subtracted
+  pltextr=extrspec(*,*,ist)  ; extracted with no further processing
+  pltflat=flat(*,*,ist)      ; flat field for desired fiber
+
+  get_plotdat,lam,pltblaz,[513.3,523.5],iord0,lam0,plt0          ; Mg b order
+  get_plotdat,lam,pltextr,[513.3,523.5],iord3,lam3,plt3  ; more Mg b
+  get_plotdat,lam,pltextr,[394.5,399.5],iord4,lam4,plt4  ; Ca H
+  get_plotdat,lam,pltextr,[652.0,664.5],iord5,lam5,plt5  ; H alpha
+  get_plotdat,lam,pltextr,[655.0,677.0],iord6,lam6,plt6  ; Li 6708
+  get_plotdat,lam,pltextr,[585.0,595.5],iord7,lam7,plt7  ; Na D
   get_plotdat,lam,pltspec,[513.3,523.5],iord8,lam8,plt8            ; more Mg b
 
 ; get wavelengths and fluxes for the corresponding ZERO file
   zstar=rvindat.zstar(*,*,ip2)
   zlam=rvindat.zlam(*,*,ip2)
-  get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z,/norm ; Mg b zero spec
+  get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z ; Mg b zero
 ; convert lam0z to air wavelengths
   lam0z=airlam(lam0z,-z0_c)
 
@@ -153,8 +152,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
   sitesh=strlowcase(strmid(site,0,2))
-  plotname=plotdir+'/PLOT'+sitesh+datestrc+fibstr+'.ps'
-stop
+  plotname=plotdir+'PLOT'+sitesh+datestrc+fibstr+'.ps'
   !p.font=0
   psll,name=plotname,ys=20.
   device,set_font='Helvetica'
@@ -165,12 +163,12 @@ stop
   minx=min(lam0)
   maxx=max(lam0)
   ny=n_elements(plt0)
-  plt0s=smooth(plt0,101)
-  miny=min(plt0s(ny/3:2*ny/3))
-  maxy=ptile(plt0s(ny/3:2*ny/3),98)
+  plt0s=smooth(plt0,11)
+  miny=min(plt0s(ny/4:3*ny/4))
+  maxy=ptile(plt0s(ny/4:3*ny/4),98)
   xran=[minx,maxx]
   pran=maxy-miny
-  yran=[(miny-0.15*pran) > 0.,maxy+0.05*pran]
+  yran=[(miny-0.20*pran),maxy+0.20*pran]
   plot,lam0,plt0,tit=shorttitl,xtit=xtits(0),ytit=ytits(0),xran=xran,yran=yran,$
      /xsty,/ysty,charsiz=cs0,/nodata
   oplot,lam0,plt0,color=blue

@@ -65,7 +65,7 @@ nfiles=n_elements(flist)
 
 ; read the first file, get sizes of things
 ; put data into nres_comm or thar_comm variables, as appropriate
-fname=nresrooti+'/reduced/spec/'+flist(0)
+fname=nresrooti+'/reduced/blaz/'+flist(0)
 dd=readfits(fname,hdr)
 sz=size(dd)
 nx=sz(1)
@@ -101,7 +101,7 @@ zout(*,*,1)=dd(*,*,ifib1)            ; the ThAr spectrum
 mjdavg=0.d0
 navg=1
 for i=1,nfiles-1 do begin
-  fname=nresrooti+'/reduced/spec/'+flist(i)
+  fname=nresrooti+'/reduced/blaz/'+flist(i)
   dd=readfits(fname,hdr)
   zout(*,*,0)=zout(*,*,0)+dd(*,*,ifib0)
   zout(*,*,1)=zout(*,*,1)+dd(*,*,ifib1)
