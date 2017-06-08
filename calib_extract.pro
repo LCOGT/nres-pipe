@@ -28,7 +28,7 @@ pro calib_extract,flatk=flatk,dble=dble
 ; constants
 
 ; get spectrograph info, notably nord
-get_specdat,mjdc,err
+get_specdat,mjdd,err
 nord=specdat.nord
 nx=specdat.nx
 ccd_find,err
@@ -36,6 +36,17 @@ if(err ne 0) then begin
   print,'in calib_extract, CCD parameters not found.  Fatal error.'
   goto,fini
 endif
+
+; make needed arrays to allow wavelength computation
+; make a tentative lambda array for all 3 fibers
+xx=(findgen(nx)-nx/2.)*specdat.pixsiz
+mm=specdat.ord0+lindgen(nord)
+lam03=dblarr(nx,nord,3)
+for i=0,2 do begin
+  lambda3ofx,xx,mm,i,specdat,lamt,y0t
+  lam03(*,*,i)=lamt
+endfor
+mk_badlamwts,lam03
 
 ; locate suitable bias, dark, flat and trace data
 errsum=0
@@ -147,12 +158,12 @@ if(~keyword_set(flatk)) then begin
     format='(e12.5)'
 
   if(keyword_set(dble)) then begin
-    speco='DBLE'+datestrc+'.fits'
+    speco='DBLE'+datestrd+'.fits'
     specout=nresrooti+'/'+dbledir+speco
   endif else begin
-    speco='SPEC'+datestrc+'.fits'
-    blazo='BLAZ'+datestrc+'.fits'
-    extro='EXTR'+datestrc+'.fits'
+    speco='SPEC'+datestrd+'.fits'
+    blazo='BLAZ'+datestrd+'.fits'
+    extro='EXTR'+datestrd+'.fits'
     specout=nresrooti+'/'+specdir+speco
     blazout=nresrooti+'/'+blazdir+blazo
     extrout=nresrooti+'/'+extrdir+extro
@@ -162,26 +173,29 @@ if(~keyword_set(flatk)) then begin
   writefits,specout,corspec,hdr
 
 ; write extr = raw spectrum with low-signal ends trimmed
-  writefits,extrout,extrspec,hdr        ; same hdr as specout
+  if(not keyword_set(dble)) then begin
+    writefits,extrout,extrspec,hdr        ; same hdr as specout
 
 ; then write blaze = raw - flat
-  hdrb=hdr
-  for j=0,mfib-1 do begin
-    sj=strtrim(string(j,format='(i1)'),2)
-    for i=0,nord-1 do begin
-      snn=strtrim(string(i,format='(i2)'),2)
-      if(strlen(snn) eq 1) then snn='0'+snn
-      snn=sj+snn
-      kwd='AMPFL'+snn
-      sxaddpar,hdrb,kwd,ampflat(i,j)
+    hdrb=hdr
+    for j=0,mfib-1 do begin
+      sj=strtrim(string(j,format='(i1)'),2)
+      for i=0,nord-1 do begin
+        snn=strtrim(string(i,format='(i2)'),2)
+        if(strlen(snn) eq 1) then snn='0'+snn
+        snn=sj+snn
+        kwd='AMPFL'+snn
+        sxaddpar,hdrb,kwd,ampflat(i,j)
+      endfor
     endfor
-  endfor
-  writefits,blazout,blazspec,hdrb
+    writefits,blazout,blazspec,hdrb
+  endif
 endif
 
 ;stop
 
-echdat.mjd=mjdc
+echdat.mjdd=mjdd
+echdat.mjdc=mjdc
 echdat.origname=filname
 echdat.siteid=site
 echdat.camera=camera

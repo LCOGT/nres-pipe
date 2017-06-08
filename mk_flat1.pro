@@ -53,17 +53,18 @@ for i=0,nord-1 do begin
   endfor
 endfor
 
-jd=systime(/julian)      ; file creation time, for sorting similar trace files
-mjd=jd-2400000.5d0
-daterealc=date_conv(jd,'R')
-datestrc=string(daterealc,format='(f13.5)')
-fout='FLAT'+datestrc+'.fits'
+;jd=systime(/julian)      ; file creation time, for sorting similar trace files
+;mjd=jd-2400000.5d0
+;daterealc=date_conv(jd,'R')
+;datestrc=string(daterealc,format='(f13.5)')
+fout='FLAT'+datestrd+'.fits'
 filout=nresrooti+flatdir+fout
 
 ; make header for FITS file
 mkhdr,hdr,flat
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 nfravg=1
+sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
 sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
 sxaddpar,hdr,'SITEID',site
@@ -75,7 +76,7 @@ sxaddpar,hdr,'FIB0',fib0
 sxaddpar,hdr,'FIB1',fib1
 
 ; and write it out
-speco='FLAT'+datestrc+'.fits'
+speco='FLAT'+datestrd+'.fits'
 objects=sxpar(dathdr,'OBJECTS')
 sxaddpar,hdr,'OBJECTS',objects
 specout=nresrooti+'/'+flatdir+speco
@@ -87,6 +88,6 @@ writefits,filout,flat,hdr
 cflg='0000'
 if(fib0 eq 0) then cflg='0010'
 if(fib0 eq 1) then cflg='0020' 
-stds_addline,'FLAT','flat/'+fout,1,strtrim(site,2),strtrim(camera,2),jd,cflg
+stds_addline,'FLAT','flat/'+fout,1,strtrim(site,2),strtrim(camera,2),jdd,cflg
 
 end

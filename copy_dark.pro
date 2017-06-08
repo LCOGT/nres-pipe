@@ -10,7 +10,7 @@ pro copy_dark
 ; grab the data file from nres_common, make the header
 dark=float(dat)
 get_calib,'BIAS',biasfile,bias,biashdr     ; find bias via the default
-                                  ; method, using site, camera, jdc from common
+                                  ; method, using site, camera, jdd from common
 ; make a bias-subtracted dark
 dark=dark-bias                        ; both should be floats
 exptime=sxpar(dathdr,'EXPTIME')
@@ -20,16 +20,17 @@ exptime=1.0
 ; make the header and fill it out
 mkhdr,hdr,dark
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
+sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
 sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
 sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','DARK'
 sxaddpar,hdr,'EXPTIME',exptime
-darko='DARK'+datestrc+'.fits'
+darko='DARK'+datestrd+'.fits'
 darkout=nresrooti+darkdir+darko
 writefits,darkout,dark,hdr
-stds_addline,'DARK','dark/'+darko,1,site,camera,jdc,'0000'
+stds_addline,'DARK','dark/'+darko,1,site,camera,jdd,'0000'
 
 if(verbose ge 1) then begin
   print,'*** copy_dark ***'

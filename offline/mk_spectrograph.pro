@@ -13,14 +13,15 @@ trippath=nresrooti+'reduced/'+filin
 csvpath=nresrooti+'reduced/csv/spectrographs.csv'
 siteo=strtrim(strlowcase(site))
 
-; get the mjd, for a time tag on the new spectrographs.csv line
-jdc=systime(/julian)
-mjdc=jdc-2450000.5d0
+; get the data mjd, for a time tag on the new spectrographs.csv line
+;jdc=systime(/julian)
+;mjdc=jdc-2450000.5d0
 
 ; read the data
 dd=readfits(trippath,hdr)
 
 ; extract the needed info
+mjdd=sxpar(hdr,'MJD-OBS')
 ord0=sxpar(hdr,'ORD0')
 grspc=sxpar(hdr,'GRSPC')
 sinalp=sxpar(hdr,'SINALP')
@@ -91,7 +92,7 @@ stop
 
 ; merge in the new data
 datso={field01:[dats.field01,siteo],$
-field02:[dats.field02,mjdc],$
+field02:[dats.field02,mjdd],$
 field03:[dats.field03,ord0],$
 field04:[dats.field04,grspc],$
 field05:[dats.field05,grinc],$

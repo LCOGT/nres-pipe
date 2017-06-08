@@ -123,7 +123,7 @@ for i=0,1 do begin
     rcco(i)=rcc                   ; no correction for baryshifts at this point
     ampcco(i)=ampcc
     widcco(i)=widcc
-    bjdo(i)=sxpar(dathdr,'MJD-OBS')+2400000.d0-0.5d0
+    bjdo(i)=sxpar(dathdr,'MJD-OBS')+2400000.5d0
     ccmo(i,*)=ccm
     delvo(i,*)=delv
     rvvo(i)=rvv
@@ -240,7 +240,7 @@ for i=0,1 do begin       ; loop over targets
   if(atargname ne 'NULL') then begin
     orgname=echdat.origname
     rvkmps=c*rcco(i)
-    rv_addline,atargname,mjdc,bjdtdb_c(findx),site,exptime,orgname,speco,$
+    rv_addline,atargname,mjdd,bjdtdb_c(findx),site,exptime,orgname,speco,$
       nmatcho,amoerro,rmsgoodo,$
       mgbdispo,rvkmps,ampcco(i),widcco(i),lammido,baryshifts(i),$
       rroa(i),rrom(i),rroe(i)
@@ -258,7 +258,7 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
 
-rvname='RADV'+datestrc+'.fits'
+rvname='RADV'+datestrd+'.fits'
 rvout=nresrooti+rvdir+rvname
 
 fxhmake,hdr,/extend                        ; no primary data segment
@@ -267,7 +267,7 @@ fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera
 fxaddpar,hdr,'FIBZ0',fib0
 fxaddpar,hdr,'FIBZ1',fib1
-fxaddpar,hdr,'MJD-OBS',specdat.mjd
+fxaddpar,hdr,'MJD-OBS',mjdd,'Data MJD'
 fxaddpar,hdr,'MJD',mjdc,'Creation date'
 
 for i=0,1 do begin

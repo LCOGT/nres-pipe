@@ -11,9 +11,9 @@ radian=180.d0/!pi
 
 ; get spectrograph data from spectrographs.csv  Use today's MJD
 site=strupcase(strtrim(site0,2))
-mjd=systime(/julian)-2400000.5d0
+mjdc=systime(/julian)-2400000.5d0
 
-get_specdat,mjd,err
+get_specdat,mjdc,err
 
 nx=specdat.nx
 nord=specdat.nord

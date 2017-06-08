@@ -47,7 +47,7 @@ endif else begin
 endelse
 
 ; read the spectrograph specdat file, tuck data away in thar_am.
-get_specdat,mjdc,err
+get_specdat,mjdd,err
 mm_c=specdat.ord0 + lindgen(specdat.nord)      ; diffraction orders
 grspc_c=specdat.grspc                  ; grating groove spacing (mm)
 grinc_c=specdat.grinc                  ; grating incidence angle

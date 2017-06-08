@@ -30,7 +30,7 @@ ierr=0
 
 ; get SG parameters, set up massaged input in common block
 thar_setup,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
-if(ierr_c ne 0) then stop
+;if(ierr_c ne 0) then stop
 if(ierr_c ne 0) then goto,fini
 site_c=sgsite
 fibindx_c=fibindx

@@ -43,18 +43,30 @@ ampflat=fltarr(nord,mfib)
 for i=0,mfib-1 do begin
   if(objs(i+fib0) ne 'THAR' and objs(i+fib0) ne 'NULL') then begin
   for j=0,nord-1 do begin
+    lamwts=badlamwts(*,j,i)
     sb0l=where(flate(*,j,i) lt flcutoff and indx le nx/2,nsbl)
     sb0r=where(flate(*,j,i) le flcutoff and indx gt nx/2,nsbr)
     if(nsbl gt 0) then ixl=max(indx(sb0l))+1 else ixl=0
     if(nsbr gt 0) then ixr=min(indx(sb0r))-1 else ixr=nx-1
-    sg=where(indx ge ixl and indx le ixr,nsg)
-    sb=where(indx lt ixl or indx gt ixr,nsb)
+    sg0=where(indx ge ixl and indx le ixr,nsg0)
+    sgp=where(indx ge ixl and indx le ixr and lamwts eq 1,nsgp) ; pure sgood
+    sb0=where(indx lt ixl or indx gt ixr,nsb0)
+    sbp=where(indx lt ixl or indx gt ixr or lamwts eq 0,nbsp)  ; pure sbad
+    if(nsgp gt 0) then sg=sgp
+    if(nsgp eq 0 and nsg0 gt 0) then sg=sg0
+    nsg=n_elements(sg) 
+    ibad=lonarr(nx)+1
+    ibad(sg)=0
+    sb=where(ibad eq 1,nsb)
     if(nsg gt 0) then begin
-; first make extracted spectrum, set to zero for bad points
-    extrspec(sg,j,i)=rawspec(sg,j,i)
+; first make extracted spectrum, set to zero for points where no good flat
+; exists.
+    extrspec(sg0,j,i)=rawspec(sg0,j,i)
 ; then make blaze-subtracted spectrum, fitting only
-; the brightest (100-ptcut) percent of the central 1/3 of the spectrum.
-    sg2=sg(nsg/3:2*nsg/3)
+; the brightest (100-ptcut) percent of the central 1/2 of the spectrum,
+; weighted by badlamwts. If nothing is left, use the whole order.
+; **************
+    sg2=sg(nsg/4:3*nsg/4)
     gg=rawspec(sg2,j,i)
     ff=flate(sg2,j,i)
     scut=where(gg ge ptile(gg,ptcut),nscut)
@@ -77,16 +89,16 @@ for i=0,mfib-1 do begin
       hh=fltarr(nx)
     endelse
       
-      blazspec(sg,j,i)=hh(sg)
-      rmsblaz(sg,j,i)=rmsspec(sg,j,i)
+      blazspec(sg0,j,i)=hh(sg0)
+      rmsblaz(sg0,j,i)=rmsspec(sg0,j,i)
 
-; make the ratio rawspec/flat, for good data points
+; make the ratio rawspec/flat, set to zero for bad data points
       corspec(sg,j,i)=rawspec(sg,j,i)/flate(sg,j,i)
       rmsspec(sg,j,i)=rmsspec(sg,j,i)/flate(sg,j,i)
     endif
     if(nsb gt 0) then begin
-      blazspec(sb,j,i)=0.
-      rmsblaz(sb,j,i)=1.e6
+;     blazspec(sb,j,i)=0.
+;     rmsblaz(sb,j,i)=1.e6
       corspec(sb,j,i)=0.
       rmsspec(sb,j,i)=1.e6
     endif

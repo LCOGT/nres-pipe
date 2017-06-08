@@ -143,17 +143,20 @@ if(nfib eq 3) then begin        ; do the nfib=3 case
 
 endif
 
-; make creation date, output filename
-jd=systime(/julian)      ; file creation time, for sorting similar calib files
-mjd=jd-2400000.5d0
-daterealc=date_conv(jd,'R')
-datestrc=string(daterealc,format='(f13.5)')
+; make date of 1st input, output filename
+;jd=systime(/julian)      ; file creation time, for sorting similar calib files
+;mjd=jd-2400000.5d0
+mjdd=sxpar(hdr0,'MJD-OBS')
+jdd=mjdd+2400000.5d0
+datereald=date_conv(jdd+.0001,'R')  ; add eps to avoid overwriting input data
+datestrd=string(datereald,format='(f13.5)')
+datestrd=strlowcase(site)+datestrd
 fout='FLAT'+datestrc+'.fits'
 filout=flatdir+fout
 branch='flat/'
 
 ; make output header = 1st input header with mods, write out the data
-sxaddpar,hdr0,'MJD',mjd
+sxaddpar,hdr0,'MJD-OBS',mjdd
 sxaddpar,hdr0,'NFRAVGD',nfile
 sxaddpar,hdr0,'ORIGNAME',files(0)
 ; ##### make modified 'OBJECTS' keyword to cover all 3 fibers #####
@@ -161,7 +164,7 @@ writefits,filout,datout,hdr0
 
 ; add line to standards.csv
 if(nfib eq 2) then cflg='0010' else cflg='0030' 
-stds_addline,'FLAT',branch+fout,nfile,strtrim(site,2),strtrim(camera,2),jd,cflg
+stds_addline,'FLAT',branch+fout,nfile,strtrim(site,2),strtrim(camera,2),jdd,cflg
 
 ; print description of what was done
 print,'Wrote FLAT file '+filout

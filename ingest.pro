@@ -69,6 +69,8 @@ camera=strtrim(sxpar(dathdr,'INSTRUME'),2)
 site=strtrim(sxpar(dathdr,'SITEID'),2)
 filname=strtrim(sxpar(dathdr,'ORIGNAME'))
 exptime=strtrim(sxpar(dathdr,'EXPTIME'))
+mjdd=sxpar(dathdr,'MJD-OBS')       ; data date = start of exposure
+jdd=mjdd+2400000.5d0
 ;if(strtrim(strupcase(site),2) ne 'SQA') then nfib=3 else nfib=2
 objects=sxpar(dathdr,'OBJECTS')
 wobjects=get_words(objects,delim='&',nwords)
@@ -89,8 +91,9 @@ mfib=ns
 ; to this input file
 jdc=systime(/julian)
 mjdc=jdc-2400000.5d0
-daterealc=date_conv(jdc,'R')
-datestrc=string(daterealc,format='(f13.5)')
+datereald=date_conv(jdd,'R')
+datestrd=string(datereald,format='(f13.5)')
+datestrd=strlowcase(site)+datestrd
 
 ; #### temporary hack to deal with raw SQA data
 goto,skipit

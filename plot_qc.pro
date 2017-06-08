@@ -1,8 +1,8 @@
 pro plot_qc
 ; This routine makes a plot of quality control diagnostics for a single
 ; NRES image of type TARGET.  The postscript plot is written to
-; reduced/plot/PLQCssyyyyddd.ttttt_o.ps, where 
-; ss= site name (lower case)
+; reduced/plot/PLQCsssyyyyddd.ttttt_o.ps, where 
+; sss= site name (lower case)
 ; yyyyddd.ttttt = the image data date
 ; o = the target fiber (0 or 2) being plotted.
 ; Data plotted are
@@ -44,8 +44,8 @@ coltab=6                                  ; color table
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
-mjd=sxpar(dathdr,'MJD-OBS')                ; observation start time
-jd=2400000.5d0+mjd                         ; ditto
+mjdd=sxpar(dathdr,'MJD-OBS')                ; observation start time
+jdd=2400000.5d0+mjdd                         ; ditto
 site=echdat.siteid
 objcts=sxpar(dathdr,'OBJECTS')
 objects=strupcase(strtrim(get_words(objcts,nobj,delim='&'),2))
@@ -93,7 +93,7 @@ for i=0,nplot-1 do begin
 ; make output file path
   ifib=ist                        ; ###### guess
   fibs=strtrim(string(iplot0),2)   ; string with index of fiber to plot
-  outpath=plotdir+'/PLQC'+strmid(strlowcase(site),0,2)+datestrc+'_'+fibs+'.ps'
+  outpath=plotdir+'/PLQC'+datestrd+'_'+fibs+'.ps'
 
 ; compute standard order, bot and top x range
   stord=fix(nord*0.4)
@@ -118,7 +118,7 @@ for i=0,nplot-1 do begin
   yran=[0.8*(yrmin > 0.),1.05*yrmax]
   xtit='Wavelength (nm)'
   ytit='Summed Inten (kADU)'
-  tit=object+' '+strmid(strlowcase(site),0,2)+datestrc+'_'+fibs
+  tit=object+' '+datestrd+'_'+fibs
 
   spec=echdat.spectrum(xbot:xtop,stord,ifib)
   plot,lambda,spec/1e3,xran=xran,yran=yran,tit=tit,/xsty,/ysty,ytit=ytit,$
@@ -169,7 +169,7 @@ for i=0,nplot-1 do begin
 ; new plot page --  do wavelength solution plots
   !p.multi=[0,1,2]
   loadct,coltab
-  tit=strmid(strlowcase(site),0,2)+datestrc
+  tit=datestrd
   xtit='Wavelength (nm)'
   ytit='lambda Mismatch (nm)'
   xran=[380,880]
@@ -203,7 +203,7 @@ for i=0,nplot-1 do begin
   !p.multi=[0,2,2]
   loadct,coltab
 
-  tit=strmid(strlowcase(site),0,2)+datestrc
+  tit=datestrd
   tit2=[' B-band',' B-band',' A-band',' A-band']
   xtit='Wavelength (nm)'
   ytit='Flux (kADU)'
@@ -224,11 +224,13 @@ for i=0,nplot-1 do begin
     le xra(1,1)+.2,ns0)
   s1=where(lam(*,ordrs(2)) ge (xra(0,2)-.2) and lam(*,ordrs(2)) $
     le xra(1,3)+.2,ns1)
-  pdat0=corspec(s0,ordrs(0),ist)/1.e3
-  pdat1=corspec(s1,ordrs(2),ist)/1.e3
+  pdat0=blazspec(s0,ordrs(0),ist)/1.e3
+  pdat1=blazspec(s1,ordrs(2),ist)/1.e3
   plam0=lam(s0,ordrs(0))
   plam1=lam(s1,ordrs(2))
-  yra=[[0.,1.2*ptile(pdat0,90)],[0.,1.2*ptile(pdat1,90)]]
+  ran0=[max(pdat0)-min(pdat0),max(pdat1)-min(pdat1)]
+  yra=[[min(pdat0)-.1*ran0(0),max(pdat0)+.1*ran0(0)],$
+       [min(pdat1)-.1*ran0(1),max(pdat1)+.1*ran0(1)]]
   
 ; do the plots
   for j=0,1 do begin

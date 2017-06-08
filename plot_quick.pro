@@ -37,8 +37,8 @@ cs2=1.5                      ; very big character size
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
-mjd=sxpar(dathdr,'MJD-OBS')                ; observation start time
-jd=2400000.5d0+mjd                         ; ditto
+mjdd=sxpar(dathdr,'MJD-OBS')                ; observation start time
+jdd=2400000.5d0+mjdd                         ; ditto
 site=echdat.siteid
 objcts=sxpar(dathdr,'OBJECTS')
 objects=strupcase(strtrim(get_words(objcts,nobj,delim='&'),2))
@@ -47,6 +47,10 @@ nord=nord_c
 baryshifts=c*rvindat.baryshifts          ; 2 elements, one per fiber
 targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]  ; decimal degree
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+targteff=[rvindat.targstrucs[0].teff,rvindat.targstrucs[1].teff] ; K
+targlogg=[rvindat.targstrucs[0].logg,rvindat.targstrucs[1].logg] ; log cm/s^2
+targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
 coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
@@ -54,22 +58,31 @@ ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
 ; get the flat data
 flat=flatdat.flat
 
-; make string sexigesimal versions of RA, Dec
+; make string sexigesimal versions of target data, incl RA, Dec
 rah=targra/15.        ; RA in hours
 rastr=strarr(2)       ; RA, Dec strings
 decstr=strarr(2)
+teffstr=strarr(2)
+loggstr=strarr(2)
+
 for i=0,1 do begin
   ras=sixty(rah(i))
   rastr(i)=string(ras(0),format='(i2.2,":")') + $
            string(ras(1),format='(i2.2,":")') + $
            string(ras(2),format='(f5.2)')
-  if(coosrc(i) eq 0) then rastr(i)='['+rastr(i)+']'
   decs=sixty(targdec(i))
   if(targdec(i) ge 0) then sgn='+' else sgn='-'
   decstr(i)=sgn+string(decs(0),format='(i3.2,":")') + $
                 string(decs(1),format='(i2.2,":")') + $
                 string(decs(2),format='(f4.1)')
-  if(coosrc(i) eq 0) then decstr(i)='['+decstr(i)+']'
+  teffstr(i)=string(targteff(i),format='(f6.0)')
+  loggstr(i)=string(targlogg(i),format='(f6.3)')
+  if(coosrc(i) eq 0) then begin
+    rastr(i)='['+rastr(i)+']'
+    decstr(i)='['+decstr(i)+']'
+    teffstr(i)='['+teffstr(i)+']'
+    loggstr(i)='['+loggstr(i)+']'
+  endif
 endfor
 
 ; which fiber are we plotting?  If two, loop over them
@@ -146,13 +159,12 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
 
 ; make the title string
   version='1.1'      ; ###bogus###
-  shorttitl=shtitlstr(objects(iplot),site,mjd,bjdtdb_c(iplot),iord0,exptime,$
+  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
        snr,version) 
 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
-  sitesh=strlowcase(strmid(site,0,2))
-  plotname=plotdir+'PLOT'+sitesh+datestrc+fibstr+'.ps'
+  plotname=plotdir+'PLOT'+datestrd+fibstr+'.ps'
   !p.font=0
   psll,name=plotname,ys=20.
   device,set_font='Helvetica'
@@ -184,8 +196,8 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=cs1
   xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=cs1
   xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=cs1
-  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=cs1
-  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=cs1
+  xyouts,xtop,ybot(2),'Log g = '+loggstr(ip2),charsiz=cs1
+  xyouts,xtop,ybot(3),'Teff = '+teffstr(ip2),charsiz=cs1
 
  !p.multi=[3,3,2]                             ; do the 2nd row of plots
   xran=[-400.,400.]

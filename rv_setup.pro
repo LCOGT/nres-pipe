@@ -152,12 +152,13 @@ for i=0,1 do begin
 ; get the ZERO data.  If only one star fiber is lit, the other plane
 ; of each output array contains zeros.   
       zeropath=zeroroot+zeroname
-      fxbopen,unit,zeropath,1,hdr        ; get 1st extension of ZERO file
-      fxbread,unit,star,'Star',1         ; read 'Star' col, row 1
-      fxbread,unit,thar,'ThAr',1         ; 'ThAr' col
-      fxbread,unit,lam,'Wavelength',1   ; 'Wavelength' col
-      fxbclose,unit
-      free_lun,unit
+      rd_zero,zeropath,hdr,star,thar,lam
+;     fxbopen,unit,zeropath,1,hdr        ; get 1st extension of ZERO file
+;     fxbread,unit,star,'Star',1         ; read 'Star' col, row 1
+;     fxbread,unit,thar,'ThAr',1         ; 'ThAr' col
+;     fxbread,unit,lam,'Wavelength',1   ; 'Wavelength' col
+;     fxbclose,unit
+;     free_lun,unit
     
       zstar(*,*,i)=star
       zthar(*,*,i)=thar

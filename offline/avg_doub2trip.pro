@@ -85,10 +85,10 @@ endfor
 ; read first input file, move useful data from header into nres_comm
 pathname=reddir+s0name
 dd=readfits(pathname,dblehdr0)
-mjd=sxpar(dblehdr0,'MJD-OBS')
+mjdd=sxpar(dblehdr0,'MJD-OBS')
 
 ; use site name to find nfib value for these data from spectrographs.csv
-get_specdat,mjd,err
+get_specdat,mjdd,err
 nfib=specdat.nfib
 
 ; check to see that rules for input list are obeyed
@@ -187,17 +187,18 @@ lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 ; different fibers
 
 ; make data date, output filename
-jdc=systime(/julian)      ; file creation time, for sorting similar calib files
-mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
-daterealc=date_conv(jdc,'R')
-datestrc=string(daterealc,format='(f13.5)')
-fout='TRIP'+datestrc+'.fits'
+;jdc=systime(/julian)      ; file creation time, for sorting similar calib files
+;mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
+datereald=date_conv(jdd+.0001,'R')
+datestrd=string(daterealc,format='(f13.5)')
+datestrd=strlowcase(site)+datestrd
+fout='TRIP'+datestrd+'.fits'
 filout=tripdir+fout
 branch='trip/'
 
 ; make output header = 1st input header with mods, write out the data
 mkhdr,hdrout,lamav
-sxaddpar,hdrout,'MJD',mjd
+sxaddpar,hdrout,'MJD',mjdd+.0001
 sxaddpar,hdrout,'NFRAVGD',nfile
 for i=0,nfilinp-1 do begin
   strdig=strtrim(string(i),2)

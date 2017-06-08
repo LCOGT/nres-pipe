@@ -61,9 +61,11 @@ sigc=10.         ; threshold for bad data (cosmics), in sigma
 ; and the variance map in the same boxes.
 ; also the nominal displacement of the order center from the center of the
 ; extraction box, and the order rms width
+dymed0=0.                               ; starting value of trace y shift
+traceloop:                             ; come back to here if trace disp > 1.
 ebox=fltarr(nx,cowid,nord,mfib)
 vbox=fltarr(nx,cowid,nord,mfib)
-ordbot=round(ordvec-cowid/2.)          ; bottom boundaries of order boxes
+ordbot=round(ordvec+dymed0-cowid/2.)          ; bottom boundaries of order boxes
 ordtop=ordbot+cowid-1                  ; top boundary ditto.
 
 ; strip out the desired data
@@ -110,6 +112,8 @@ endif else begin
   endelse
 endelse
 
+;stop  ; check shiftme
+
 ; do two iterations with raw intensity data, first estimating cross-
 ; dispersion shifts from moments, then with y-derivative of profile.  
 ; Then fit for 2nd derivative to allow for width variations, and make
@@ -126,7 +130,7 @@ specrms=fltarr(nx,nord,mfib)
 specdy=fltarr(nx,nord,mfib)
 specdy2=fltarr(nx,nord,mfib)
 specwid=fltarr(nx,nord,mfib)
-dymed=0.
+;dymed=0.
 
 for ifib=0,mfib-1 do begin
   jfib=sobjg(ifib)
@@ -151,11 +155,20 @@ for ifib=0,mfib-1 do begin
 ; and shiftme is set
   if(shiftme eq 1 and ifib eq 0) then begin
     dymed=dymedian(mom0,mom1)
-  endif
+    if(abs(dymed) gt 0.5) then begin
+      print,'dymed=',dymed,'    Shifting...'
+      dymed0=dymed0+dymed
+      goto,traceloop
+    endif
+  endif else begin
+    dymed=0.
+  endelse
 
 ; make expected fractional pixel shift of profile from order center,
 ; corrected by dymed
-  orddy=ordvec(*,*,jfib)-ordbot(*,*,jfib)-cowid/2.+dymed
+  orddy=ordvec(*,*,jfib)+dymed0-ordbot(*,*,jfib)-cowid/2.+dymed
+
+;stop ; check dymed, orddy, mom1, mom0
 
 ; make estimate of cross-dispersion profile, corrected for estimated shifts
 ; make one such profile per extraction block.  (This is arbitrary, may want
@@ -183,10 +196,6 @@ for ifib=0,mfib-1 do begin
 ; values resulting from low signal.
   fprofile=rprofile
   sprofile=fltarr(nx,cowid,nord)
-; test
-  qsprofile=fltarr(nx,cowid,nord)
-  qpprofile=fltarr(nx,cowid,nord)
-; end test
   spwts=fltarr(nx,cowid,nord)
   ofprofile=fltarr(nx,cowid+4,nord)        ; interpolate from this array
   ofprofile(*,2:cowid+1,*)=fprofile
@@ -218,7 +227,7 @@ for ifib=0,mfib-1 do begin
       sump=tofprofile(sy-nx)*l0p + tofprofile(sy)*l1p + tofprofile(sy+nx)*l2p
       sprofile(*,k,i)=(summ+sump)/2.    ; involves 4 points surrounding target
     
-;   if(i eq 38 and ifib eq 0) then stop
+;    if(i eq 50 and ifib eq 0) then stop
  
     endfor
   endfor
@@ -296,7 +305,6 @@ for ifib=0,mfib-1 do begin
 ; ***** put sigma clipping code here.  Changes values in arrays ebo, vbo
       endif
   endfor
-;stop
 
 ; This looks like a bad idea in cases where (eg because of saturation) the
 ; real profile is a poor fit to the parameterized one prod0+prod2+prod3.
@@ -331,7 +339,7 @@ if(ix eq 0) then spectrum(nx-1,*,*)=spectrum(nx-2,*,*)
 nelectron=reform(nx*nord*rebin(spectrum,1,1,mfib))
 echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specdy2:specdy2,$
     specwid:specwid,$
-    diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjd:0.d0,origname:'NULL',$
+    diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjdd:0.d0,mjdc:0.d0,origname:'NULL',$
     flatname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
     nelectron:nelectron,craybadpix:nsbad}

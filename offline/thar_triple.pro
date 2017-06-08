@@ -56,8 +56,8 @@ dd01=readfits(fnam01,hdr01)
 dd12=readfits(fnam12,hdr12)
 site=strtrim(strupcase(sxpar(hdr01,'SITEID')),2)
 camera=strtrim(sxpar(hdr01,'INSTRUME'),2)
-mjd=sxpar(hdr01,'MJD')
-jdc=mjd+2400000.5d0
+mjdd=sxpar(hdr01,'MJD-OBS')
+jdd=mjd+2400000.5d0
 objects=strupcase(sxpar(hdr01,'OBJECTS'))
 words=get_words(objects,nwords,delim='&')
 nfib=nwords
@@ -231,11 +231,12 @@ if(keyword_set(nofits)) then goto,fini
 ; different fibers
 
 ; make creation date, output filename
-jd=systime(/julian)      ; file creation time, for sorting similar calib files
-mjd=jd-2400000.5d0
-daterealc=date_conv(jd,'R')
-datestrc=string(daterealc,format='(f13.5)')
-fout='TRIP'+datestrc+'.fits'
+;jd=systime(/julian)      ; file creation time, for sorting similar calib files
+;mjd=jd-2400000.5d0
+datereald=date_conv(jdd,'R')
+datestrd=string(datereald,format='(f13.5)')
+datestrd=datestrd+strlowcase(site)
+fout='TRIP'+datestrd+'.fits'
 filout=tripdir+fout
 branch='trip/'
 
