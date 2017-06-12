@@ -54,16 +54,18 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
        solution, and no star radial velocities are computed.  This saves time
        in cases in which we desire a lot of wavelength solutions to be averaged,
        eg for tracking the time behavior of wavlen solution parameters.
-    """
+
 
     #Some testing code, Remove when done:
-    #   filin='/Users/rolfsmei/Documents/research/pipeline/TestData/sqa0m801-en03-20150415-0001-e00.fits'
+filin='/Users/rolfsmei/Documents/research/pipeline/TestData/sqa0m801-en03-20150415-0001-e00.fits'
+import muncha
+muncha.muncha(filin)
     #   filin='/Users/rolfsmei/Documents/research/data/labcam-fl09-20170308-0095-d00.fits'
     #labcam-fl09-20170310-0030-w00.fits
     #   import muncha
     #   muncha.muncha(filin)
     #
-
+    """
     import os.path
 
     #constants
@@ -103,10 +105,19 @@ def muncha(filin,flatk='flatk',dbg='dbg',trp='trp',tharlist='tharlist',cubfrz='c
     #print(done)
     #print(ierr)
 
-    import copy_dark
-    done=copy_dark.copy_dark()
-    print(done)
-    print(ierr)
+    #import copy_dark
+    #done=copy_dark.copy_dark()
+    #print(done)
+    #print(ierr)
+
+    #For Targets
+    print("For Targets") # this line can be removed after done
+    import calib_extract
+    calib_extract.calib_extract()
+    print(nr.nord)
+
+
+
 
 
     #Do some error handling here if ingest returns an error
