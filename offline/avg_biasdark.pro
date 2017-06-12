@@ -55,6 +55,7 @@ if(obty ne strtrim(type,2)) then begin
 endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
+mjdd=sxpar(hdr0,'MJD-OBS')
 
 ; make data array, fill it up
 datin=fltarr(nx,ny,nfile)
@@ -93,12 +94,14 @@ endelse
 ; median average over the input data arrays
 datout=median(datin,dimension=3)
 
-; make creation date, output filename
-jd=systime(/julian)      ; file creation time, for sorting similar calib files
-mjd=jd-2400000.5d0
-daterealc=date_conv(jd,'R')
-datestrc=string(daterealc,format='(f13.5)')
-fout=type+datestrc+'.fits'
+; make date of 1st input file, output filename
+;jd=systime(/julian)      ; file creation time, for sorting similar calib files
+;mjd=jd-2400000.5d0
+jdd=mjdd+2400000.5d0
+datereald=date_conv(jdd+.0001,'R')        ; add eps to avoid overwriting input
+datestrd=string(daterealc,format='(f13.5)')
+datestrd=strlowcase(site)+datestrd
+fout=type+datestrd+'.fits'
 case type of
   'BIAS': begin
     filout=biasdir+fout
@@ -111,14 +114,15 @@ case type of
 endcase
 
 ; make output header = 1st input header with mods, write out the data
-sxaddpar,hdr0,'MJD',mjd
+;sxaddpar,hdr0,'MJD',mjd
+sxaddpar,hdr0,'MJD-OBS',mjdd
 sxaddpar,hdr0,'NFRAVGD',nfile
 sxaddpar,hdr0,'ORIGNAME',files(0)
 writefits,filout,datout,hdr0
 
 ; add line to standards.csv
 cflg='0000'
-stds_addline,type,branch+fout,nfile,strtrim(site,2),strtrim(camera,2),jd,cflg
+stds_addline,type,branch+fout,nfile,strtrim(site,2),strtrim(camera,2),jdd,cflg
 
 ; print info about what was done
 fini:

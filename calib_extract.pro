@@ -28,7 +28,7 @@ pro calib_extract,flatk=flatk,dble=dble
 ; constants
 
 ; get spectrograph info, notably nord
-get_specdat,mjdc,err
+get_specdat,mjdd,err
 nord=specdat.nord
 nx=specdat.nx
 ccd_find,err
@@ -36,6 +36,17 @@ if(err ne 0) then begin
   print,'in calib_extract, CCD parameters not found.  Fatal error.'
   goto,fini
 endif
+
+; make needed arrays to allow wavelength computation
+; make a tentative lambda array for all 3 fibers
+xx=(findgen(nx)-nx/2.)*specdat.pixsiz
+mm=specdat.ord0+lindgen(nord)
+lam03=dblarr(nx,nord,3)
+for i=0,2 do begin
+  lambda3ofx,xx,mm,i,specdat,lamt,y0t
+  lam03(*,*,i)=lamt
+endfor
+mk_badlamwts,lam03
 
 ; locate suitable bias, dark, flat and trace data
 errsum=0
@@ -115,12 +126,14 @@ if(keyword_set(flatk)) then begin
   corspec=echdat.spectrum
   rmsspec=echdat.specrms
 endif else begin
-  apply_flat,flat
+  apply_flat2,flat
 endelse 
   
 ; make the header and fill it out
 ; do not do this if flatk is set, since it will be done in mk_flat1
 if(~keyword_set(flatk)) then begin
+
+; write corspec (raw/flat) first
   mjdobs=sxpar(dathdr,'MJD-OBS')
   latitude=sxpar(dathdr,'LATITUDE')
   longitud=sxpar(dathdr,'LONGITUD')
@@ -130,6 +143,7 @@ if(~keyword_set(flatk)) then begin
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
   sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+  sxaddpar,hdr,'FLATFILE',flatfile,'extracted flat filename'
   sxaddpar,hdr,'SITEID',site 
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
@@ -144,22 +158,49 @@ if(~keyword_set(flatk)) then begin
     format='(e12.5)'
 
   if(keyword_set(dble)) then begin
-    speco='DBLE'+datestrc+'.fits'
+    speco='DBLE'+datestrd+'.fits'
     specout=nresrooti+'/'+dbledir+speco
   endif else begin
-    speco='SPEC'+datestrc+'.fits'
+    speco='SPEC'+datestrd+'.fits'
+    blazo='BLAZ'+datestrd+'.fits'
+    extro='EXTR'+datestrd+'.fits'
     specout=nresrooti+'/'+specdir+speco
+    blazout=nresrooti+'/'+blazdir+blazo
+    extrout=nresrooti+'/'+extrdir+extro
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
   writefits,specout,corspec,hdr
+
+; write extr = raw spectrum with low-signal ends trimmed
+  if(not keyword_set(dble)) then begin
+    writefits,extrout,extrspec,hdr        ; same hdr as specout
+
+; then write blaze = raw - flat
+    hdrb=hdr
+    for j=0,mfib-1 do begin
+      sj=strtrim(string(j,format='(i1)'),2)
+      for i=0,nord-1 do begin
+        snn=strtrim(string(i,format='(i2)'),2)
+        if(strlen(snn) eq 1) then snn='0'+snn
+        snn=sj+snn
+        kwd='AMPFL'+snn
+        sxaddpar,hdrb,kwd,ampflat(i,j)
+      endfor
+    endfor
+    writefits,blazout,blazspec,hdrb
+  endif
 endif
 
-echdat.mjd=mjdc
+;stop
+
+echdat.mjdd=mjdd
+echdat.mjdc=mjdc
 echdat.origname=filname
 echdat.siteid=site
 echdat.camera=camera
 echdat.exptime=exptime
+echdat.flatname=flatfile
 
 fini:
 

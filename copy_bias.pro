@@ -11,6 +11,7 @@ pro copy_bias
 bias=float(dat)
 mkhdr,hdr,bias
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
+sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
 sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
 sxaddpar,hdr,'SITEID',site
@@ -18,7 +19,7 @@ sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','BIAS'
 exptime=sxpar(dathdr,'EXPTIME')
 sxaddpar,hdr,'EXPTIME',exptime
-biaso='BIAS'+datestrc+'.fits'
+biaso='BIAS'+datestrd+'.fits'
 biasout=nresrooti+biasdir+biaso
 
 ; Create directory if not present:
@@ -35,7 +36,7 @@ if (file_test(save_dir, /DIRECTORY, /WRITE) EQ 0) then begin
 
 ; write bias to file and update records:
 writefits,biasout,bias,hdr
-stds_addline,'BIAS','bias/'+biaso,1,site,camera,jdc,'0000'
+stds_addline,'BIAS','bias/'+biaso,1,site,camera,jdd,'0000'
 
 if(verbose ge 1) then begin
   print,'*** copy_bias ***'

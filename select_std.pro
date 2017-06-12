@@ -1,10 +1,10 @@
-pro select_std,stdtype,mjd,site,ccd,navg,targstruc,name_out,sel_type,err
+pro select_std,stdtype,mjdd,site,ccd,navg,targstruc,name_out,sel_type,err
 ; This routine selects a standard file for use in NRES calibration or RV
 ; estimation, given some information about the constraints on the file,
 ; and the kind of standard data desired.
 ; On input,
 ;  stdtype= one of 'BIAS','DARK','FLAT','TRIPLE','TRACE', or 'ZERO'
-;  mjd = MJD of data that are to be calibrated
+;  mjdd = MJD of data that are to be calibrated
 ;  site = site from which data are required, one of 'SQA','BPL'.'LSC','CPT',
 ;         'OGG','ELP','TFN','ALI', or 'NULL'
 ;  ccd = string name of the camera to which BIAS, DARK, or FLAT apply.
@@ -15,9 +15,9 @@ pro select_std,stdtype,mjd,site,ccd,navg,targstruc,name_out,sel_type,err
 ;  name_out = path to the selected standard file, or 'NULL' if no acceptable
 ;      standard file is found.  Paths are relative to ???
 ;  sel_type = string describing how the chosen file was selected. Options are:
-;    'MJD_nearest' -> file is nearest in MJD to input mjd, satisfying other
+;    'MJD_nearest' -> file is nearest in MJD to input mjdd, satisfying other
 ;         constraints.
-;    'MJD_smaller' -> as above, but standard must have smaller MJD than mjd
+;    'MJD_smaller' -> as above, but standard must have smaller MJD than mjdd
 ;         (ie, be taken before the data).
 ;    'In_targs' -> for ZERO file, name_out was demanded by targets.csv entry.
 ;    'Targ_name' -> for ZERO file, name_out matches the current target name,
@@ -63,7 +63,7 @@ if(stdtype eq 'BIAS' or stdtype eq 'DARK' or stdtype eq 'FLAT' or $
   endelse  
 
 ; select among this set of files based on MJD
-  dmjd=jdates-2400000.5d0-mjd  
+  dmjd=jdates-2400000.5d0-mjdd 
   mdmjd=min(abs(dmjd),ix)     ; choose closest in time, ignoring sign of diff
   name_out=fnames(ix)
   sel_type='MJD_nearest'

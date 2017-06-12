@@ -32,7 +32,7 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants, header data
 ncoefs_c=15            ; number of coefs for restricted cubic fits
-jd=sxpar(dathdr,'MJD-OBS')+2400000.5d0
+jdd=sxpar(dathdr,'MJD-OBS')+2400000.5d0
 ;nresroot=getenv('NRESROOT')
 matchedlines=nresrooti+'reduced/config/mtchThAr.txt' ; name of output file
                            ; for well-matched ThAr lines
@@ -221,7 +221,7 @@ endfor
 tharred={fibth:sth,lam:lam_all,sinalp:sinalp_all,fl:fl_all,y0:y0_all,$
       z0:z0_all,coefs:coefs_all,nmatch:nmatch_all,amoerr:amoerr_all,$
       rmsgood:rmsgood_all,mgbdisp:mgbdisp_all,lammid:lammid_all,$
-      site:site,jd:jd}
+      site:site,jd:jdd}
 
 ;stop
 
@@ -244,6 +244,7 @@ sgcoefs=coefs_all
 mkhdr,hdr,lam_all
 fxhmake,hdr,lam_all,/extend
 fxaddpar,hdr,'MJD',mjdc,'Creation date'
+fxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 fxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
 fxaddpar,hdr,'ORIGNAME',filname,'1st filename'
 fxaddpar,hdr,'SITEID',site
@@ -251,7 +252,7 @@ fxaddpar,hdr,'INSTRUME',camera
 fxaddpar,hdr,'OBSTYPE','THAR' 
 fxaddpar,hdr,'EXPTIME',exptime
 
-tharo='THAR'+datestrc+'.fits' 
+tharo='THAR'+datestrd+'.fits' 
 tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr
 ;stds_addline,'THAR',tharo,1,site,camera,jdc,'0000'
@@ -305,10 +306,11 @@ fxbfinish,unit
 
 ; make an extension header for 3rd table, containing info about the
 ; matched ThAr lines.
-fxbhmake,hdr,nmatch_c
-dum0=fltarr(nmatch_c)
-dum1=dblarr(nmatch_c)
-dum2=lonarr(nmatch_c)
+nels=nmatch_c > 1
+fxbhmake,hdr,nels
+dum0=fltarr(nels)
+dum1=dblarr(nels)
+dum2=lonarr(nels)
 fxbaddcol,kn1,hdr,dum1(0),'matchlam','matchlam'
 fxbaddcol,kn2,hdr,dum0(0),'matchamp','matchamp'
 fxbaddcol,kn3,hdr,dum0(0),'matchwid','matchwid'

@@ -9,7 +9,7 @@ pro xdisp_ts,filin,instance,tracein,datdir,tsout
 ; .nt = number of time steps
 ; .nord = number of orders for which measurements are reported
 ; .iord = indices of orders, from indicated TRACE file
-; .mjd(nt) = MJD of exposure start time
+; .mjd(nt) = MJD-OBS of exposure start time
 ; .exptime(nt) = exposure time
 ; .objects(nt) = objects string, eg 'Procyon&thar&none'
 ; .fname(nt) = name of input file

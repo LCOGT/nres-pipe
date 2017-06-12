@@ -47,6 +47,7 @@ for ic=0,n-1 do begin
   bias=fltarr(nx,ny)+987.65
   mkhdr,hdr,bias
   sxaddpar,hdr,'MJD',mjd,'Creation date'
+  sxaddpar,hdr,'MJD-OBS','Data date'
   sxaddpar,hdr,'NFRAVGD',3,'Avgd this many frames' 
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0013.fits','1st filename'
   sxaddpar,hdr,'SITEID',site

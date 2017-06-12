@@ -37,8 +37,8 @@ cs2=1.5                      ; very big character size
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
-mjd=sxpar(dathdr,'MJD-OBS')                ; observation start time
-jd=2400000.5d0+mjd                         ; ditto
+mjdd=sxpar(dathdr,'MJD-OBS')                ; observation start time
+jdd=2400000.5d0+mjdd                         ; ditto
 site=echdat.siteid
 objcts=sxpar(dathdr,'OBJECTS')
 objects=strupcase(strtrim(get_words(objcts,nobj,delim='&'),2))
@@ -47,16 +47,24 @@ nord=nord_c
 baryshifts=c*rvindat.baryshifts          ; 2 elements, one per fiber
 targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]  ; decimal degree
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+targteff=[rvindat.targstrucs[0].teff,rvindat.targstrucs[1].teff] ; K
+targlogg=[rvindat.targstrucs[0].logg,rvindat.targstrucs[1].logg] ; log cm/s^2
+targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
 
 ; get the flat data
 flat=flatdat.flat
 
-; make string sexigesimal versions of RA, Dec
+; make string sexigesimal versions of target data, incl RA, Dec
 rah=targra/15.        ; RA in hours
 rastr=strarr(2)       ; RA, Dec strings
 decstr=strarr(2)
+teffstr=strarr(2)
+loggstr=strarr(2)
+
 for i=0,1 do begin
   ras=sixty(rah(i))
   rastr(i)=string(ras(0),format='(i2.2,":")') + $
@@ -67,6 +75,14 @@ for i=0,1 do begin
   decstr(i)=sgn+string(decs(0),format='(i3.2,":")') + $
                 string(decs(1),format='(i2.2,":")') + $
                 string(decs(2),format='(f4.1)')
+  teffstr(i)=string(targteff(i),format='(f6.0)')
+  loggstr(i)=string(targlogg(i),format='(f6.3)')
+  if(coosrc(i) eq 0) then begin
+    rastr(i)='['+rastr(i)+']'
+    decstr(i)='['+decstr(i)+']'
+    teffstr(i)='['+teffstr(i)+']'
+    loggstr(i)='['+loggstr(i)+']'
+  endif
 endfor
 
 ; which fiber are we plotting?  If two, loop over them
@@ -110,24 +126,23 @@ for i=0,nplot-1 do begin
 
 ; get wavelengths and fluxes for the desired plots and plot intervals
   ist=iplot-fib0
-  pltspec=corspec(*,*,ist)
-  get_plotdat,lam,pltspec,[513.3,523.5],iord0,lam0,plt0,/norm   ; Mg b order
-  get_plotdat,lam,pltspec,[513.3,523.5],iord3,lam3,plt3,/noblaze; more Mg b
-  plt3=plt3*flat(*,iord3,iplot)
-  get_plotdat,lam,pltspec,[394.5,399.5],iord4,lam4,plt4,/noblaze  ; Ca H
-  plt4=plt4*flat(*,iord4,iplot)
-  get_plotdat,lam,pltspec,[652.0,664.5],iord5,lam5,plt5,/noblaze  ; H alpha
-  plt5=plt5*flat(*,iord5,iplot)
-  get_plotdat,lam,pltspec,[655.0,677.0],iord6,lam6,plt6,/noblaze  ; Li 6708
-  plt6=plt6*flat(*,iord6,iplot)
-  get_plotdat,lam,pltspec,[585.0,595.5],iord7,lam7,plt7,/noblaze  ; Na D
-  plt7=plt7*flat(*,iord7,iplot)
+  pltspec=corspec(*,*,ist)   ; flat-fielded
+  pltblaz=blazspec(*,*,ist)  ; blaze-subtracted
+  pltextr=extrspec(*,*,ist)  ; extracted with no further processing
+  pltflat=flat(*,*,ist)      ; flat field for desired fiber
+
+  get_plotdat,lam,pltblaz,[513.3,523.5],iord0,lam0,plt0          ; Mg b order
+  get_plotdat,lam,pltextr,[513.3,523.5],iord3,lam3,plt3  ; more Mg b
+  get_plotdat,lam,pltextr,[394.5,399.5],iord4,lam4,plt4  ; Ca H
+  get_plotdat,lam,pltextr,[652.0,664.5],iord5,lam5,plt5  ; H alpha
+  get_plotdat,lam,pltextr,[655.0,677.0],iord6,lam6,plt6  ; Li 6708
+  get_plotdat,lam,pltextr,[585.0,595.5],iord7,lam7,plt7  ; Na D
   get_plotdat,lam,pltspec,[513.3,523.5],iord8,lam8,plt8            ; more Mg b
 
 ; get wavelengths and fluxes for the corresponding ZERO file
   zstar=rvindat.zstar(*,*,ip2)
   zlam=rvindat.zlam(*,*,ip2)
-  get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z,/norm ; Mg b zero spec
+  get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z ; Mg b zero
 ; convert lam0z to air wavelengths
   lam0z=airlam(lam0z,-z0_c)
 
@@ -144,13 +159,12 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
 
 ; make the title string
   version='1.1'      ; ###bogus###
-  shorttitl=shtitlstr(objects(iplot),site,mjd,bjdtdb_c(iplot),iord0,exptime,$
+  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
        snr,version) 
 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
-  sitesh=strlowcase(strmid(site,0,2))
-  plotname=plotdir+'/PLOT'+sitesh+datestrc+fibstr+'.ps'
+  plotname=plotdir+'PLOT'+datestrd+fibstr+'.ps'
   !p.font=0
   psll,name=plotname,ys=20.
   device,set_font='Helvetica'
@@ -160,11 +174,13 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   loadct,coltab
   minx=min(lam0)
   maxx=max(lam0)
-  miny=min(plt0)
-  maxy=ptile(plt0,98)
+  ny=n_elements(plt0)
+  plt0s=smooth(plt0,11)
+  miny=min(plt0s(ny/4:3*ny/4))
+  maxy=ptile(plt0s(ny/4:3*ny/4),98)
   xran=[minx,maxx]
   pran=maxy-miny
-  yran=[(miny-0.15*pran) > 0.,maxy+0.05*pran]
+  yran=[(miny-0.20*pran),maxy+0.20*pran]
   plot,lam0,plt0,tit=shorttitl,xtit=xtits(0),ytit=ytits(0),xran=xran,yran=yran,$
      /xsty,/ysty,charsiz=cs0,/nodata
   oplot,lam0,plt0,color=blue
@@ -180,8 +196,8 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=cs1
   xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=cs1
   xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=cs1
-  xyouts,xtop,ybot(2),'Log g = unknown',charsiz=cs1
-  xyouts,xtop,ybot(3),'Teff = unknown',charsiz=cs1
+  xyouts,xtop,ybot(2),'Log g = '+loggstr(ip2),charsiz=cs1
+  xyouts,xtop,ybot(3),'Teff = '+teffstr(ip2),charsiz=cs1
 
  !p.multi=[3,3,2]                             ; do the 2nd row of plots
   xran=[-400.,400.]
@@ -212,42 +228,50 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
 
+; get sizes of plot vectors
+  ny3=n_elements(plt3)
+  ny4=n_elements(plt4)
+  ny5=n_elements(plt5)
+  ny6=n_elements(plt6)
+  ny7=n_elements(plt7)
+  ny8=n_elements(plt8)
+
 ; do the 'spectrum' plot
-  yran=[0.,1.15*ptile(plt3/1.e3,98)]
+  yran=[0.,1.15*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
   plot,lam3,plt3/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
     yran=yran,charsiz=cs2
 
 ; second page
   !p.multi=[0,2,2]
 
-  yran=[0.,1.20*ptile(plt4/1.e3,98)]
-  yspan=[ptile(plt4/1.e3,98),1.35*ptile(plt4/1.e3,98)]
+  yran=[0.,1.20*ptile(plt4(ny4/3:2*ny4/3)/1.e3,98)]
+  yspan=[ptile(plt4(ny4/3:2*ny4/3)/1.e3,98),1.35*ptile(plt4(ny4/3:2*ny4/3)/1.e3,98)]
   plot,lam4,plt4/1.e3,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
      /xsty,/ysty,charsiz=cs0
   oplot,10.*[lamplot(0),lamplot(0)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt5/1.e3,98)]
-  yspan=[ptile(plt5/1.e3,98),1.35*ptile(plt5/1.e3,98)]
+  yran=[0.,1.20*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
+  yspan=[ptile(plt5(ny5/3:2*ny5/3)/1.e3,98),1.35*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
   plot,lam5,plt5/1.e3,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(1),lamplot(1)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt6/1.e3,98)]
-  yspan=[ptile(plt6/1.e3,98),1.35*ptile(plt6/1.e3,98)]
+  yran=[0.,1.20*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
+  yspan=[ptile(plt6(ny6/3:2*ny6/3)/1.e3,98),1.35*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
   plot,lam6,plt6/1.e3,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(2),lamplot(2)],yspan,color=blue
 
-  yran=[0.,1.20*ptile(plt7/1.e3,98)]
-  yspan=[ptile(plt7/1.e3,98),1.35*ptile(plt7/1.e3,98)]
+  yran=[0.,1.20*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
+  yspan=[ptile(plt7(ny7/3:2*ny7/3)/1.e3,98),1.35*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
   plot,lam7,plt7/1.e3,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
   oplot,10.*[lamplot(3),lamplot(3)],yspan,color=blue
   oplot,10.*[lamplot(4),lamplot(4)],yspan,color=blue
 
 ; last page
-  yran=[0.,1.20*ptile(plt3/1.e3,98)]
-  yspan=[ptile(plt3/1.e3,98),1.35*ptile(plt3/1.e3,98)]
+  yran=[0.,1.20*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
+  yspan=[ptile(plt3(ny3/3:2*ny3/3)/1.e3,98),1.35*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]
   plot,lam8,plt8/1.e3,tit=titls(2),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
 

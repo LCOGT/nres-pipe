@@ -215,6 +215,7 @@ if(fibno eq 0 or fibno eq 2) then begin
    fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
    fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
    fibcoefs(9,iic)*jord^3
+  dx=-dx
 ; dx=dx*(1.-fibno)
  for i=0,nord-1 do begin
    lami(*,i)=interpol(lam(*,i),jx(*,i),jx(*,i)+dx(*,i),/quadratic)

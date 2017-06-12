@@ -15,6 +15,8 @@ pro thar_rcubic,cubfrz=cubfrz
 ; best fit by more that thrsherr sigma.
 ; If keyword cubfrz is set, then the rcubic coefficients are computed, but
 ; are not updated in thar_comm array coefs_c.
+; If there are too few data points to fit the required number of coefficients,
+; then all rcubic coeffs are left unchanged.
 
 @thar_comm
 
@@ -23,7 +25,14 @@ thr1=0.02                  ; threshold dif for retaining data, (nm)
 thrshm=3.                  ; threshold dif for retaining data, median-sigma
 tiny=1.e-10
 radian=180.d0/!pi
+ncoefs_c=15                ; number of coeffs to be fit
 
+; check for sufficient data
+if(nmatch_c le ncoefs_c) then begin
+  rms_c=0.
+  goto,bailout
+endif
+ 
 ; make starting weights
 matchwts_0=1./(1.+(matchdif_c^2/dlam2_c))
 thrsh=3.*sqrt(dlam2_c) < thr1          ; exclude outliers
@@ -123,6 +132,8 @@ matchbest_c=matchlam_c - (matchdif_c-outp_c)
 if(not keyword_set(cubfrz)) then coefs_c=coefs_c-coefs_incr_c
 
 ; make updated wavelength solution on pixel grid
+bailout:                               ; jump to here if fewer measured lines
+                                       ; than coefficients to fit
 xx=pixsiz_c*(findgen(nx_c)-float(nx_c)/2.)      ; x-coord in mm
 fibno=fibindx_c
 sinalp=sin(grinc_c/radian)

@@ -94,8 +94,8 @@ if(strtrim(site1,2) ne strtrim(site,2) or strtrim(camera1,2) $
   stop
   goto,fini
 endif
-mjdc=sxpar(hdr1,'MJD-OBS')
-jdc=mjdc+2400000.5d0
+mjdd=sxpar(hdr1,'MJD-OBS')
+jdd=mjdc+2400000.5d0
 exptime=sxpar(hdr1,'EXPTIME')
 
 ; get bias and dark for this file
@@ -368,11 +368,12 @@ tracprof(0:nleg-1,*,*,0)=trace1
 tracprof(0:cowid-1,*,*,1:*)=prof1
 
 ; write out the new trace array
-jd=systime(/julian)      ; file creation time, for sorting similar trace files
-mjd=jd-2400000.5d0
-daterealc=date_conv(jd,'R')
-datestrc=string(daterealc,format='(f13.5)')
-strput,datestrc,'00',0
+;jd=systime(/julian)      ; file creation time, for sorting similar trace files
+;mjd=jd-2400000.5d0
+datereald=date_conv(jdd,'R')
+datestrd=string(datereald,format='(f13.5)')
+strput,datestrd,'00',0
+datestrd=strlowcase(site)+datestrd
 fout='TRAC'+datestrc+'.fits'
 filout=nresrooti+tracedir+fout
 
@@ -384,7 +385,8 @@ sxaddpar,hdr,'NORD',nord
 sxaddpar,hdr,'FIB0',fib0
 sxaddpar,hdr,'FIB1',fib1
 sxaddpar,hdr,'ORDWIDTH',ord_wid
-sxaddpar,hdr,'MJD',mjdc
+sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
+sxaddpar,hdr,'MJDC',mjdc,'Creation date'
 sxaddpar,hdr,'FILE_IN',strtrim(flatin1,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
 sxaddpar,hdr,'SITEID',site

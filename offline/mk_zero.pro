@@ -8,7 +8,7 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 ; wavelength solution parameters in the output file fits header, and
 ; the wavelength grid corresponding to the star fiber (0 or 2) in
 ; the fits extension double array lamz(nx,nord).
-; Input files are FITS files from $NRESROOT/reduced/spec, listed in the
+; Input files are FITS files from $NRESROOT/NRESINST/reduced/blaz, listed in the
 ; ascii text tile listin.  They must all be taken with the same telescope
 ; and spectrograph, ideally close together in time to avoid significant
 ; (compared to the linewidths) relative Doppler shifts.
@@ -35,7 +35,8 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 @thar_comm
 
 ; constants
-; nresroot=getenv('NRESROOT')
+ nresroot=getenv('NRESROOT')
+nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 c=299792.458d0               ; light speed in km/s
 
 ; make creation jd
@@ -64,7 +65,7 @@ nfiles=n_elements(flist)
 
 ; read the first file, get sizes of things
 ; put data into nres_comm or thar_comm variables, as appropriate
-fname=nresrooti+'/reduced/spec/'+flist(0)
+fname=nresrooti+'/reduced/blaz/'+flist(0)
 dd=readfits(fname,hdr)
 sz=size(dd)
 nx=sz(1)
@@ -74,6 +75,14 @@ objects=sxpar(hdr,'OBJECTS')
 objs=strupcase(strtrim(get_words(objects,nwd,delim='&'),2))
 site=sxpar(hdr,'SITEID')
 mjdobs=sxpar(hdr,'MJD-OBS')
+mjdd=mjdobs
+jdd=mjdd+2400000.5d0
+datereald=date_conv(jdd,'R')
+datestrd=string(datereald,format='(f13.5)')
+datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
+fileout='zero/ZERO'+datestrd+'.fits'
+filepath=nresrooti+'/reduced/'+fileout
+
 camera=sxpar(hdr,'INSTRUME')
 if(mfib eq 1 or((mfib eq 3) and ((objs(0) ne 'NONE') and $
      (objs(2) ne 'NONE')))) then begin
@@ -97,10 +106,10 @@ target=target(0)
 zout=fltarr(nx,nord,2)
 zout(*,*,0)=dd(*,*,ifib0)            ; the star spectrum
 zout(*,*,1)=dd(*,*,ifib1)            ; the ThAr spectrum 
-mjdavg=0.d0
+mjdavg=mjdobs
 navg=1
 for i=1,nfiles-1 do begin
-  fname=nresrooti+'/reduced/spec/'+flist(i)
+  fname=nresrooti+'/reduced/blaz/'+flist(i)
   dd=readfits(fname,hdr)
   zout(*,*,0)=zout(*,*,0)+dd(*,*,ifib0)
   zout(*,*,1)=zout(*,*,1)+dd(*,*,ifib1)
@@ -186,6 +195,8 @@ fxhmake,hdr,/extend                      ; no primary data segment
 fxaddpar,hdr,'OBJECT',target
 fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera
+fxaddpar,hdr,'MJD-OBS',mjdd
+fxaddpar,hdr,'MJDC',mjdc
 fxaddpar,hdr,'FIBZ0',ifib0(0)
 fxaddpar,hdr,'FIBZ1',ifib1(0)
 fxaddpar,hdr,'NAVG',nfiles
