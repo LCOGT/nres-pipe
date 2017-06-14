@@ -93,7 +93,17 @@ filname='null'   # original filename ('ORIGNAME') of the input data file
                  # From ingest
 dat=np.zeros((nx,ny),dtype=float) # raw science data array (numpy). From ingest
 dathdr=['null']  # header for raw input main data segment.  From ingest
-cordat=np.zeros((nx,ny),dtype=float) # main science data image (numpy), 
+biasdat=np.zeros((nx,ny),dtype=float) # bias get_calib data array (numpy).
+biashdr=['null']  #bias header
+biasfile='null'   # bias filename
+flatdat=np.zeros((nx,ny),dtype=float) # flat get_calib data array (numpy).
+flathdr=['null']  #bias header
+darkdat=np.zeros((nx,ny),dtype=float) # dark get_calib data array (numpy).
+darkhdr=['null']  #bias header
+
+cdat = np.zeros((nx,ny),dtype=float) # calibration data array (numpy).
+chdr = ['null']  #calibraiton header
+cordat=np.zeros((nx,ny),dtype=float) # main science data image (numpy),
                  # corrected (for bias, dark, background). From calib_extract
 varmap=np.zeros((nx,ny),dtype=float) # 2D variance in corrected image. 
                  # From mk_variance

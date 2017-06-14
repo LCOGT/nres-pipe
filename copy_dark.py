@@ -9,6 +9,9 @@ def copy_dark():
     and original filename.
     A new line describing the dark frame is added to standards.csv
 
+    For testing:
+    get_calib,'BIAS',biasfile,bias,biashdr
+
     """
 
     #grab the data file from nres_common, make the header
@@ -16,18 +19,13 @@ def copy_dark():
 
     dark = nr.dat.astype(float)
 
-    #Need to setup get_calib function, until next # this is a hack around getcalib
     #My sample files don't have the tables, so testing with fakedatafile
 
-    biasfile = nr.filin0
+    import get_calib
+    get_calib.get_calib('BIAS',nr.biasdat,nr.biashdr)
 
-    dat, dathdr = fits.getdata(biasfile, header=True)
+    bias=nr.biasdat.astype(float)
 
-    bias = dat.astype(float)
-    #End of hack around get calib function
-
-
-    #make a bias-subtracted dark
     nr.dark = dark-bias
     nr.dark = nr.dark/nr.exptime
     nr.exptime = 1.0
@@ -55,8 +53,10 @@ def copy_dark():
 
     fits.writeto(darkout, dark, prihdr)
 
-    import stds_addline
-    stds_addline.stds_addline('DARK', 'dark/' + darko, 1, nr.site, nr.camera, nr.jdc, '0000')
+    #not sure why but stds_addline is adding to last line not appending a new row, commenting out for now
+    #import stds_addline
+    #stds_addline.stds_addline('DARK', 'dark/' + darko, 1, nr.site, nr.camera, nr.jdc, '0000')
+
 
     if nr.verbose==1:
         print('*** copy_dark ***')
@@ -65,7 +65,7 @@ def copy_dark():
         nx = nr.dathdr, ['NAXIS1']
         ny = nr.dathdr, ['NAXIS2']
         print('Naxes, Nx, Ny = ', naxes, nx, ny)
-        print('BIAS file used was', biasfile)
+        print('BIAS file used was', nr.biasfile)
         print('Wrote file to dark dir:')
         print(darkdir)
         print('Added line to reduced/csv/standards.csv')
