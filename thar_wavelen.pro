@@ -31,6 +31,7 @@ pro thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants, header data
+rutname='thar_wavelen'
 ncoefs_c=15            ; number of coefs for restricted cubic fits
 jdd=sxpar(dathdr,'MJD-OBS')+2400000.5d0
 ;nresroot=getenv('NRESROOT')
@@ -257,6 +258,7 @@ tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr
 ;stds_addline,'THAR',tharo,1,site,camera,jdc,'0000'
 fxwrite,tharout,hdr,lam_all
+logo_nres,rutname,'WRITE '+tharout
 
 fxbhmake,hdr,nfib          ; make an extension header for nrow table
 dum=dblarr(nfib)             ; dummy data array with length of columns
@@ -333,6 +335,7 @@ fxbfinish,unit
 ;stop
 
 fini:
+logo_nres,rutname,'finished'
 if(verbose ge 1) then begin
   print,'*** thar_wavelen ***'
   print,'File In = ',filin0

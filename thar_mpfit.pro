@@ -58,13 +58,14 @@ function thar_mpfit,parmsin
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
+rutname='thar_mpfit'
 radian=180.d0/!pi
 ierr_c=0
 dw=0.3           ; expect guess wavelengths to be better than this (nm)
 ds=0.015          ; expect wavelength differences to be better than this (nm)
 dwu=0.1          ; set line differences to this number if unmatched (nm)
 
-print,'thar_mpfit parms:',parmsin
+;print,'thar_mpfit parms:',parmsin
 
 ; set up calling parameters for current SG
 a0=parmsin(0)
@@ -218,15 +219,18 @@ niter_c=niter_c+1
 dlam2_c=total(matchdif_c^2)/(nmatch_c > 1)
 chi2=total((matchdif_c/matcherr_c)^2)/(nmatch_c > 1)
 
-print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c),dlam2_c
-;if(nmatch_c le 0) then stop
+print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c)
+if(nmatch_c le 0) then begin
+  ierr=1
+  logo_nres,retname,'FATAL ierr=1'
+endif
 
 fini:
 
 ; return vector diff_c, normalized by uncertainties in matcherr
 ; and perhaps sigma clipped to exclude bad lines
 if(ierr_c eq 0) then begin
-  print,'FOM=',total((clip_c*diff_c/xperr_c)^2)
+  ;print,'FOM=',total((clip_c*diff_c/xperr_c)^2)
   return,clip_c*diff_c/xperr_c
 endif else begin
   return,dblarr(nsc)+1.e20

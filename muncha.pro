@@ -60,6 +60,11 @@ pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 
 ; constants
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
+rutname='muncha'
+
+; record start in logfile
+logstr='input filename = '+strtrim(filin,2)
+logo_nres,rutname,logstr
 
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
@@ -87,17 +92,20 @@ filin0=filin
 ; open the input file, read data segments and headers into common
 ingest,filin,err
 if(err) then begin
-  print,'Invalid input data in ingest.  Err = ',err
+  logstr='Invalid input data in ingest.  Err = '+string(err,format='(i2)')
+  logo_nres,rutname,logstr
   goto,fini
 endif
 
 ; branch on type of input data
 if(verbose) then print,'OBSTYPE = ',type
+logo_nres,rutname,' OBSTYPE = '+type
 case type of
 
 ; one or two stars plus ThAr.  Routines write out metadata files as they go
 ; 'EXPERIMENTAL': begin         ; temporary, to deal with Rob's test file
   'TARGET': begin
+  logo_nres,rutname,'###TARGET block'
   if(verbose) then print,'###TARGET block'
   calib_extract,flatk=0
   autoguider
@@ -114,18 +122,21 @@ case type of
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv
   'BIAS': begin
+  logo_nres,rutname,'###BIAS block'
   if(verbose) then print,'###BIAS block'
   copy_bias
   end
 
 ; a dark image.  Make copy in reduced/dark dir, add entry to csv/standards.csv
   'DARK': begin
+  logo_nres,rutname,'###DARK block'
   if(verbose) then print,'###DARK block'
   copy_dark
   end
 
 ; a flat image
   'FLAT': begin
+  logo_nres,rutname,'###FLAT block'
   if(verbose) then print,'###FLAT block'
   calib_extract,flatk=flatk
   if(keyword_set(flatk)) then begin
@@ -135,14 +146,17 @@ case type of
 
 ; a DOUBLE image
   'DOUBLE': begin
+  logo_nres,rutname,'###DOUBLE block'
   if(verbose) then print,'###DOUBLE block'
   calib_extract,/dble
-  mk_double1      ; saves pointer to output file in standards.csv file.
+  mk_double1,ierr      ; saves pointer to output file in standards.csv file.
   end
 
 ; bad input
-  else: print,'Invalid data file.  Type must be TARGET, BIAS, DARK, FLAT, or DOUBLE.'
-
+  else: begin
+    logo_nres,rutname,'FATAL  Invalid data file TYPE keyword'
+    if(verbose) then print,'Invalid data file.  Type must be TARGET, BIAS, DARK, FLAT, or DOUBLE.'
+  end
 endcase
 
 fini:

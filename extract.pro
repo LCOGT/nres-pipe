@@ -31,6 +31,7 @@ pro extract,ierr
 @nres_comm
 
 ; constants
+rutname='extract'
 nsmsh=15L           ; width of median filter for smoothing yshift relative to 
                    ; extraction boxes
 sz=size(cordat)
@@ -95,6 +96,9 @@ sobjg=where(objs ne 'NONE',nobjg)-fib0    ; indices of extractable fibers
 sbrite=where(objs ne 'THAR' and objs ne 'NONE',nsbr)
 ebrite=nx*cowid*nord*reform(rebin(ebox,1,1,1,mfib),mfib)
 if(mfib ne nobjg) then begin
+  logo_nres,rutname,'FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
+  ierr=1
+  goto,fini
   print,'ERROR in extract.pro:  mfib not equal to nobjg'
   stop
 endif
@@ -343,5 +347,7 @@ echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specdy2:specdy2,$
     flatname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
     nelectron:nelectron,craybadpix:nsbad}
+
+fini:
 
 end

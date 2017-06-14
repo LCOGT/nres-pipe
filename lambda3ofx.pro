@@ -56,7 +56,7 @@ z0=specstruc.z0
 rcubic=specstruc.coefs(0:specstruc.ncoefs-1)
 fibcoefs=specstruc.fibcoefs
 
-print,'lambda3ofx parms:',sinalp,fl,y0,z0
+;print,'lambda3ofx parms:',sinalp,fl,y0,z0
 
 ; get sizes of things
 nx=n_elements(xx)
@@ -127,7 +127,7 @@ endelse
 lam=lam*1.d3
 
 ; add restricted cubic correction
-print,'In lambda3ofx'
+;print,'In lambda3ofx'
 ncoef=n_elements(rcubic)
 
 ; make vectors for x and order
@@ -136,7 +136,7 @@ jx=rebin(jx,nxe,nord)
 jord=findgen(nord)-nord/2.
 jord=rebin(reform(jord,1,nord),nxe,nord)
 
-print,'rcubic(0:1)=',rcubic(0:1)
+;print,'rcubic(0:1)=',rcubic(0:1)
 if((ncoef ne 10) and (ncoef ne 15)) then begin
   print,'ncoef must be 10 or 15 in lambda3ofx.  Skipping polynom correc.'
   goto,skip

@@ -19,6 +19,7 @@ pro thar_fitall,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
+rutname='thar_fitall'
 radian=180.d0/!pi
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+getenv('NRESINST')
@@ -31,10 +32,13 @@ ierr=0
 ; get SG parameters, set up massaged input in common block
 thar_setup,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
 ;if(ierr_c ne 0) then stop
-if(ierr_c ne 0) then goto,fini
+if(ierr_c ne 0) then begin
+  logo_nres,rutname,'FATAL ierr='+string(ierr)+' from thar_setup'
+  goto,fini
+endif
 site_c=sgsite
 fibindx_c=fibindx
-print,'In thar_fitall, fibindx=',fibindx
+;print,'In thar_fitall, fibindx=',fibindx
 
 if(keyword_set(oskip)) then oskip_c=oskip-1 else oskip_c=[-1]
 
@@ -54,7 +58,10 @@ ifl=dblarr(nmax)
 iy0=dblarr(nmax)
 iz0=dblarr(nmax)
 ifun=dblarr(nmax)
-if(ierr_c ne 0) then stop
+if(ierr_c ne 0) then begin
+  logo_nres,rutname,'FATAL err=1'
+  goto,fini
+endif
 
 ; trying mpfit now ######################
 ; vals=amoeba(ftol,function_name='thar_amoeba',ncalls=ncalls,nmax=nmax,$

@@ -7,10 +7,14 @@ pro copy_dark
 
 @nres_comm
 
+rutname='copy_dark'
+
 ; grab the data file from nres_common, make the header
 dark=float(dat)
 get_calib,'BIAS',biasfile,bias,biashdr     ; find bias via the default
                                   ; method, using site, camera, jdd from common
+logo_nres,rutname,'READ '+biasfile
+
 ; make a bias-subtracted dark
 dark=dark-bias                        ; both should be floats
 exptime=sxpar(dathdr,'EXPTIME')
@@ -30,14 +34,18 @@ sxaddpar,hdr,'EXPTIME',exptime
 darko='DARK'+datestrd+'.fits'
 darkout=nresrooti+darkdir+darko
 writefits,darkout,dark,hdr
+logo_nres,rutname,'WRITE '+darkout
 stds_addline,'DARK','dark/'+darko,1,site,camera,jdd,'0000'
+logo_nres,rutname,'ADDLINE standards.csv'
+naxes=sxpar(dathdr,'NAXIS')
+nx=sxpar(dathdr,'NAXIS1')
+ny=sxpar(dathdr,'NAXIS2') 
+strax=string(naxes)+' '+string(nx)+' '+string(ny)
+logo_nres,rutname,'naxes, nx, ny = '+strax
 
 if(verbose ge 1) then begin
   print,'*** copy_dark ***'
   print,'File In = ',filin0
-  naxes=sxpar(dathdr,'NAXIS')
-  nx=sxpar(dathdr,'NAXIS1')
-  ny=sxpar(dathdr,'NAXIS2') 
   print,'Naxes, Nx, Ny = ',naxes,nx,ny
   print,'BIAS file used was ',biasfile
   print,'Wrote file to dark dir:'

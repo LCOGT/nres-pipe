@@ -26,6 +26,7 @@ pro calib_extract,flatk=flatk,dble=dble
 ;       verbose 
 
 ; constants
+rutname='calib_extract'
 
 ; get spectrograph info, notably nord
 get_specdat,mjdd,err
@@ -33,7 +34,8 @@ nord=specdat.nord
 nx=specdat.nx
 ccd_find,err
 if(err ne 0) then begin
-  print,'in calib_extract, CCD parameters not found.  Fatal error.'
+  logo_nres,rutname,'FATAL CCD parameters not found'
+  if(verbose) then print,'in calib_extract, CCD parameters not found.  Fatal error.'
   goto,fini
 endif
 
@@ -51,19 +53,24 @@ mk_badlamwts,lam03
 ; locate suitable bias, dark, flat and trace data
 errsum=0
 get_calib,'BIAS',biasfile,bias,biashdr,gerr  ; find bias via the default method
+logo_nres,rutname,'READ '+biasfile
 errsum=errsum+gerr
 get_calib,'DARK',darkfile,dark,darkhdr,gerr
+logo_nres,rutname,'READ '+darkfile
 errsum=errsum+gerr
 if(not keyword_set(flatk)) then begin
   get_calib,'FLAT',flatfile,flat,flathdr,gerr
+  logo_nres,rutname,'READ '+flatfile
   flatdat={flat:flat,flatfile:flatfile,flathdr:flathdr}
   errsum=errsum+gerr
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
+logo_nres,rutname,'READ '+tracefile
 errsum=errsum+gerr
 if(errsum gt 0) then begin
-  print,'Failed to locate calibration file(s) in calib_extract.  FATAL error'
-  stop
+  if(verbose) then print,'Failed to locate calibration file(s) in calib_extract.  FATAL error'
+  logo_nres,rutname,'FATAL Failed to locate calibration file(s)'
+  logo_nres,rutname,'summed error gerr = '+string(gerr)
   goto,fini
 endif
 
@@ -99,7 +106,10 @@ cordat=cordat-exptime*dark
 npoly=sxpar(tracehdr,'NPOLY')
 sz=size(cordat)
 nxu=sz(1)
-if(nxu gt nx) then cordat=cordat(0:nx-1,*)
+if(nxu gt nx) then begin
+  cordat=cordat(0:nx-1,*)
+  logo_nres,rutname,'Trimming nx from/to '+string(nxu)+' '+string(nx)
+endif
 
 ; remove background
 ord_wid=sxpar(tracehdr,'ORDWIDTH')   ; width of band to be considered for 
@@ -125,8 +135,10 @@ extract,err
 if(keyword_set(flatk)) then begin
   corspec=echdat.spectrum
   rmsspec=echdat.specrms
+  logo_nres,rutname,'flatk set, so no flat applied'
 endif else begin
   apply_flat2,flat
+  logo_nres,rutname,'flatk=0, so apply_flat2 run'
 endelse 
   
 ; make the header and fill it out
@@ -171,10 +183,12 @@ if(~keyword_set(flatk)) then begin
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
   writefits,specout,corspec,hdr
+  logo_nres,rutname,'WRITE '+specout
 
 ; write extr = raw spectrum with low-signal ends trimmed
   if(not keyword_set(dble)) then begin
     writefits,extrout,extrspec,hdr        ; same hdr as specout
+    logo_nres,rutname,'WRITE '+extrout
 
 ; then write blaze = raw - flat
     hdrb=hdr
@@ -189,6 +203,7 @@ if(~keyword_set(flatk)) then begin
       endfor
     endfor
     writefits,blazout,blazspec,hdrb
+    logo_nres,rutname,'WRITE '+blazout
   endif
 endif
 

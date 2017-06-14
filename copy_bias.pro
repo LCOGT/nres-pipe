@@ -7,7 +7,10 @@ pro copy_bias
 
 @nres_comm
 
+rutname='copy_bias'
+
 ; grab the data file from nres_common, make the header
+logo_nres,rutname,'making bias header'
 bias=float(dat)
 mkhdr,hdr,bias
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
@@ -25,29 +28,37 @@ biasout=nresrooti+biasdir+biaso
 ; Create directory if not present:
 save_dir = file_dirname(biasout)
 if (file_test(save_dir, /DIRECTORY) EQ 0) then begin
+   logo_nres,rutname,'Creating directory '+save_dir
    file_mkdir, save_dir
 endif
 
 ; Abort in case of non-writeable directory:
 if (file_test(save_dir, /DIRECTORY, /WRITE) EQ 0) then begin
+   logo_nres,rutname,'FATAL Directory not writeable: '+save_dir
    printf, -2, "Error! Directory not writeable: " + save_dir
-   STOP
-   END
+   goto,fini
+endif
 
 ; write bias to file and update records:
+logo_nres,rutname,'WRITE bias image '+biasout
 writefits,biasout,bias,hdr
+logo_nres,rutname,'ADDLINE standards.csv BIAS line'
 stds_addline,'BIAS','bias/'+biaso,1,site,camera,jdd,'0000'
+naxes=sxpar(dathdr,'NAXIS')
+nx=sxpar(dathdr,'NAXIS1')
+ny=sxpar(dathdr,'NAXIS2') 
+strax='naxes, nx, ny = '+string(naxes)+' '+string(nx)+' '+string(ny)
+logo_nres,rutname,strax
 
 if(verbose ge 1) then begin
   print,'*** copy_bias ***'
   print,'File In = ',filin0
-  naxes=sxpar(dathdr,'NAXIS')
-  nx=sxpar(dathdr,'NAXIS1')
-  ny=sxpar(dathdr,'NAXIS2') 
   print,'Naxes, Nx, Ny = ',naxes,nx,ny
   print,'Wrote file to bias dir:'
   print,biasout
   print,'Added line to reduced/csv/standards.csv'
 endif
+
+fini:
 
 end
