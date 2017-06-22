@@ -62,11 +62,13 @@ sigc=10.         ; threshold for bad data (cosmics), in sigma
 ; and the variance map in the same boxes.
 ; also the nominal displacement of the order center from the center of the
 ; extraction box, and the order rms width
-dymed0=0.                               ; starting value of trace y shift
+dymed0=fltarr(nord)
+dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
+
 traceloop:                             ; come back to here if trace disp > 1.
 ebox=fltarr(nx,cowid,nord,mfib)
 vbox=fltarr(nx,cowid,nord,mfib)
-ordbot=round(ordvec+dymed0-cowid/2.)          ; bottom boundaries of order boxes
+ordbot=round(ordvec+dymed0xyz-cowid/2.)      ; bottom boundaries of order boxes
 ordtop=ordbot+cowid-1                  ; top boundary ditto.
 
 ; strip out the desired data
@@ -99,8 +101,6 @@ if(mfib ne nobjg) then begin
   logo_nres,rutname,'FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
   ierr=1
   goto,fini
-  print,'ERROR in extract.pro:  mfib not equal to nobjg'
-  stop
 endif
 if(nsbr eq 0) then begin
   ; get here if there are no fibers suitable for estimating cross-disp shift
@@ -118,7 +118,7 @@ endelse
 
 ;stop  ; check shiftme
 
-; do two iterations with raw intensity data, first estimating cross-
+; iterate on raw intensity data, first estimating cross-
 ; dispersion shifts from moments, then with y-derivative of profile.  
 ; Then fit for 2nd derivative to allow for width variations, and make
 ; model profile.  Use residuals to identify likely cosmic rays.
@@ -155,22 +155,29 @@ for ifib=0,mfib-1 do begin
   mom1(s0)=mom1(s0)/mom0(s0)
   mom2(s0)=sqrt(mom2(s0)/mom0(s0) > 0.)
 
-; estimate an order-independent cross-dispersion shift, if 1st fiber
+; estimate a linear order-dependent cross-dispersion shift, if 1st fiber
 ; and shiftme is set
+; In what follows, dymed and dymed0 are vectors of length nord
+;  dymed0xyz is dymed0 rebinned to (nx,nord,mfib)
   if(shiftme eq 1 and ifib eq 0) then begin
-    dymed=dymedian(mom0,mom1)
-    if(abs(dymed) gt 0.5) then begin
-      print,'dymed=',dymed,'    Shifting...'
+    dymed=dymedian(mom0,mom1,cct)
+    if(abs(median(dymed)) gt 0.1) then begin
+      print,'median(dymed)=',median(dymed),'    Shifting...'
       dymed0=dymed0+dymed
+      dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
+;     uu=mom1(1950:2150,*)
+;     uum=median(uu,dimen=1)
+;     plot,uum
       goto,traceloop
     endif
   endif else begin
-    dymed=0.
+    dymed=fltarr(nord)
   endelse
 
 ; make expected fractional pixel shift of profile from order center,
 ; corrected by dymed
-  orddy=ordvec(*,*,jfib)+dymed0-ordbot(*,*,jfib)-cowid/2.+dymed
+  orddy=ordvec(*,*,jfib)+dymed0xyz(*,*,jfib)-ordbot(*,*,jfib)-cowid/2.+$
+       rebin(reform(dymed,1,nord),nx,nord)
 
 ;stop ; check dymed, orddy, mom1, mom0
 
@@ -269,8 +276,9 @@ for ifib=0,mfib-1 do begin
   diff=ebo-prod0-prod2-prod3
   diffe=diff(*,1:cowid-2,*)                ; ignore outer pix, which get 0 wts
   rms=fltarr(nord)
-; for this next bit to work properly, need to subtract a scaled (by x posn) version
-; of the average of diff over x, computed separately for each block, order.
+; for this next bit to work properly, need to subtract a scaled (by x posn) 
+; version of the average of diff over x, computed separately for each 
+; block, order.
   for i=0,nord-1 do begin
 ; extend diff array to make its row length divisible by nblock
     diffe=fltarr(nx+remain,cowid)
@@ -278,12 +286,12 @@ for ifib=0,mfib-1 do begin
     diffe(nx:nx+remain-1,*)=diffe(nx-remain:nx-1,*)
 
 ; average over blocks, expand back to extended length, truncate added pixels
-    diffes=rebin(diffe,nblock,cowid)      ; diffe smoothed using linear interpolation
-    diffes=rebin(diffes,nx+remain,cowid) ; across blocks, by not specifying /samp
+    diffes=rebin(diffe,nblock,cowid) ; diffe smoothed using linear interp
+    diffes=rebin(diffes,nx+remain,cowid) ; across blocks, by not using /samp
     diffs=diffes(0:nx-1,*)
 
 ; fit out the cross-disp shape for each x point
-    sumd=rebin(diff*diffs,nx,1)    ; project out diffs(x,y) from diff(x,y), for each x
+    sumd=rebin(diff*diffs,nx,1)   ; remove diffs(x,y) from diff(x,y), for each x
     sumd2=rebin(diffs^2,nx,1)
     ratd=sumd/(sumd2 > 1.)         ; amplitude of local diffs(x,*) in diff(x,*) 
 

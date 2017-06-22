@@ -21,6 +21,12 @@ targdec=dblarr(2)
 zeronames=strarr(2)            ; names of ZERO files
 zerotypes=strarr(2)             ; type of selection for each ZERO file
 objects=get_words(sxpar(dathdr,'OBJECTS'),nwd,delim='&')
+; remove '_' and following characters from each word in objects array
+for i=0,nwd-1 do begin
+  ss=objects(i)
+  ix=strpos(ss,'_')
+  if(ix gt 0) then objects(i)=strmid(ss,0,ix)
+endfor
 objects=strupcase(objects)
 centtimes=expmred.expfwt     ; flux-weighted mean exp JD
 baryshifts=dblarr(2)            ; barycentric z for each target at centtimes
@@ -33,6 +39,8 @@ talt=sxpar(dathdr,'HEIGHT')        ; telescope elevation ASL (m)
 ;               or nfib=3 and objects='NONE&ThAr&Target'
 ;                          or objecst='Target&Thar&NONE'
 ;                          or objects='Target1&Thar&Target2'
+
+;stop
 
 ; If nfib=2, then we assume that telescope 1 is absent, and telescope 2
 ; has the target, and connects to fiber 2 (hence targnames(1), targra(1), etc) 
