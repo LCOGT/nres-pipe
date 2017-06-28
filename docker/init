@@ -3,5 +3,6 @@
 export IDL_PATH="+/nres/code:+/opt/idl/xtra/astron"
 export NRESROOT="/nres"
 
-bash
+idl &> /dev/null &
 
+bash
