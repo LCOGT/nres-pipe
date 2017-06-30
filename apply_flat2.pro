@@ -44,6 +44,7 @@ for i=0,mfib-1 do begin
   if(objs(i+fib0) ne 'THAR' and objs(i+fib0) ne 'NULL') then begin
   for j=0,nord-1 do begin
     lamwts=badlamwts(*,j,i)
+    sblam=where(lamwts eq 0,nsblam)
     sb0l=where(flate(*,j,i) lt flcutoff and indx le nx/2,nsbl)
     sb0r=where(flate(*,j,i) le flcutoff and indx gt nx/2,nsbr)
     if(nsbl gt 0) then ixl=max(indx(sb0l))+1 else ixl=0
@@ -92,16 +93,22 @@ for i=0,mfib-1 do begin
       blazspec(sg0,j,i)=hh(sg0)
       rmsblaz(sg0,j,i)=rmsspec(sg0,j,i)
 
-; make the ratio rawspec/flat, set to zero for bad data points
-      corspec(sg,j,i)=rawspec(sg,j,i)/flate(sg,j,i)
+; make the ratio rawspec/flat for points where flat is okay.
+; set ratio to local mean for bad lambda points
+      corspect=fltarr(nx)
+      corspect(sg0)=rawspec(sg0,j,i)/flate(sg0,j,i)
+    if(i eq 1 and j eq 8) then stop
+      if(nsb gt 0) then fill_badblock,sb,corspect
+      corspec(*,j,i)=corspect
       rmsspec(sg,j,i)=rmsspec(sg,j,i)/flate(sg,j,i)
     endif
     if(nsb gt 0) then begin
 ;     blazspec(sb,j,i)=0.
 ;     rmsblaz(sb,j,i)=1.e6
-      corspec(sb,j,i)=0.
+;     corspec(sb,j,i)=0.
       rmsspec(sb,j,i)=1.e6
     endif
+    if(nsb0 gt 0) then corspec(sb0,j,i)=0.
   endfor
   endif else begin
     if(objs(i+fib0) eq 'THAR') then begin

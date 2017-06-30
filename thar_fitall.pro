@@ -73,7 +73,7 @@ endif
 
 ;
 ; do the fit using mpfit, not amoeba
-vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c)
+vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
 
 ;fomall=dblarr(201)
 ;dpaa=.01*(findgen(201)-100.)*1.e-5
@@ -94,7 +94,7 @@ if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
                                                       ; with large dispersion
   if(nsf gt 0) then begin       ; redo mpfit with weights
     clip_c(sf)=0.d0
-    vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c)
+    vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
   endif
 endif
 

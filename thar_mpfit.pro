@@ -134,6 +134,7 @@ for i=0,nio-1 do begin
   if(nsl gt 2) then lamlist=linelam_c(sl)
   if(nsl le 2) then begin
     diff_c(sc)=dwu
+    nmatch_c=0
     goto,skip
   endif
 
@@ -222,7 +223,7 @@ chi2=total((matchdif_c/matcherr_c)^2)/(nmatch_c > 1)
 print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c)
 if(nmatch_c le 0) then begin
   ierr=1
-  logo_nres,retname,'FATAL ierr=1'
+  logo_nres,rutname,'FATAL ierr=1: No line matches found.'
 endif
 
 fini:

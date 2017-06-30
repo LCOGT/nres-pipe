@@ -88,8 +88,6 @@ for i=0,nplot-1 do begin
   ist=iplot-fib0             ; got lots of fiber indices here -- which to use?
   object=strtrim(objects(iplot),2)
 
-; code origin discontinuity here
-
 ; make output file path
   ifib=ist                        ; ###### guess
   fibs=strtrim(string(iplot0),2)   ; string with index of fiber to plot
@@ -139,7 +137,7 @@ for i=0,nplot-1 do begin
   ordindx=findgen(nord)
   xtit='Order Index'
   ytit0='Summed Inten (kADU)'
-  ytit1='2nd Deriv (Normalized)'
+  ytit1='Curvature FWHM (pix)'
   ytit2='Profile dY (pix)'
   tit='Median Over Center 25 Percent'
 
@@ -147,6 +145,8 @@ for i=0,nplot-1 do begin
   medintn=median(echdat.spectrum(xbot:xtop,*,ifib),dimension=1)
   meddy=median(echdat.specdy(xbot:xtop,*,ifib),dimension=1)
   meddy2=median(echdat.specdy2(xbot:xtop,*,ifib),dimension=1)
+; hwidx2=2.*sqrt(1./(2.*abs(meddy2)))
+  hwidx2=2.*(1./(2.*abs(meddy2)))^0.333
   nelecs='nElectron='+string(echdat.nelectron(ifib),format='(e8.2)')
   ncray='CRbadpix='+string(echdat.craybadpix,format='(i5)')
   
@@ -158,8 +158,9 @@ for i=0,nplot-1 do begin
      tit=tit,charsiz=cs2,thick=2
   xyouts,3,0.1*yran(1),nelecs,charsiz=cs1
 
-  yran=[0.,1.05*max(meddy2)]
-  plot,ordindx,meddy2,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
+stop
+  yran=[0.,1.05*max(hwid)]
+  plot,ordindx,hwid,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
      tit=tit,charsiz=cs2,thick=2
 
   yran=[floor(min(meddy)),ceil(max(meddy))]
