@@ -23,5 +23,3 @@ beat_schedule = {'queue-length-every-minute': {'task': 'tasks.collect_queue_leng
                                                }
                  }
 
-# Override any settings that include sensitive information, e.g. passwords so that they don't end up in git.
-from nrespipe.localsettings import *

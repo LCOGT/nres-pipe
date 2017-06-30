@@ -1,5 +1,5 @@
 from kombu.mixins import ConsumerMixin
-from nrespipe import celerytasks
+from nrespipe import tasks
 import logging
 
 logger = logging.getLogger('nrespipe')
@@ -22,5 +22,5 @@ class NRESListener(ConsumerMixin):
 
     def on_message(self, body, message):
         path = body.get('path')
-        celerytasks.process_nres_file.delay(path=path, db_address=self.db_address)
+        tasks.process_nres_file.delay(path=path, db_address=self.db_address)
         message.ack()  # acknowledge to the sender we got this message (it can be popped)

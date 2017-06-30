@@ -9,7 +9,7 @@ from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_nres_file
 
 app = Celery('tasks')
-app.config_from_object('nrespipe.celerysettings')
+app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 
@@ -20,6 +20,8 @@ def process_nres_file(self, path, db_address):
         raise FileNotFoundError
 
     if is_nres_file(path) and need_to_process(path, db_address):
+        os.environ['NRESROOT'] = path_to_data()
+        os.environ['NRESINST'] = which_nres(path)
         try:
             dbs.save_metadata(path, db_address)
             console_output = subprocess.check_output(shlex.split('idl run_nres_pipeline -args {path}'.format(path=path)))

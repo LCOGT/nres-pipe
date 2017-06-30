@@ -1,8 +1,5 @@
 #!/bin/bash
 
-export IDL_PATH="+/nres/code:+/opt/idl/xtra/astron"
-export NRESROOT="/nres"
+# export RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq}"
 
-idl &> /dev/null &
-
-bash
+exec /usr/bin/supervisord -n -c /etc/supervisord.conf
