@@ -14,16 +14,20 @@ pro calib_extract,flatk=flatk,dble=dble
 @nres_comm
 ; common data for NRES image reduction routines
 ;common nres,filin0,nfib,mfib,fib0,fib1,$
-;      nresroot,tempdir,expmdir,thardir,specdir,ccordir,rvdir,classdir,diagdir,$
+;       nresroot,nresrooti,tempdir,expmdir,thardir,specdir,ccordir,rvdir,$
+;       classdir,diagdir,blazdir,extrdir,$
 ;       csvdir,biasdir,darkdir,flatdir,tracedir,dbledir,tripdir,zerodir,$
-;       jdc,mjdc,datestrc,$ 
-;       filname,dat,dathdr,cordat,varmap,corspec,rmsspec,speco,$ 
-;       expmdat,expmhdr,agu1,agu1hdr,agu2,agu2hdr,$
+;       jdc,mjdc,jdd,mjdd,datestrc,datestrd,$
+;       filname,dat,dathdr,cordat,varmap,$
+;       extrspec,corspec,blazspec,flatspec,rmsspec,rmsblaz,speco,ampflat,$
+;       badlamwts,$
+;       expmdat,expmhdr,expmvals,agu1,agu1hdr,agu2,agu2hdr,$
 ;       teldat1,tel1hdr,tel2dat,tel2hdr,$
-;       type,site,telescop,camera,exptime,ccd,specdat,orddiff,tracedat,echdat,$
-;       agu1red,agu2red,$
-;       expmred,tharred,crossred,rvred,spclassred,$
-;       verbose 
+;       type,site,telescop,camera,exptime,objects,$
+;       ccd,specdat,orddiff,tracedat,echdat,$
+;       flatdat,agu1red,agu2red,$
+;       expmred,tharred,rvindat,rvred,spclassred,$
+;       verbose
 
 ; constants
 rutname='calib_extract'
@@ -66,6 +70,7 @@ if(not keyword_set(flatk)) then begin
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
 logo_nres,rutname,'READ '+tracefile
+stop
 errsum=errsum+gerr
 if(errsum gt 0) then begin
   if(verbose) then print,'Failed to locate calibration file(s) in calib_extract.  FATAL error'

@@ -108,13 +108,19 @@ if(nsg gt 4) then begin
   thrsh=thrshm*rmsm < 0.01  ; threshold for excluding data
   sb1=where(abs(diff) ge thrsh,nsb1)
   if(nsb1 gt 0) then matchwts_c(sb1)=tiny
-endif
+endif else begin
+  nwts=n_elements(matchwts_0)
+  matchwts_c=dblarr(nwts)+1.
+endelse
   
 ; #######
 ; Testing: try freezing coefs_c at its input value.
 ; Save the differences that would be applied, just to look at.
 ;coefs_c=coefs_c+lstsqr(matchdif_c,funs,matchwts_c,ncoefs_c,rms,chisq,$
 ;    outp_c,1,cov)
+
+stop
+
 coefs_incr_c=lstsqr(matchdif_c,funs,matchwts_c,ncoefs_c,rms,chisq,$
     outp_c,1,cov)
 ;

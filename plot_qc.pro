@@ -249,6 +249,7 @@ endfor
 
 ;stop
 
+sun
 !p.multi=[0,1,1]
 
 fini:

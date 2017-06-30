@@ -1,17 +1,20 @@
-function dymedian,inten,dely
+function dymedian,inten,dely,cc
 ; This function accepts inten(nx,nord,nfib) and dely(nx,nord,nfib)
 ; and uses them to estimate the typical cross-dispersion shift in pixels
 ; of the intensity distribution, relative to the center of the extraction box.
 ; Measurements are ignored for fibers that are labeled NONE or THAR, or that
 ; have interquartile dispersions greater than 1.5 pix.
-; The estimate is a median over presumed good data.
-; If no good data are found, the function returns zero.
+; The estimate is a vector of length nord, based on a sigma-clipped fit over 
+; the apparently good data.
+; If no good data are found, the function returns a zero vector.
+; The routine also returns array cc(2), which contains the fit coefficients that
+; describe the returned linear function.
 
 @nres_comm
 
 ; constants
 skiplo=0.15               ; skip this fraction of the low-index orders
-skiphi=0.85               ; skip this fraction of the high-index orders
+skiphi=0.85               ; skip beyond this fraction of the high-index orders
 
 ; get useful data
 objects=strtrim(strupcase(get_words(sxpar(dathdr,'OBJECTS'),nobj,delim='&')),2)
@@ -31,6 +34,7 @@ jbot=long(nord*skiplo+1)
 jtop=long(nord*skiphi)
 ngord=jtop-jbot+1
 
+
 ; make a map of good and bad pixels
 igood=intarr(nx,nord,ns)+1
 igood(*,0:jbot-1,*)=0
@@ -43,20 +47,39 @@ for i=0,ns-1 do begin
     dy=delyg(*,j,i)
     sb=where(di lt 0.1*median(di),nsb)
     if(nsb gt 0) then igood(sb,j,i)=0
-    ; reject points with y displacement > abs(cowid/2)
+; reject points with y displacement > abs(cowid/2)
     sb=where(abs(dy) gt cowid/2.,nsb)
     if(nsb gt 0) then igood(sb,j,i)=0
   endfor
 endfor
 
-; compute the median of what is left
-sg=where(igood eq 1,nsg)
-if(nsg gt 100) then dym=median(delyg(sg)) else goto,bail
+; fit a linear function of order number to the points that are left
+iord0=findgen(nord)-nord/2.
+delygr=reform(delyg,nx*nord)
+iord=rebin(reform(iord0,1,nord),nx,nord)
+funs=fltarr(nx*nord,2)
+funs(*,0)=1.
+funs(*,1)=reform(iord,nx*nord)
+wts=reform(igood,nx*nord)
+cc0=lstsqr(delygr,funs,wts,2,rms0,chisq0,resid0,1,cov0)
+; sigma clip outliers at 4*pseudo-gaussian sigma
+sg=where(wts gt 0.,nsg)
+if(nsg gt 5) then begin
+  quartile,resid0(sg),medr,q,dq
+  sig=dq/1.35
+endif else goto,bail
+sb=where(wts eq 0. or abs(resid0) ge 5.*sig,nsb)
+wts(sb)=0.
+cc=lstsqr(delygr,funs,wts,2,rms,chisq,resid,1,cov)
+
+if(nsg gt 100) then dym=cc(0)+cc(1)*iord0 else goto,bail
 return,dym    
 
 ; 
 bail:
-dym=0.
+dym=fltarr(nord)
+cc=[0.,0.]
+
 return,dym
 
 end
