@@ -14,12 +14,14 @@ RUN mkdir -p /opt/idl/src && \
 RUN /opt/idl/src/install.sh -s <<< $'y\n/opt/idl\ny\nn\ny\ny\ny\ny\ny\ny\ny\ny\nn'
 RUN mkdir -p /opt/idl/xtra/astron && \
     curl -o /opt/idl/xtra/astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/astron.tar.gz" && \
-    tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/
+    tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/ && rm -f /opt/idl/xtra/astron.tar.gz
 
 
 RUN curl -o /opt/idl/xtra/exofast.tar.gz http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz && \
-    tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/ && rm -f /opt/idl/xtra/exofast.tar.gz && \
+    tar -xzf /opt/idl/xtra/exofast.tar.gz -C /opt/idl/xtra/ && rm -f /opt/idl/xtra/exofast.tar.gz && \
     mkdir -p /opt/idl/xtra/astrolib/data
+
+ENTRYPOINT exec /usr/bin/supervisord -n -c /etc/supervisord.conf
 
 WORKDIR /nres/code
 COPY . /nres/code

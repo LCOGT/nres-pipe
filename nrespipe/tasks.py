@@ -6,22 +6,23 @@ import subprocess
 from celery import Celery
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_nres_file
+from nrespipe.utils import need_to_process, is_nres_file, which_nres
 
-app = Celery('tasks')
+app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 
 
 @app.task(bind=True, max_retries=None, default_retry_delay=3 * 60)
-def process_nres_file(self, path, db_address):
+def process_nres_file(self, path, data_reduction_root_path, db_address):
     if not os.path.exists(path):
         raise FileNotFoundError
 
     if is_nres_file(path) and need_to_process(path, db_address):
-        os.environ['NRESROOT'] = path_to_data()
-        os.environ['NRESINST'] = which_nres(path)
+        nres_instrument = which_nres(path)
+        os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_instrument, 'nres-proc')
+        os.environ['NRESINST'] = nres_instrument
         try:
             dbs.save_metadata(path, db_address)
             console_output = subprocess.check_output(shlex.split('idl run_nres_pipeline -args {path}'.format(path=path)))

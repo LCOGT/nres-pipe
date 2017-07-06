@@ -15,6 +15,6 @@ setup(name='nrespipe',
       author_email=['cmccully@lco.global', 'tbrown@lco.global', 'rsiverd@lco.global'],
       version=0.1,
       packages=['nrespipe'],
-      install_requires=['numpy', 'kombu', 'celery', 'sqlalchemy', 'astropy', 'lcogt_logging'],
-      entry_points={'console_scripts': ['nres_listener=nrespipe.main:run_listener',
-                                        'nres_celery=nrespipe.main:run_celery_tasks']})
+      install_requires=['numpy', 'kombu', 'celery', 'sqlalchemy', 'astropy', 'lcogt_logging', 'requests'],
+      entry_points={'console_scripts': ['run_nres_listener=nrespipe.main:run_listener',
+                                        'run_nres_tasks=nrespipe.main:run_celery_worker']})

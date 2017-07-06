@@ -1,9 +1,13 @@
-from nrespipe.listener import NRESListener
-from kombu import Exchange, Connection, Queue
 import logging
 import sys
-from nrespipe import settings
 
+from kombu import Exchange, Connection, Queue
+
+from nrespipe import settings
+from nrespipe.listener import NRESListener
+from nrespipe.utils import wait_for_task_rabbitmq
+from nrespipe import tasks
+import celery
 
 logger = logging.getLogger('nrespipe')
 fits_exchange = Exchange('fits_files', type='fanout')
@@ -11,7 +15,9 @@ fits_exchange = Exchange('fits_files', type='fanout')
 
 def run_listener():
     logger.info('Starting NRES pipeline listener')
-    listener = NRESListener(settings.fits_broker, settings.db_address)
+    wait_for_task_rabbitmq(settings.broker_url, settings.broker_username, settings.broker_password)
+
+    listener = NRESListener(settings.FITS_BROKER, settings.data_reduction_root, settings.db_address)
 
     with Connection(listener.broker_url) as connection:
         listener.connection = connection
@@ -22,3 +28,9 @@ def run_listener():
         except KeyboardInterrupt:
             logger.info('Shutting down...')
             sys.exit(0)
+
+
+def run_celery_worker():
+    logger.info('Starting celery worker')
+    worker = celery.bin.worker.worker(app=tasks.app)
+    worker.run(concurrency=1)

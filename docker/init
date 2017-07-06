@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# export RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq}"
-
-exec /usr/bin/supervisord -n -c /etc/supervisord.conf
