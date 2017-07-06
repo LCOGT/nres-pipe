@@ -70,7 +70,6 @@ if(not keyword_set(flatk)) then begin
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
 logo_nres,rutname,'READ '+tracefile
-stop
 errsum=errsum+gerr
 if(errsum gt 0) then begin
   if(verbose) then print,'Failed to locate calibration file(s) in calib_extract.  FATAL error'
@@ -152,9 +151,19 @@ if(~keyword_set(flatk)) then begin
 
 ; write corspec (raw/flat) first
   mjdobs=sxpar(dathdr,'MJD-OBS')
-  latitude=sxpar(dathdr,'LATITUDE')
-  longitud=sxpar(dathdr,'LONGITUD')
-  height=sxpar(dathdr,'HEIGHT')
+; make coordinates for both telescopes
+  lat1=tel1dat.latitude
+  long1=tel1dat.longitude
+  ht1=tel1dat.height
+  obj1=tel1dat.object
+  lat2=tel2dat.latitude
+  long2=tel2dat.longitude
+  ht2=tel2dat.height
+  obj2=tel2dat.object
+
+; latitude=sxpar(dathdr,'LATITUDE')
+; longitud=sxpar(dathdr,'LONGITUD')
+; height=sxpar(dathdr,'HEIGHT')
   mkhdr,hdr,corspec
   sxaddpar,hdr,'MJD',mjdc,'Creation date'
   nfravg=1
@@ -168,9 +177,31 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NELECTR0',echdat.nelectron(0),format='(e12.5)'
   sxaddpar,hdr,'NELETRO1',echdat.nelectron(1),format='(e12.5)'
   sxaddpar,hdr,'MJD-OBS',mjdobs
-  sxaddpar,hdr,'LATITUDE',latitude
-  sxaddpar,hdr,'LONGITUD',longitud
-  sxaddpar,hdr,'HEIGHT',height
+  if(mfib eq 3) then begin
+    sxaddpar,hdr,'LONG1',long1
+    sxaddpar,hdr,'LONG2',long2
+    sxaddpar,hdr,'LAT1',lat1
+    sxaddpar,hdr,'LAT2',lat2
+    sxaddpar,hdr,'HT1',ht1
+    sxaddpar,hdr,'HT2',ht2
+    sxaddpar,hdr,'OBJ1',obj1
+    sxaddpar,hdr,'OBJ2',obj2
+  endif else begin
+    if(fib0 eq 0) then begin
+      sxaddpar,hdr,'LONG1',long1
+      sxaddpar,hdr,'LAT1',lat1
+      sxaddpar,hdr,'HT1',ht1
+      sxaddpar,hdr,'OBJ1',obj1
+    endif else begin
+      sxaddpar,hdr,'LONG2',long2
+      sxaddpar,hdr,'LAT2',lat2
+      sxaddpar,hdr,'HT2',ht2
+      sxaddpar,hdr,'OBJ2',obj2
+    endelse
+  endelse
+; sxaddpar,hdr,'LATITUDE',latitude
+; sxaddpar,hdr,'LONGITUD',longitud
+; sxaddpar,hdr,'HEIGHT',height
   if(mfib eq 3) then sxaddpar,hdr,'NELECTRO2',echdat.nelectron(2),$
     format='(e12.5)'
 

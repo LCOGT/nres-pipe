@@ -8,7 +8,7 @@ common nres,filin0,nfib,mfib,fib0,fib1,$
        extrspec,corspec,blazspec,flatspec,rmsspec,rmsblaz,speco,ampflat,$
        badlamwts,$
        expmdat,expmhdr,expmvals,agu1,agu1hdr,agu2,agu2hdr,$
-       teldat1,tel1hdr,tel2dat,tel2hdr,$
+       tel1dat,tel1hdr,tel2dat,tel2hdr,$
        type,site,telescop,camera,exptime,objects,$
        ccd,specdat,orddiff,tracedat,echdat,$
        flatdat,agu1red,agu2red,$

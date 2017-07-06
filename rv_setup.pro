@@ -20,6 +20,9 @@ targra=dblarr(2)
 targdec=dblarr(2)
 zeronames=strarr(2)            ; names of ZERO files
 zerotypes=strarr(2)             ; type of selection for each ZERO file
+tlon=dblarr(2)              ; telescope longitudes
+tlat=dblarr(2)               ; telescope latitudes
+talt=dblarr(2)                ; telescope height
 objects=get_words(sxpar(dathdr,'OBJECTS'),nwd,delim='&')
 ; remove '_' and following characters from each word in objects array
 for i=0,nwd-1 do begin
@@ -31,9 +34,12 @@ objects=strupcase(objects)
 centtimes=expmred.expfwt     ; flux-weighted mean exp JD
 baryshifts=dblarr(2)            ; barycentric z for each target at centtimes
 coosrc=lonarr(2)             ; source for target coords: 0 = csv, 1 = targhdr
-tlat=sxpar(dathdr,'LATITUDE')        ; telescope latitude
-tlon=sxpar(dathdr,'LONGITUD')      ; telescope E. longitude
-talt=sxpar(dathdr,'HEIGHT')        ; telescope elevation ASL (m) 
+tlat=[tel1dat.latitude,tel2dat.latitude]
+tlon=[tel1dat.longitude,tel2dat.longitude]
+talt=[tel1dat.height,tel2dat.height]
+;tlat=sxpar(dathdr,'LATITUDE')        ; telescope latitude
+;tlon=sxpar(dathdr,'LONGITUD')      ; telescope E. longitude
+;talt=sxpar(dathdr,'HEIGHT')        ; telescope elevation ASL (m) 
 
 ; valid cases are: nfib=2 and objects='ThAr&Target'
 ;               or nfib=3 and objects='NONE&ThAr&Target'
@@ -62,8 +68,8 @@ if(nfib eq 2) then begin
   targra(0)=0.d0
   targdec(0)=0.d0
   targnames(1)=strcompress(strupcase(objects(1)),/remove_all)
-  targra(1)=sxpar(tel2hdr,'RA')
-  targdec(1)=sxpar(tel2hdr,'DEC')
+  targra(1)=tel2dat.ra
+  targdec(1)=tel2dat.dec
   targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
 ; get_targ_props returns a structure containing name, RA, DEC, Vmag, B-V,
 ; logg, PMRA, PMDEC.  If no name or position match, get a structure full
@@ -76,7 +82,7 @@ if(nfib eq 2) then begin
     targdec(1)=targ1struc.dec
   endif
   baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
-     tlat,tlon,talt)
+     tlat(1),tlon(1),talt(1))
 endif
 
 if(nfib eq 3) then begin
@@ -90,8 +96,8 @@ if(nfib eq 3) then begin
 
   if(objects(0) ne 'NONE') then begin
     targnames(0)=strcompress(strupcase(objects(0)),/remove_all)
-    targra(0)=sxpar(tel1hdr,'RA')
-    targdec(0)=sxpar(tel1hdr,'DEC')
+    targra(0)=tel2dat.ra
+    targdec(0)=tel2dat.dec 
     targ0struc=get_targ_props(targnames(0),targra(0),targdec(0))
     if(targra(0) eq 0.d0 and targdec(0) eq 0.d0) then coosrc(0)=0 else $
       coosrc(0)=1
@@ -100,7 +106,7 @@ if(nfib eq 3) then begin
       targdec(0)=targ0struc.dec
     endif
     baryshifts(0)=nresbarycorr(targnames(0),centtimes(0),targra(0),targdec(0),$
-       tlat,tlon,talt)
+       tlat(0),tlon(0),talt(0))
   endif else begin
     targnames(0)='NULL'
     zeronames(0)='NULL'
@@ -112,8 +118,8 @@ if(nfib eq 3) then begin
 
   if(objects(2) ne 'NONE') then begin
     targnames(1)=strcompress(strupcase(objects(2)),/remove_all)
-    targra(1)=sxpar(tel2hdr,'RA')
-    targdec(1)=sxpar(tel2hdr,'DEC')
+    targra(1)=tel2dat.ra
+    targdec(1)=tel2dat.dec 
     targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
     if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
       coosrc(1)=1
@@ -122,7 +128,7 @@ if(nfib eq 3) then begin
       targdec(1)=targ1struc.dec
     endif
     baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
-       tlat,tlon,talt)
+       tlat(1),tlon(1),talt(1))
   endif else begin
     targnames(1)='NULL'
     zeronames(1)='NULL'

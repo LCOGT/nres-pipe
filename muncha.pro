@@ -111,12 +111,12 @@ case type of
   autoguider
   expmeter
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
-; if(not keyword_set(nostar)) then begin
+  if(not keyword_set(nostar)) then begin
     radial_velocity,ierr,nostar=nostar
-; endif else begin
+    plot_quick           ; writes quick-look postscript plot
+  endif
 ; spec_classify
 ; obs2txt                ; writes all metadata to obs.txt
-  plot_quick             ; writes quick-look postscript plot
   plot_qc                ; writes extract and thar quality control plot
   end
 

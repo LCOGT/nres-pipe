@@ -146,6 +146,11 @@ for i=0,nplot-1 do begin
 ; convert lam0z to air wavelengths
   lam0z=airlam(lam0z,-z0_c)
 
+; make scaling factor relating plt0z to plt0
+  ran0=ptile(plt0,95)-ptile(plt0,5)
+  ranz=ptile(plt0z,95)-ptile(plt0z,5)
+  plt0zr=plt0z*ran0/ranz
+
 ; shifts and cross-correlation values for plots 1 & 2.
   x1=rvred.delvo(ip2,*)
   plt1=rvred.ccmo(ip2,*)
@@ -161,7 +166,6 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   version='1.1'      ; ###bogus###
   shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
        snr,version) 
-
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
   plotname=plotdir+'PLOT'+datestrd+fibstr+'.ps'
@@ -184,7 +188,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   plot,lam0,plt0,tit=shorttitl,xtit=xtits(0),ytit=ytits(0),xran=xran,yran=yran,$
      /xsty,/ysty,charsiz=cs0,/nodata
   oplot,lam0,plt0,color=blue
-  oplot,lam0z,plt0z,color=red
+  oplot,lam0z,plt0zr,color=red
 ; lots of xyouts stuff here
   xbot=xran(0)+(xran(1)-xran(0))*0.05
   xtop=xran(1)-(xran(1)-xran(0))*0.15

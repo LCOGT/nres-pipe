@@ -87,6 +87,8 @@ for ifib=0,nsth-1 do begin
   thar_fitall,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
     oskip=oskip
 
+stop
+
 ; put results into output arrays
   lam_all(*,*,fibindx)=lam_c
   sinalp_all(fibindx)=sinalp_c
