@@ -23,6 +23,10 @@ RUN curl -o /opt/idl/xtra/exofast.tar.gz http://www.astronomy.ohio-state.edu/~jd
 
 ENTRYPOINT exec /usr/bin/supervisord -n -c /etc/supervisord.conf
 
+RUN mkdir /home/archive && /usr/sbin/groupadd -g 10000 "domainusers" \
+        && /usr/sbin/useradd -g 10000 -d /home/archive -M -N -u 10087 archive \
+        && chown -R archive:domainusers /home/archive
+
 WORKDIR /nres/code
 COPY . /nres/code
 
@@ -35,3 +39,7 @@ ENV EXOFAST_PATH="/opt/idl/xtra/exofast/" IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lc
 
 # COPY docker/supervisor-app.conf /etc/supervisor/conf.d/
 COPY docker/ /
+
+ENV HOME /home/archive
+
+WORKDIR /home/archive

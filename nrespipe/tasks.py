@@ -21,13 +21,13 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
 
     if is_nres_file(path) and need_to_process(path, db_address):
         nres_instrument = which_nres(path)
-        os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_instrument, 'nres-proc')
+        os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, '')
         os.environ['NRESINST'] = nres_instrument
         try:
             dbs.save_metadata(path, db_address)
-            console_output = subprocess.check_output(shlex.split('idl run_nres_pipeline -args {path}'.format(path=path)))
-            logger.info('IDL NRES pipeline output: {output}'.format(console_output))
-            dbs.set_file_as_processed(path)
+            console_output = subprocess.check_output(shlex.split('idl -e run_nres_pipeline -args {path}'.format(path=path)))
+            logger.info('IDL NRES pipeline output: {output}'.format(output=console_output))
+            dbs.set_file_as_processed(path, db_address)
         except subprocess.CalledProcessError as e:
             logger.error('IDL returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
 

@@ -7,7 +7,7 @@ from nrespipe import settings
 from nrespipe.listener import NRESListener
 from nrespipe.utils import wait_for_task_rabbitmq
 from nrespipe import tasks
-import celery
+import celery.bin.worker
 
 logger = logging.getLogger('nrespipe')
 fits_exchange = Exchange('fits_files', type='fanout')
@@ -15,13 +15,13 @@ fits_exchange = Exchange('fits_files', type='fanout')
 
 def run_listener():
     logger.info('Starting NRES pipeline listener')
-    wait_for_task_rabbitmq(settings.broker_url, settings.broker_username, settings.broker_password)
+    wait_for_task_rabbitmq(settings.rabbitmq_host, settings.broker_username, settings.broker_password)
 
     listener = NRESListener(settings.FITS_BROKER, settings.data_reduction_root, settings.db_address)
 
     with Connection(listener.broker_url) as connection:
         listener.connection = connection
-        listener.ensure_connection(max_retries=None)
+        connection.ensure_connection(max_retries=None)
         listener.queue = Queue('nres_pipeline', fits_exchange)
         try:
             listener.run()

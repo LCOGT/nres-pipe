@@ -6,7 +6,12 @@ pro logo_nres,rutname,logstr
 root=getenv('NRESROOT')
 inst=getenv('NRESINST')
 logo='log_muncha.txt'
-outfil=strtrim(root,2)+strtrim(inst,2)+'/'+strtrim(logo,2)
+save_dir = strtrim(root,2)+strtrim(inst,2)
+if (file_test(save_dir, /DIRECTORY) EQ 0) then begin
+  file_mkdir, save_dir
+endif
+
+outfil= save_dir+'/'+strtrim(logo,2)
 openw,iuno,outfil,/get_lun,/append
 
 jdl=systime(/julian)

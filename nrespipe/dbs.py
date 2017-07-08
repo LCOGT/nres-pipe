@@ -92,13 +92,13 @@ def get_or_create(db_address, table_model, equivalence_criteria, record_attribut
         query &= getattr(table_model, key) == equivalence_criteria[key]
 
     # Connect to the database
-    with get_session(db_address) as db_session:
-        record = db_session.query(table_model).filter(query).first()
-        if record is None:
-            record = table_model(**record_attributes)
-            db_session.add(record)
-            db_session.commit()
-
+    db_session = get_session(db_address)
+    record = db_session.query(table_model).filter(query).first()
+    if record is None:
+        record = table_model(**record_attributes)
+        db_session.add(record)
+        db_session.commit()
+    db_session.close()
     return record
 
 

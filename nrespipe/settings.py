@@ -1,5 +1,5 @@
 import os
-import logging
+import logging.config
 from lcogt_logging import LCOGTFormatter
 from datetime import timedelta
 
@@ -14,6 +14,7 @@ logging.config.dictConfig(logConf)
 
 #  General settings
 broker_url = os.getenv('BROKER_URL', 'memory://localhost')
+rabbitmq_host = os.getenv('RABBITMQ_HOST', 'memory://localhost')
 broker_username = os.getenv('BROKER_USERNAME', 'guest')
 broker_password = os.getenv('BROKER_PASSWORD', 'guest')
 

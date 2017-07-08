@@ -6,8 +6,12 @@ import requests
 from astropy.io import fits
 
 from nrespipe import dbs
-from nrespipe.main import logger
+import logging
 
+from kombu import Connection, Exchange
+
+
+logger = logging.getLogger('nrespipe')
 
 def get_md5(filepath):
     with open(filepath, 'rb') as file:
@@ -38,7 +42,8 @@ def is_nres_file(path):
 
 
 def which_nres(path):
-    return fits.getheader(path, 'TELESCOP').lower()
+    header = fits.getheader(path)
+    return header['TELESCOP'].lower()
 
 
 def wait_for_task_rabbitmq(broker_url, username, password):
@@ -67,4 +72,13 @@ def wait_for_task_rabbitmq(broker_url, username, password):
                 logger.info('Successfully connected to RabbitMQ')
         except requests.ConnectionError:
             # Wait 1 second and try again
+            attempt += 1
             time.sleep(1)
+
+
+def post_to_fits_exchange(broker_url, image_path):
+    exchange = Exchange('fits_files', type='fanout')
+    with Connection(broker_url) as conn:
+        producer = conn.Producer(exchange=exchange)
+        producer.publish({'path': image_path})
+        producer.release()
