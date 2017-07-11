@@ -225,4 +225,5 @@ skipit:
 ; should put some error trapping in here
 
 fini:
+stop
 end
