@@ -158,9 +158,8 @@ for i=0,nplot-1 do begin
      tit=tit,charsiz=cs2,thick=2
   xyouts,3,0.1*yran(1),nelecs,charsiz=cs1
 
-stop
-  yran=[0.,1.05*max(hwid)]
-  plot,ordindx,hwid,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
+  yran=[0.,1.05*max(hwidx2)]
+  plot,ordindx,hwidx2,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
      tit=tit,charsiz=cs2,thick=2
 
   yran=[floor(min(meddy)),ceil(max(meddy))]

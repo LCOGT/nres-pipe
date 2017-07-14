@@ -98,7 +98,7 @@ sobjg=where(objs ne 'NONE',nobjg)-fib0    ; indices of extractable fibers
 sbrite=where(objs ne 'THAR' and objs ne 'NONE',nsbr)
 ebrite=nx*cowid*nord*reform(rebin(ebox,1,1,1,mfib),mfib)
 if(mfib ne nobjg) then begin
-  logo_nres,rutname,'FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
+  logo_nres2,rutname,'ERROR','FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
   ierr=1
   goto,fini
 endif

@@ -64,7 +64,7 @@ rutname='muncha'
 
 ; record start in logfile
 logstr='input filename = '+strtrim(filin,2)
-logo_nres,rutname,logstr
+logo_nres2,rutname,'INFO',logstr
 
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
@@ -93,19 +93,19 @@ filin0=filin
 ingest,filin,err
 if(err) then begin
   logstr='Invalid input data in ingest.  Err = '+string(err,format='(i2)')
-  logo_nres,rutname,logstr
+  logo_nres2,rutname,'INFO',logstr
   goto,fini
 endif
 
 ; branch on type of input data
 if(verbose) then print,'OBSTYPE = ',type
-logo_nres,rutname,' OBSTYPE = '+type
+logo_nres2,rutname,'INFO',' OBSTYPE = '+type
 case type of
 
 ; one or two stars plus ThAr.  Routines write out metadata files as they go
 ; 'EXPERIMENTAL': begin         ; temporary, to deal with Rob's test file
   'TARGET': begin
-  logo_nres,rutname,'###TARGET block'
+  logo_nres2,rutname,'INFO','###TARGET block'
   if(verbose) then print,'###TARGET block'
   calib_extract,flatk=0
   autoguider
@@ -122,21 +122,21 @@ case type of
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv
   'BIAS': begin
-  logo_nres,rutname,'###BIAS block'
+  logo_nres2,rutname,'INFO','###BIAS block'
   if(verbose) then print,'###BIAS block'
   copy_bias
   end
 
 ; a dark image.  Make copy in reduced/dark dir, add entry to csv/standards.csv
   'DARK': begin
-  logo_nres,rutname,'###DARK block'
+  logo_nres2,rutname,'INFO','###DARK block'
   if(verbose) then print,'###DARK block'
   copy_dark
   end
 
 ; a flat image
   'FLAT': begin
-  logo_nres,rutname,'###FLAT block'
+  logo_nres2,rutname,'INFO','###FLAT block'
   if(verbose) then print,'###FLAT block'
   calib_extract,flatk=flatk
   if(keyword_set(flatk)) then begin
@@ -146,7 +146,7 @@ case type of
 
 ; a DOUBLE image
   'DOUBLE': begin
-  logo_nres,rutname,'###DOUBLE block'
+  logo_nres2,rutname,'INFO','###DOUBLE block'
   if(verbose) then print,'###DOUBLE block'
   calib_extract,/dble
   mk_double1,ierr      ; saves pointer to output file in standards.csv file.
@@ -154,7 +154,7 @@ case type of
 
 ; bad input
   else: begin
-    logo_nres,rutname,'FATAL  Invalid data file TYPE keyword'
+    logo_nres2,rutname,'ERROR','FATAL  Invalid data file TYPE keyword'
     if(verbose) then print,'Invalid data file.  Type must be TARGET, BIAS, DARK, FLAT, or DOUBLE.'
   end
 endcase

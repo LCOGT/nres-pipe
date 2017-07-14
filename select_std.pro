@@ -98,6 +98,8 @@ endif else begin
       sel_type='NULL'
       err=3
     stop
+      logo_nres2,rutname,'ERROR','Null target structure!'
+      logo_nres2,rutname,'ERROR','likely you observed a star not in target list'
       goto,fini
     endif
   endelse

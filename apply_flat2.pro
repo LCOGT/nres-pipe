@@ -97,7 +97,6 @@ for i=0,mfib-1 do begin
 ; set ratio to local mean for bad lambda points
       corspect=fltarr(nx)
       corspect(sg0)=rawspec(sg0,j,i)/flate(sg0,j,i)
-    if(i eq 1 and j eq 8) then stop
       if(nsb gt 0) then fill_badblock,sb,corspect
       corspec(*,j,i)=corspect
       rmsspec(sg,j,i)=rmsspec(sg,j,i)/flate(sg,j,i)

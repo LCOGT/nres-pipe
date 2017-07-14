@@ -117,7 +117,7 @@ ccm=cc(ibot:itop)
 lenc=n_elements(ccm)
 if(lenc lt 801) then ccm=[ccm,fltarr(801-lenc)]
 delx=findgen(801)-400.
-delv=delx*rmin*c           ; cc x-coord in velocity units (km/s)
+delv=(delx+ix-nbig/2.)*rmin*c           ; cc x-coord in velocity units (km/s)
 ssn=where(ccm le mxcch and delx lt 0.,nssn)
 ssp=where(ccm le mxcch and delx gt 0.,nssp)
 hwbot=max(ssn)       ; indices of first cc values less than mxcc/2,
@@ -142,7 +142,5 @@ rrp=ix-nbig/2.+ds                  ; redshift in pix
 rcc=rrp*rmin
 rvv=rcc*c                          ; redshift in km/s
 ampcc=rr(0)+rr(1)*ds+rr(2)*ds^2
-
-;stop
 
 end

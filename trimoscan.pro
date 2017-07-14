@@ -14,7 +14,7 @@ bss=sxpar(dathdr,'BIASSEC')
 sz=size(bss)                   ; check to see that bss is a string
 if(sz(-2) ne 7) then begin
   ierr=1
-  logo_nres,rutname,'FATAL No bias section found in data header'
+  logo_nres2,rutname,'ERROR','FATAL No bias section found in data header'
   goto,fini             ; if no BIASSEC keyword, assume not CDP
 endif
 
@@ -27,7 +27,7 @@ wbs=long(get_words(bss,delim='[,:,]',nbss))-1 ; subtract 1 to get zero indexing
 wds=long(get_words(dss,delim='[,:,]',ndss))-1
 if(nbss ne 4 or ndss ne 4) then begin
   ierr=2
-  logo_nres,rutname,'FATAL Bad data in bias section or data section'
+  logo_nres2,rutname,'ERROR','FATAL Bad data in bias section or data section'
   goto,fini
 end
 

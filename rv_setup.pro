@@ -145,6 +145,10 @@ nfib=specdat.nfib
 nx=specdat.nx
 nord=specdat.nord
 
+; If the target matching fails, then plug in invented but plausible stellar
+; properties so that the search for a ZERO file yields something.
+fake_target,targstrucs,targnames,targra,targdec
+
 ; May want some others for, eg, PLDP.
 
 ; choose one or two ZERO files for the fitting.

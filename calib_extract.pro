@@ -38,7 +38,7 @@ nord=specdat.nord
 nx=specdat.nx
 ccd_find,err
 if(err ne 0) then begin
-  logo_nres,rutname,'FATAL CCD parameters not found'
+  logo_nres2,rutname,'ERROR','FATAL CCD parameters not found'
   if(verbose) then print,'in calib_extract, CCD parameters not found.  Fatal error.'
   goto,fini
 endif
@@ -57,24 +57,24 @@ mk_badlamwts,lam03
 ; locate suitable bias, dark, flat and trace data
 errsum=0
 get_calib,'BIAS',biasfile,bias,biashdr,gerr  ; find bias via the default method
-logo_nres,rutname,'READ '+biasfile
+logo_nres2,rutname,'INFO','READ '+biasfile
 errsum=errsum+gerr
 get_calib,'DARK',darkfile,dark,darkhdr,gerr
-logo_nres,rutname,'READ '+darkfile
+logo_nres2,rutname,'INFO','READ '+darkfile
 errsum=errsum+gerr
 if(not keyword_set(flatk)) then begin
   get_calib,'FLAT',flatfile,flat,flathdr,gerr
-  logo_nres,rutname,'READ '+flatfile
+  logo_nres2,rutname,'INFO','READ '+flatfile
   flatdat={flat:flat,flatfile:flatfile,flathdr:flathdr}
   errsum=errsum+gerr
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
-logo_nres,rutname,'READ '+tracefile
+logo_nres2,rutname,'INFO','READ '+tracefile
 errsum=errsum+gerr
 if(errsum gt 0) then begin
   if(verbose) then print,'Failed to locate calibration file(s) in calib_extract.  FATAL error'
-  logo_nres,rutname,'FATAL Failed to locate calibration file(s)'
-  logo_nres,rutname,'summed error gerr = '+string(gerr)
+  logo_nres2,rutname,'ERROR','FATAL Failed to locate calibration file(s)'
+  logo_nres2,rutname,'ERROR','summed error gerr = '+string(gerr)
   goto,fini
 endif
 
@@ -112,7 +112,7 @@ sz=size(cordat)
 nxu=sz(1)
 if(nxu gt nx) then begin
   cordat=cordat(0:nx-1,*)
-  logo_nres,rutname,'Trimming nx from/to '+string(nxu)+' '+string(nx)
+  logo_nres2,rutname,'INFO','Trimming nx from/to '+string(nxu)+' '+string(nx)
 endif
 
 ; remove background
@@ -139,10 +139,10 @@ extract,err
 if(keyword_set(flatk)) then begin
   corspec=echdat.spectrum
   rmsspec=echdat.specrms
-  logo_nres,rutname,'flatk set, so no flat applied'
+  logo_nres2,rutname,'INFO','flatk set, so no flat applied'
 endif else begin
   apply_flat2,flat
-  logo_nres,rutname,'flatk=0, so apply_flat2 run'
+  logo_nres2,rutname,'INFO','flatk=0, so apply_flat2 run'
 endelse 
   
 ; make the header and fill it out
@@ -192,7 +192,15 @@ if(~keyword_set(flatk)) then begin
       sxaddpar,hdr,'LAT1',lat1
       sxaddpar,hdr,'HT1',ht1
       sxaddpar,hdr,'OBJ1',obj1
+      sxaddpar,hdr,'LONG2',0.d0
+      sxaddpar,hdr,'LAT2',0.d0
+      sxaddpar,hdr,'HT2',0.d0
+      sxaddpar,hdr,'OBJ2','none'
     endif else begin
+      sxaddpar,hdr,'LONG1',0.d0
+      sxaddpar,hdr,'LAT1',0.d0
+      sxaddpar,hdr,'HT1',0.d0
+      sxaddpar,hdr,'OBJ1','none'
       sxaddpar,hdr,'LONG2',long2
       sxaddpar,hdr,'LAT2',lat2
       sxaddpar,hdr,'HT2',ht2
@@ -218,13 +226,23 @@ if(~keyword_set(flatk)) then begin
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
+  sxaddpar,hdr,'TEL1_RA',tel1dat.ra
+  sxaddpar,hdr,'TEL2_RA',tel2dat.ra
+  sxaddpar,hdr,'TEL1_DEC',tel1dat.dec
+  sxaddpar,hdr,'TEL2_DEC',tel2dat.dec
+  sxaddpar,hdr,'NBLOCK',specdat.nblock
+  sxaddpar,hdr,'NFIB',specdat.nfib
+  sxaddpar,hdr,'NORD',specdat.nord
+  sxaddpar,hdr,'NX',specdat.nx
+  sxaddpar,hdr,'DATESTRD',datestrd
+
   writefits,specout,corspec,hdr
-  logo_nres,rutname,'WRITE '+specout
+  logo_nres2,rutname,'INFO','WRITE '+specout
 
 ; write extr = raw spectrum with low-signal ends trimmed
   if(not keyword_set(dble)) then begin
     writefits,extrout,extrspec,hdr        ; same hdr as specout
-    logo_nres,rutname,'WRITE '+extrout
+    logo_nres2,rutname,'INFO','WRITE '+extrout
 
 ; then write blaze = raw - flat
     hdrb=hdr
@@ -239,7 +257,7 @@ if(~keyword_set(flatk)) then begin
       endfor
     endfor
     writefits,blazout,blazspec,hdrb
-    logo_nres,rutname,'WRITE '+blazout
+    logo_nres2,rutname,'INFO','WRITE '+blazout
   endif
 endif
 

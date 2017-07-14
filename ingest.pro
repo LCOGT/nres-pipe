@@ -19,14 +19,14 @@ pro ingest,filin,ierr
 rutname='ingest'
 ierr=0
 
-logo_nres,rutname,' filin = '+filin
+logo_nres2,rutname,'INFO',' filin = '+filin
 if(verbose) then begin
   print,'###Ingest'
   print,'filin = ',filin
 endif
 
 ; open the input FITS file, read the main data segment and header
-logo_nres,rutname,' Reading main data segment'
+logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
 filename=nresrawdat+strtrim(filin,2)
 dat=readfits(filename,dathdr)
@@ -102,8 +102,9 @@ datereald=date_conv(jdd,'R')
 datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
 
-if(extn ne 1) then begin       ; do this skip if not CDP
-  logo_nres,rutname,' Skipping reading Consolidated Data Product'
+if((extn ne 1) or (type eq 'BIAS') or (type eq 'DARK')) then begin  
+; do this skip if not CDP
+  logo_nres2,rutname,'INFO',' Skipping reading Consolidated Data Product'
   goto,skipit
 endif
 
@@ -225,5 +226,5 @@ skipit:
 ; should put some error trapping in here
 
 fini:
-stop
+;stop
 end

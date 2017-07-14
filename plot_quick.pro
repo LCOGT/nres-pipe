@@ -213,7 +213,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
     xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],[yran],color=blue
-  oplot,[rvvo(i),rvvo(i)],yran,color=green
+  oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
      charsiz=cs1
@@ -225,7 +225,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
     xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],yran,color=blue
-  oplot,[rvvo(i),rvvo(i)],yran,color=green
+  oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
      charsiz=cs1

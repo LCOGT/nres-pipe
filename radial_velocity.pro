@@ -51,23 +51,23 @@ zlam=rvindat.zlam                ; wavelength scale for star zero spectra
 sspec=fltarr(nx,nord,nfib-1)
 slam=dblarr(nx,nord,nfib-1)
 if(nfib eq 2) then begin
-  sspec(*,*,0)=corspec(*,*,1)
+  sspec(*,*,0)=blazspec(*,*,1)
   slam(*,*,0)=tharred.lam(*,*,1)
 endif
 if(nfib eq 3) then begin
   if(mfib eq 3) then begin       ; do this if all 3 fibers are illuminated
-    sspec(*,*,0)=corspec(*,*,0)
-    sspec(*,*,1)=corspec(*,*,2)
+    sspec(*,*,0)=blazspec(*,*,0)
+    sspec(*,*,1)=blazspec(*,*,2)
     slam(*,*,0)=tharred.lam(*,*,0)
     slam(*,*,1)=tharred.lam(*,*,2)
   endif
   if(mfib eq 2) then begin      ; do this if 3 fibers, but only 2 illuminated
     if(fib0 eq 0) then begin    ; implies fiber 2 is dark
-      sspec(*,*,0)=corspec(*,*,0)
+      sspec(*,*,0)=blazspec(*,*,0)
       slam(*,*,0)=tharred.lam(*,*,0)
     endif
     if(fib0 eq 1) then begin    ; implies fiber 0 is dark
-      sspec(*,*,1)=corspec(*,*,1)
+      sspec(*,*,1)=blazspec(*,*,1)
       slam(*,*,1)=tharred.lam(*,*,2)
     endif
   endif
