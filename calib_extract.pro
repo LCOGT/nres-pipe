@@ -175,7 +175,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'OBSTYPE',type
   sxaddpar,hdr,'EXPTIME',exptime
   sxaddpar,hdr,'NELECTR0',echdat.nelectron(0),format='(e12.5)'
-  sxaddpar,hdr,'NELETRO1',echdat.nelectron(1),format='(e12.5)'
+  sxaddpar,hdr,'NELECTR1',echdat.nelectron(1),format='(e12.5)'
   sxaddpar,hdr,'MJD-OBS',mjdobs
   if(mfib eq 3) then begin
     sxaddpar,hdr,'LONG1',long1

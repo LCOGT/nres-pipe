@@ -16,6 +16,7 @@ pro thar_setup,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
 
 ; constants
 ;nresroot=getenv('NRESROOT')
+rutname='thar_setup'
 linelist=nresrooti+'reduced/config/arc_ThAr_Redman.txt'
 if(keyword_set(tharlist)) then begin
   linelist=nresrooti+'reduced/config/'+strtrim(tharlist,2)
@@ -105,7 +106,7 @@ sz=size(corspec)
 nx=sz(1)
 nord=sz(2)
 if(nx ne nx_c or nord ne nord_c) then begin
-  print,'detector sizes config vs data do not match.'
+  logo_nres2,rutname,'ERROR','detector sizes config vs data do not match.'
   ierr_c=1
   stop
   goto,fini
@@ -124,7 +125,7 @@ endfor
 tnsqds=total(tnsqd)
 if(tnsqds le nsqdthr) then begin
   ierr_c=2
-  print,'tnsqds = ',tnsqds
+  logo_nres2,rutname,'ERROR',{tnsqds:tnsqds}
   goto,fini
 endif
 
@@ -229,10 +230,11 @@ lineamp_c=lineamp_c(sg)
 thar=tharspec_c
 
 ;goto,fini
-print,'sinalp=',sinalp_c
-print,'fl=',fl_c
-print,'y0=',y0_c
-print,'z0=',z0_c
+logo_nres2,rutname,'INFO',{sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c}
+;print,'sinalp=',sinalp_c
+;print,'fl=',fl_c
+;print,'y0=',y0_c
+;print,'z0=',z0_c
 dd0=0.
 a0=0.
 x0=0.

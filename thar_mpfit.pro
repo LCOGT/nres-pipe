@@ -220,7 +220,7 @@ niter_c=niter_c+1
 dlam2_c=total(matchdif_c^2)/(nmatch_c > 1)
 chi2=total((matchdif_c/matcherr_c)^2)/(nmatch_c > 1)
 
-print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c)
+;print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c)
 if(nmatch_c le 0) then begin
   ierr=1
   logo_nres2,rutname,'ERROR','FATAL ierr=1: No line matches found.'

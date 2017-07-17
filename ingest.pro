@@ -30,7 +30,7 @@ logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
 filename=nresrawdat+strtrim(filin,2)
 dat=readfits(filename,dathdr)
-type=strtrim(sxpar(dathdr,'OBSTYPE'),2)
+type=strupcase(strtrim(sxpar(dathdr,'OBSTYPE'),2))
 extn=sxpar(dathdr,'EXTEND')
 dat0=dat
 
@@ -65,8 +65,9 @@ trimoscan
 
 ; allow 'SPECTRUM' and 'EXPERIMENTAL' and 'ARC' for testing
 if((type ne 'TARGET') and (type ne 'DARK') and (type ne 'FLAT') and $
-   (type ne 'BIAS') and (type ne 'DOUBLE') and (type ne 'SPECTRUM')) $
-   and (type ne 'EXPERIMENTAL') then begin
+   (type ne 'BIAS') and (type ne 'DOUBLE') and (type ne 'SPECTRUM') $
+   and (type ne 'EXPERIMENTAL') and (type ne 'LAMPFLAT') and $
+   (type ne 'ARC')) then begin
   ierr=1
   goto,fini
 endif
@@ -120,7 +121,7 @@ fxbclose,iun
 expmdat={nt_expm:nt_expm,jd_expm:jd_expm,fib0c:fib0c,fib1c:fib1c,fib2c:fib2c,$
         flg_expm:flg_expm}
 
-print,'reading AGU1'
+if(verbose) then print,'reading AGU1'
 fxbopen,iun,filename,2,agu1hdr                      ; AGU #1
 nt_agu1=sxpar(agu1hdr,'NAXIS2')
 filter_agu1=sxpar(agu1hdr,'FILTER')
@@ -142,18 +143,18 @@ endif else begin
   skyv_agu1=[0.]
   crval1_agu1=[0.d0]
   crval2_agu1=[0.d0]
-  cd_1_1_agu1=[0.]
-  cd_1_2_agu1=[0.]
-  cd_2_1_agu1=[0.]
-  cd_2_2_agu1=[0.]
+  cd1_1_agu1=[0.]
+  cd1_2_agu1=[0.]
+  cd2_1_agu1=[0.]
+  cd2_2_agu1=[0.]
 endelse
 fxbclose,iun
 agu1dat={nt_agu:nt_agu1,fname_agu:fname_agu1,jd_agu:jd_agu1,$
       nsrc_agu:nsrc_agu1,skyv_agu:skyv_agu1,crval1_agu:crval1_agu1,$
-      crval2_agu:crval2_agu1,cd_1_1_agu:cd_1_1_agu1,cd1_2_agu:cd_1_2_agu1,$
-      cd_2_1_agu:cd_2_1_agu1,cd_2_2_agu:cd_2_2_agu1,filter:filter_agu1}
+      crval2_agu:crval2_agu1,cd1_1_agu:cd1_1_agu1,cd1_2_agu:cd1_2_agu1,$
+      cd2_1_agu:cd2_1_agu1,cd2_2_agu:cd2_2_agu1,filter:filter_agu1}
 
-print,'reading AGU2'
+if(verbose) then print,'reading AGU2'
 fxbopen,iun,filename,3,agu2hdr                ; AGU #2
 nt_agu2=sxpar(agu2hdr,'NAXIS2')
 filter_agu2=sxpar(agu2hdr,'FILTER')
@@ -164,10 +165,10 @@ if(nt_agu2 gt 0) then begin
   fxbread,iun,skyv_agu2,'SKYVAL'
   fxbread,iun,crval1_agu2,'CRVAL1'
   fxbread,iun,crval2_agu2,'CRVAL2'
-  fxbread,iun,cd_1_1_agu2,'CD1_1'
-  fxbread,iun,cd_1_2_agu2,'CD1_2'
-  fxbread,iun,cd_2_1_agu2,'CD2_1'
-  fxbread,iun,cd_2_2_agu2,'CD2_2'
+  fxbread,iun,cd1_1_agu2,'CD1_1'
+  fxbread,iun,cd1_2_agu2,'CD1_2'
+  fxbread,iun,cd2_1_agu2,'CD2_1'
+  fxbread,iun,cd2_2_agu2,'CD2_2'
 endif else begin
   fname_agu2=['']
   jd_agu2=[0.d0]
@@ -175,18 +176,18 @@ endif else begin
   skyv_agu2=[0.]
   crval1_agu2=[0.d0]
   crval2_agu2=[0.d0]
-  cd_1_1_agu2=[0.]
-  cd_1_2_agu2=[0.]
-  cd_2_1_agu2=[0.]
-  cd_2_2_agu2=[0.]
+  cd1_1_agu2=[0.]
+  cd1_2_agu2=[0.]
+  cd2_1_agu2=[0.]
+  cd2_2_agu2=[0.]
 endelse
 fxbclose,iun
 agu2dat={nt_agu:nt_agu2,fname_agu:fname_agu2,jd_agu:jd_agu2,$
       nsrc_agu:nsrc_agu2,skyv_agu:skyv_agu2,crval1_agu:crval1_agu2,$
-      crval2_agu:crval2_agu2,cd_1_1_agu:cd_1_1_agu2,cd_1_2_agu:cd_1_2_agu2,$
-      cd_2_1_agu:cd_2_1_agu2,cd_2_2_agu:cd_2_2_agu2,filter:filter_agu2}
+      crval2_agu:crval2_agu2,cd1_1_agu:cd1_1_agu2,cd1_2_agu:cd1_2_agu2,$
+      cd2_1_agu:cd2_1_agu2,cd2_2_agu:cd2_2_agu2,filter:filter_agu2}
 
-print,'reading telescope1'
+if(verbose) then print,'reading telescope1'
 tel1arr=readfits(filename,tel1hdr,exten=4)                ; telescope 1
 long1=sxpar(tel1hdr,'LONGITUD')
 lat1=sxpar(tel1hdr,'LATITUDE')
@@ -201,7 +202,7 @@ object1=sxpar(tel1hdr,'OBJECT')
 tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
       ra:ra1,dec:dec1,ras:ra1s,decs:dec1s,object:object1}
 
-print,'reading telescope2'
+if(verbose) then print,'reading telescope2'
 tel2arr=readfits(filename,tel2hdr,exten=5)                ; telescope 2
 long2=sxpar(tel2hdr,'LONGITUD')
 lat2=sxpar(tel2hdr,'LATITUDE')

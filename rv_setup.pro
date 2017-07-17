@@ -8,6 +8,7 @@ pro rv_setup,ierr
 @nres_comm
 
 ; constants
+rutname='rv_setup'
 null=-99.9
 nresroot=getenv('NRESROOT')
 zeroroot=nresrooti+'reduced/'
@@ -52,12 +53,12 @@ talt=[tel1dat.height,tel2dat.height]
 ; has the target, and connects to fiber 2 (hence targnames(1), targra(1), etc) 
 if(nfib eq 2) then begin
   if(objects(0) ne 'THAR') then begin
-    print,'FATAL ERROR:  in radial_velocity with nfib=2, fiber 0 must be ThAr'
+    logo_nres2,rutname,'CRITICAL','With nfib=2, fiber 0 must be ThAr'
     ierr=1
     goto,fini
   endif
   if(objects(1) eq 'NONE' or objects(1) eq 'THAR') then begin
-    print,'FATAL ERROR:  in radial_velocity with nfib=2, fiber 1 must be target'
+    logo_nres2,rutname,'CRITICAL','with nfib=2, fiber 1 must be target'
     ierr=1
     goto,fini
   endif
@@ -88,16 +89,16 @@ endif
 if(nfib eq 3) then begin
   if((objects(1) ne 'THAR') or $
      (objects(0) eq 'NONE' and objects(2) eq 'NONE')) then begin
-    print,'FATAL ERROR:  in radial_velocity, fiber 1 must be ThAr'
-    print,'              and one of fibers 0,2 must not be NONE'
+    logo_nres2,rutname,'CRITICAL','fiber 1 must be ThAr'+$
+      '  and one of fibers 0,2 must not be NONE'
     ierr=1
     goto,fini
   endif
 
   if(objects(0) ne 'NONE') then begin
     targnames(0)=strcompress(strupcase(objects(0)),/remove_all)
-    targra(0)=tel2dat.ra
-    targdec(0)=tel2dat.dec 
+    targra(0)=tel1dat.ra
+    targdec(0)=tel1dat.dec 
     targ0struc=get_targ_props(targnames(0),targra(0),targdec(0))
     if(targra(0) eq 0.d0 and targdec(0) eq 0.d0) then coosrc(0)=0 else $
       coosrc(0)=1

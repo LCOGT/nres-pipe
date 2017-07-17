@@ -18,6 +18,7 @@ ierr=0
 mgbordsedge=20               ; order containing Mg b lines for SQA
 mgbordnres=38                ; order containing Mg b lines for NRES SGs
 c=299792.458d0               ; light speed in km/s
+rutname='radial_velocity'
 
 ; Call rv_setup to
 ; get data for fibers 0 & 2. Analyze them only if targnames not 'NULL'
@@ -137,7 +138,8 @@ for i=0,1 do begin
 ;                       ; wavelengths onto observed target wavelengths  
 ;     zdatnew(*,j)=interpol(zspec(*,j,i),zlam(*,j,i),slamj,/lsquadratic)
 
-      zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
+;     zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
+      zlamj=zlam(*,j,i)*(1.d0+rcc)      ; compensate for redshift estimated
                                         ; by mgbcc.
 ;     ZERO data interpolated from its rest frame to moving frame, star image
 ;     lambda grid.
@@ -164,8 +166,8 @@ for i=0,1 do begin
         dbstdv=stddev(dblock)
         quartile,dblock,dbmed,q,dq
         zbmean=mean(zblock)
-        if(dbmean le 0. or zbmean le 0. or dbstdv gt abs(dbmean) or $
-                  dbmed lt 3.*dq) then begin
+; these tests give bogus answers for BLAZ data.
+        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0.) then begin 
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
 ;         if(j eq 34) then stop

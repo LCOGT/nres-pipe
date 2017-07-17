@@ -34,7 +34,6 @@ jbot=long(nord*skiplo+1)
 jtop=long(nord*skiphi)
 ngord=jtop-jbot+1
 
-
 ; make a map of good and bad pixels
 igood=intarr(nx,nord,ns)+1
 igood(*,0:jbot-1,*)=0
@@ -55,24 +54,35 @@ endfor
 
 ; fit a linear function of order number to the points that are left
 iord0=findgen(nord)-nord/2.
-delygr=reform(delyg,nx*nord)
+delygr=reform(delyg,nx*nord,ns)
 iord=rebin(reform(iord0,1,nord),nx,nord)
 funs=fltarr(nx*nord,2)
 funs(*,0)=1.
 funs(*,1)=reform(iord,nx*nord)
-wts=reform(igood,nx*nord)
-cc0=lstsqr(delygr,funs,wts,2,rms0,chisq0,resid0,1,cov0)
+twts=fltarr(ns)                   ; total of wts per fiber
+cco=fltarr(2,ns)
+nsgt=0
+for i=0,ns-1 do begin
+  wts=reform(igood(*,*,i),nx*nord)
+  cc0=lstsqr(delygr(*,i),funs,wts,2,rms0,chisq0,resid0,1,cov0)
 ; sigma clip outliers at 4*pseudo-gaussian sigma
-sg=where(wts gt 0.,nsg)
-if(nsg gt 5) then begin
-  quartile,resid0(sg),medr,q,dq
-  sig=dq/1.35
-endif else goto,bail
-sb=where(wts eq 0. or abs(resid0) ge 5.*sig,nsb)
-wts(sb)=0.
-cc=lstsqr(delygr,funs,wts,2,rms,chisq,resid,1,cov)
+  sg=where(wts gt 0.,nsg)
+  nsgt=nsgt+nsg
+  if(nsg gt 5) then begin
+    quartile,resid0(sg),medr,q,dq
+    sig=dq/1.35
+  endif else goto,bail
+  sb=where(wts eq 0. or abs(resid0) ge 5.*sig,nsb)
+  wts(sb)=0.
+  twts(i)=total(wts)
+  cc=lstsqr(delygr(*,i),funs,wts,2,rms,chisq,resid,1,cov)
+  cco(*,i)=cc
+endfor
 
-if(nsg gt 100) then dym=cc(0)+cc(1)*iord0 else goto,bail
+wtsa=rebin(reform(twts,1,ns),2,ns)
+prod=cco*wtsa
+cca=rebin(prod,2,1)/rebin(wtsa,2,1)
+if(nsgt gt 100*ns) then dym=cca(0)+cca(1)*iord0 else goto,bail
 return,dym    
 
 ; 

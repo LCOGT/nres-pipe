@@ -102,7 +102,8 @@ zstarhpt=zstarhp*ztap
 ; cross-correlate the high-passed, tapered spectra
 fstar=fft(starhpt,1)
 fzstar=fft(zstarhpt,1)
-fcc=conj(fstar)*fzstar
+;fcc=conj(fstar)*fzstar
+fcc=fstar*conj(fzstar)
 cc=fft(fcc,-1)
 norm=sqrt(total(starhpt^2))*sqrt(total(zstarhpt^2))
 cc=shift(float(cc),nbig/2)/norm
