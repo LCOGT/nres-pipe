@@ -1,4 +1,4 @@
-FROM docker.lcogt.net/miniconda3:4.0.5
+FROM docker.lcogt.net/miniconda3:4.3.21
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 
 RUN yum -y install epel-release && \
@@ -9,9 +9,9 @@ RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest m
 
 RUN mkdir -p /opt/idl/src && \
     curl -o /opt/idl/src/idl.tar.gz "http://packagerepo.lco.gtn/repos/idl/idl85envi53linux.x86_64.gz" && \
-    tar -xzf /opt/idl/src/idl.tar.gz -C /opt/idl/src/
+    tar -xzf /opt/idl/src/idl.tar.gz -C /opt/idl/src/ && \
+     /opt/idl/src/install.sh -s <<< $'y\n/opt/idl\ny\nn\ny\ny\ny\ny\ny\ny\ny\ny\nn' && rm -rf /opt/idl/src/idl.tar.gz
 
-RUN /opt/idl/src/install.sh -s <<< $'y\n/opt/idl\ny\nn\ny\ny\ny\ny\ny\ny\ny\ny\nn'
 RUN mkdir -p /opt/idl/xtra/astron && \
     curl -o /opt/idl/xtra/astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/astron.tar.gz" && \
     tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/ && rm -f /opt/idl/xtra/astron.tar.gz
