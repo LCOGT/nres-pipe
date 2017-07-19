@@ -101,6 +101,8 @@ if(ns0 le 0 or ns1 le 0) then begin
 endif
 target=strupcase(strcompress(objs(s0),/remove_all))
 target=target(0)
+ix=strpos(target,'_')
+if(ix gt 0) then target=strmid(target,0,ix)
 
 ; make output array, average file inputs into it
 zout=fltarr(nx,nord,2)

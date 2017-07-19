@@ -49,6 +49,10 @@ for i=0,mfib-1 do begin
     sb0r=where(flate(*,j,i) le flcutoff and indx gt nx/2,nsbr)
     if(nsbl gt 0) then ixl=max(indx(sb0l))+1 else ixl=0
     if(nsbr gt 0) then ixr=min(indx(sb0r))-1 else ixr=nx-1
+    if(ixl ge ixr) then begin     ; deal with pathological fringing in low orders
+      ixl=nx/4
+      ixr=3*nx/4
+    endif
     sg0=where(indx ge ixl and indx le ixr,nsg0)
     sgp=where(indx ge ixl and indx le ixr and lamwts eq 1,nsgp) ; pure sgood
     sb0=where(indx lt ixl or indx gt ixr,nsb0)
@@ -97,7 +101,6 @@ for i=0,mfib-1 do begin
 ; set ratio to local mean for bad lambda points
       corspect=fltarr(nx)
       corspect(sg0)=rawspec(sg0,j,i)/flate(sg0,j,i)
-    ;if(i eq 1 and j eq 8) then stop
       if(nsb gt 0) then fill_badblock,sb,corspect
       corspec(*,j,i)=corspect
       rmsspec(sg,j,i)=rmsspec(sg,j,i)/flate(sg,j,i)

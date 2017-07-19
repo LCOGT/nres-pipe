@@ -18,6 +18,7 @@ ierr=0
 mgbordsedge=20               ; order containing Mg b lines for SQA
 mgbordnres=38                ; order containing Mg b lines for NRES SGs
 c=299792.458d0               ; light speed in km/s
+rutname='radial_velocity'
 
 ; Call rv_setup to
 ; get data for fibers 0 & 2. Analyze them only if targnames not 'NULL'
@@ -51,23 +52,23 @@ zlam=rvindat.zlam                ; wavelength scale for star zero spectra
 sspec=fltarr(nx,nord,nfib-1)
 slam=dblarr(nx,nord,nfib-1)
 if(nfib eq 2) then begin
-  sspec(*,*,0)=corspec(*,*,1)
+  sspec(*,*,0)=blazspec(*,*,1)
   slam(*,*,0)=tharred.lam(*,*,1)
 endif
 if(nfib eq 3) then begin
   if(mfib eq 3) then begin       ; do this if all 3 fibers are illuminated
-    sspec(*,*,0)=corspec(*,*,0)
-    sspec(*,*,1)=corspec(*,*,2)
+    sspec(*,*,0)=blazspec(*,*,0)
+    sspec(*,*,1)=blazspec(*,*,2)
     slam(*,*,0)=tharred.lam(*,*,0)
     slam(*,*,1)=tharred.lam(*,*,2)
   endif
   if(mfib eq 2) then begin      ; do this if 3 fibers, but only 2 illuminated
     if(fib0 eq 0) then begin    ; implies fiber 2 is dark
-      sspec(*,*,0)=corspec(*,*,0)
+      sspec(*,*,0)=blazspec(*,*,0)
       slam(*,*,0)=tharred.lam(*,*,0)
     endif
     if(fib0 eq 1) then begin    ; implies fiber 0 is dark
-      sspec(*,*,1)=corspec(*,*,1)
+      sspec(*,*,1)=blazspec(*,*,1)
       slam(*,*,1)=tharred.lam(*,*,2)
     endif
   endif
@@ -137,7 +138,8 @@ for i=0,1 do begin
 ;                       ; wavelengths onto observed target wavelengths  
 ;     zdatnew(*,j)=interpol(zspec(*,j,i),zlam(*,j,i),slamj,/lsquadratic)
 
-      zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
+;     zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
+      zlamj=zlam(*,j,i)*(1.d0+rcc)      ; compensate for redshift estimated
                                         ; by mgbcc.
 ;     ZERO data interpolated from its rest frame to moving frame, star image
 ;     lambda grid.
@@ -164,8 +166,8 @@ for i=0,1 do begin
         dbstdv=stddev(dblock)
         quartile,dblock,dbmed,q,dq
         zbmean=mean(zblock)
-        if(dbmean le 0. or zbmean le 0. or dbstdv gt abs(dbmean) or $
-                  dbmed lt 3.*dq) then begin
+; these tests give bogus answers for BLAZ data.
+        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0.) then begin 
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
 ;         if(j eq 34) then stop

@@ -13,7 +13,7 @@ rutname='copy_dark'
 dark=float(dat)
 get_calib,'BIAS',biasfile,bias,biashdr     ; find bias via the default
                                   ; method, using site, camera, jdd from common
-logo_nres,rutname,'READ '+biasfile
+logo_nres2,rutname,'INFO','READ '+biasfile
 
 ; make a bias-subtracted dark
 dark=dark-bias                        ; both should be floats
@@ -34,14 +34,14 @@ sxaddpar,hdr,'EXPTIME',exptime
 darko='DARK'+datestrd+'.fits'
 darkout=nresrooti+darkdir+darko
 writefits,darkout,dark,hdr
-logo_nres,rutname,'WRITE '+darkout
+logo_nres2,rutname,'INFO','WRITE '+darkout
 stds_addline,'DARK','dark/'+darko,1,site,camera,jdd,'0000'
-logo_nres,rutname,'ADDLINE standards.csv'
+logo_nres2,rutname,'INFO','ADDLINE standards.csv'
 naxes=sxpar(dathdr,'NAXIS')
 nx=sxpar(dathdr,'NAXIS1')
 ny=sxpar(dathdr,'NAXIS2') 
 strax=string(naxes)+' '+string(nx)+' '+string(ny)
-logo_nres,rutname,'naxes, nx, ny = '+strax
+logo_nres2,rutname,'INFO','naxes, nx, ny = '+strax
 
 if(verbose ge 1) then begin
   print,'*** copy_dark ***'

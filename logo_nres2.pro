@@ -77,8 +77,7 @@ endif
 ; assemble the whole string
 ostring=datims+rutnames+levs+tagss
 
-;stop
-
+print,ostring
 printf,iuno,ostring
 
 close,iuno

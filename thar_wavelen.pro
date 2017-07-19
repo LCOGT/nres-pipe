@@ -87,8 +87,6 @@ for ifib=0,nsth-1 do begin
   thar_fitall,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
     oskip=oskip
 
-;stop
-
 ; put results into output arrays
   lam_all(*,*,fibindx)=lam_c
   sinalp_all(fibindx)=sinalp_c
@@ -260,7 +258,7 @@ tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr
 ;stds_addline,'THAR',tharo,1,site,camera,jdc,'0000'
 fxwrite,tharout,hdr,lam_all
-logo_nres,rutname,'WRITE '+tharout
+logo_nres2,rutname,'INFO','WRITE '+tharout
 
 fxbhmake,hdr,nfib          ; make an extension header for nrow table
 dum=dblarr(nfib)             ; dummy data array with length of columns
@@ -337,7 +335,7 @@ fxbfinish,unit
 ;stop
 
 fini:
-logo_nres,rutname,'finished'
+logo_nres2,rutname,'INFO','finished'
 if(verbose ge 1) then begin
   print,'*** thar_wavelen ***'
   print,'File In = ',filin0

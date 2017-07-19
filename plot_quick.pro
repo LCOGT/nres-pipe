@@ -54,6 +54,8 @@ targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
 coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
+propid=sxpar(dathdr,'PROPID')
+origname=strtrim(sxpar(dathdr,'ORIGNAME'),2)
 
 ; get the flat data
 flat=flatdat.flat
@@ -71,7 +73,7 @@ for i=0,1 do begin
            string(ras(1),format='(i2.2,":")') + $
            string(ras(2),format='(f5.2)')
   decs=sixty(targdec(i))
-  if(targdec(i) ge 0) then sgn='+' else sgn='-'
+  if(targdec(i) ge 0) then sgn='+' else sgn=''
   decstr(i)=sgn+string(decs(0),format='(i3.2,":")') + $
                 string(decs(1),format='(i2.2,":")') + $
                 string(decs(2),format='(f4.1)')
@@ -129,6 +131,11 @@ for i=0,nplot-1 do begin
   pltspec=corspec(*,*,ist)   ; flat-fielded
   pltblaz=blazspec(*,*,ist)  ; blaze-subtracted
   pltextr=extrspec(*,*,ist)  ; extracted with no further processing
+; smooth these 3 with 5-pix-wide pseudo-gaussian to suppress high-freq noise.
+  pseugau,pltspec
+  pseugau,pltblaz
+  pseugau,pltextr
+; don't smooth this one, because it may have real 1-pix structure
   pltflat=flat(*,*,ist)      ; flat field for desired fiber
 
   get_plotdat,lam,pltblaz,[513.3,523.5],iord0,lam0,plt0          ; Mg b order
@@ -140,6 +147,7 @@ for i=0,nplot-1 do begin
   get_plotdat,lam,pltspec,[513.3,523.5],iord8,lam8,plt8            ; more Mg b
 
 ; get wavelengths and fluxes for the corresponding ZERO file
+; zero spectra are already smoothed.
   zstar=rvindat.zstar(*,*,ip2)
   zlam=rvindat.zlam(*,*,ip2)
   get_plotdat,zlam,zstar,[513.3,523.5],iord0z,lam0z,plt0z ; Mg b zero
@@ -160,7 +168,7 @@ if(nx_c gt 4000) then ppre=ppr(0) else ppre=ppr(1)     ; NRES vs Sedgwick
 if(nx_c gt 4000) then gg=gai(0) else gg=gai(1)         ;     ditto
 sigtyp=ptile(plt8,95)*gg*ppre        ; e- in one resolution element for
                                      ; typical bright pixels (95th percentile)
-snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
+snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
 
 ; make the title string
   version='1.1'      ; ###bogus###
@@ -192,12 +200,13 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
 ; lots of xyouts stuff here
   xbot=xran(0)+(xran(1)-xran(0))*0.05
   xtop=xran(1)-(xran(1)-xran(0))*0.15
-  ybot=yran(0)+(pran*.06)*(findgen(4)+0.3)
+  ybot=yran(0)+(pran*.06)*(findgen(5)+0.3)
 
-  xyouts,xbot,ybot(0),'Program = unknown',charsiz=cs1              ; font?
-  xyouts,xbot,ybot(1),'N_COMB = unknown',charsiz=cs1
+  xyouts,xbot,ybot(0),'PropID = '+propid,charsiz=cs1              ; font?
+  xyouts,xbot,ybot(1),'N_COMB = 1',charsiz=cs1
   xyouts,xbot,ybot(2),'DEC = '+decstr(ip2),charsiz=cs1
   xyouts,xbot,ybot(3),'RA  = '+rastr(ip2),charsiz=cs1
+  xyouts,xbot,ybot(4),'FileIn = '+origname,charsiz=cs1
   xyouts,xtop,ybot(0),'Vrot = unknown',charsiz=cs1
   xyouts,xtop,ybot(1),'[m/H] = unknown',charsiz=cs1
   xyouts,xtop,ybot(2),'Log g = '+loggstr(ip2),charsiz=cs1
@@ -213,7 +222,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
     xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],[yran],color=blue
-  oplot,[rvvo(i),rvvo(i)],yran,color=green
+  oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
      charsiz=cs1
@@ -225,7 +234,7 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
     xran=xran,yran=yran,charsiz=cs2,/nodata
   oplot,x1,plt1,color=black
   oplot,[0.,0.],yran,color=blue
-  oplot,[rvvo(i),rvvo(i)],yran,color=green
+  oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
   xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
      charsiz=cs1
@@ -252,26 +261,26 @@ snr=sigtyp/sqrt(sigtyp + 100.)       ; assume 10 e- read noise
   yspan=[ptile(plt4(ny4/3:2*ny4/3)/1.e3,98),1.35*ptile(plt4(ny4/3:2*ny4/3)/1.e3,98)]
   plot,lam4,plt4/1.e3,tit=titls(3),xtit=xtits(0),ytit=ytits(2),yran=yran,$
      /xsty,/ysty,charsiz=cs0
-  oplot,10.*[lamplot(0),lamplot(0)],yspan,color=blue
+  oplot,10.*[lamplot(0),lamplot(0)],yran,color=blue,thick=2
 
   yran=[0.,1.20*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
   yspan=[ptile(plt5(ny5/3:2*ny5/3)/1.e3,98),1.35*ptile(plt5(ny5/3:2*ny5/3)/1.e3,98)]
   plot,lam5,plt5/1.e3,tit=titls(4),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
-  oplot,10.*[lamplot(1),lamplot(1)],yspan,color=blue
+  oplot,10.*[lamplot(1),lamplot(1)],yran,color=blue,thick=2
 
   yran=[0.,1.20*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
   yspan=[ptile(plt6(ny6/3:2*ny6/3)/1.e3,98),1.35*ptile(plt6(ny6/3:2*ny6/3)/1.e3,98)]
   plot,lam6,plt6/1.e3,tit=titls(5),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
-  oplot,10.*[lamplot(2),lamplot(2)],yspan,color=blue
+  oplot,10.*[lamplot(2),lamplot(2)],yran,color=blue,thick=2
 
   yran=[0.,1.20*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
   yspan=[ptile(plt7(ny7/3:2*ny7/3)/1.e3,98),1.35*ptile(plt7(ny7/3:2*ny7/3)/1.e3,98)]
   plot,lam7,plt7/1.e3,tit=titls(6),xtit=xtits(0),ytit=ytits(2),/xsty,/ysty,$
      yran=yran,charsiz=cs0
-  oplot,10.*[lamplot(3),lamplot(3)],yspan,color=blue
-  oplot,10.*[lamplot(4),lamplot(4)],yspan,color=blue
+  oplot,10.*[lamplot(3),lamplot(3)],yran,color=blue,thick=2
+  oplot,10.*[lamplot(4),lamplot(4)],yran,color=blue,thick=2
 
 ; last page
   yran=[0.,1.20*ptile(plt3(ny3/3:2*ny3/3)/1.e3,98)]

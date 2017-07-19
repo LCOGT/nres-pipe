@@ -8,6 +8,8 @@ pro expmeter
 ;   flux-weighted mean time of each fiber exposure
 ;   total accumulated counts for each fiber
 ;   relative rms variation of intensity from each fiber
+; Before exit, writes a FITS file containing the expfwt, expcnt, exprms
+; statistics for each fiber into the expm directory.
 ;      
 
 @nres_comm
@@ -36,5 +38,11 @@ endif
 expmred={expetime:expetime,expfwt:expfwt,expcnt:expcnt,exprms:exprms}
 
 print,'Finished expmeter.pro'
+
+dato=[expfwt,expcnt,exprms]
+mkhdr,hdr,dato
+sxaddpar,hdr,'NFIB',nfib
+filout=nresrooti+expmdir+'EXPM'+datestrd+'.fits'
+writefits,filout,dato,hdr
 
 end

@@ -18,6 +18,7 @@ outdir=nresrooti+'reduced/thar/'
 infile=filin
 outfile=outdir+filout
 ierr_c=0                             ; clear errors in common before starting
+rutname='thar_fitoff'
 
 ; read the input file
 corspec=readfits(infile,hdr)

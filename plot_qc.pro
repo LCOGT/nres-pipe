@@ -51,6 +51,7 @@ objcts=sxpar(dathdr,'OBJECTS')
 objects=strupcase(strtrim(get_words(objcts,nobj,delim='&'),2))
 nx=nx_c
 nord=nord_c
+origname=strtrim(sxpar(dathdr,'ORIGNAME'),2)
 
 ; which fiber are we plotting?  If two, loop over them
 ; iplot0 is the first fiber index to plot, one of {0,2}
@@ -116,10 +117,11 @@ for i=0,nplot-1 do begin
   yran=[0.8*(yrmin > 0.),1.05*yrmax]
   xtit='Wavelength (nm)'
   ytit='Summed Inten (kADU)'
-  tit=object+' '+datestrd+'_'+fibs
+  tit=object+'   '+datestrd+'_'+fibs+'    FileIn = '+origname
 
-  spec=echdat.spectrum(xbot:xtop,stord,ifib)
-  plot,lambda,spec/1e3,xran=xran,yran=yran,tit=tit,/xsty,/ysty,ytit=ytit,$
+  pspec=echdat.spectrum
+  pseugau,pspec
+  plot,lambda,pspec/1e3,xran=xran,yran=yran,tit=tit,/xsty,/ysty,ytit=ytit,$
       charsiz=cs2,thick=2
   xyouts,0.95*xran(0)+0.05*xran(1),0.9*yran(0)+0.1*yran(1),'Order='+$
       strtrim(string(stord),2),charsiz=cs1
@@ -158,9 +160,8 @@ for i=0,nplot-1 do begin
      tit=tit,charsiz=cs2,thick=2
   xyouts,3,0.1*yran(1),nelecs,charsiz=cs1
 
-;stop
-  yran=[0.,1.05*max(hwid)]
-  plot,ordindx,hwid,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
+  yran=[0.,1.05*max(hwidx2)]
+  plot,ordindx,hwidx2,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit1,$
      tit=tit,charsiz=cs2,thick=2
 
   yran=[floor(min(meddy)),ceil(max(meddy))]
@@ -225,8 +226,10 @@ for i=0,nplot-1 do begin
     le xra(1,1)+.2,ns0)
   s1=where(lam(*,ordrs(2)) ge (xra(0,2)-.2) and lam(*,ordrs(2)) $
     le xra(1,3)+.2,ns1)
-  pdat0=blazspec(s0,ordrs(0),ist)/1.e3
-  pdat1=blazspec(s1,ordrs(2),ist)/1.e3
+  tspec=blazspec(*,*,ist)
+  pseugau,tspec
+  pdat0=tspec(s0,ordrs(0),ist)/1.e3
+  pdat1=tspec(s1,ordrs(2),ist)/1.e3
   plam0=lam(s0,ordrs(0))
   plam1=lam(s1,ordrs(2))
   ran0=[max(pdat0)-min(pdat0),max(pdat1)-min(pdat1)]

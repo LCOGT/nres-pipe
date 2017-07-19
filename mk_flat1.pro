@@ -24,7 +24,7 @@ nord=specdat.nord
 nfib=specdat.nfib
 flat=fltarr(nx,nord,nfib)
 parmstr=string(nx)+' '+string(nord)+' '+string(nfib)+' '+string(fib0)
-logo_nres,rutname,'inparms = '+parmstr
+logo_nres2,rutname,'INFO','inparms = '+parmstr
 
 ; set to zero all points where flat le flatmin or where S/N le snmin
 sg=where((rmsspec le 1.e4) and (rmsspec gt 0.),nsg)
@@ -84,7 +84,7 @@ objects=sxpar(dathdr,'OBJECTS')
 sxaddpar,hdr,'OBJECTS',objects
 specout=nresrooti+'/'+flatdir+speco
 writefits,filout,flat,hdr
-logo_nres,rutname,'WRITE '+filout
+logo_nres2,rutname,'INFO','WRITE '+filout
 
 ; add line to standards.csv
 ; use 3rd flag character to show which fibers are active:
@@ -93,6 +93,6 @@ cflg='0000'
 if(fib0 eq 0) then cflg='0010'
 if(fib0 eq 1) then cflg='0020' 
 stds_addline,'FLAT','flat/'+fout,1,strtrim(site,2),strtrim(camera,2),jdd,cflg
-logo_nres,rutname,'ADDLINE standards.csv'
+logo_nres2,rutname,'INFO','ADDLINE standards.csv'
 
 end

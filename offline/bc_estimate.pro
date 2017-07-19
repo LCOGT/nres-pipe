@@ -32,7 +32,8 @@ yy=sin(ra)*cos(dec)
 zz=sin(dec)
 
 ; projected velocity away from target (time series)
-tsv=-(xx*vx + yy*vy + zz*vz)
+stop
+tsv=-(xx*vx + yy*vy - zz*vz)
 
 ; find value for given JD by interpolation
 bc=interpol(tsv,tt,jd)

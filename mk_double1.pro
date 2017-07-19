@@ -26,7 +26,7 @@ if(nwd eq 2) then begin
   if(words(0) eq 'THAR' and words(1) eq 'THAR') then begin
     flag='0010'
   endif else begin
-    logo_nres,rutname,'FATAL Bad data type '+objects
+    logo_nres2,rutname,'ERROR','FATAL Bad data type '+objects
     if(verbose) then begin
       print,'Error in data type in mk_double1
     endif
@@ -43,7 +43,7 @@ endif
 
 ; add a line to standards.csv
 stds_addline,type,fname,navg,site,camera,jdate,flag
-logo_nres,rutname,'ADDLINE standards.csv'
+logo_nres2,rutname,'INFO','ADDLINE standards.csv'
 
 fini:
 end

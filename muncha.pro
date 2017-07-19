@@ -59,12 +59,12 @@ pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 @nres_comm
 
 ; constants
-verbose=1                         ; 0=print nothing; 1=dataflow tracking
+verbose=0                         ; 0=print nothing; 1=dataflow tracking
 rutname='muncha'
 
 ; record start in logfile
 logstr='input filename = '+strtrim(filin,2)
-logo_nres,rutname,logstr
+logo_nres2,rutname,'INFO',logstr
 
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
@@ -93,20 +93,25 @@ filin0=filin
 ingest,filin,err
 if(err) then begin
   logstr='Invalid input data in ingest.  Err = '+string(err,format='(i2)')
-  logo_nres,rutname,logstr
+  logo_nres2,rutname,'INFO',logstr
   goto,fini
 endif
 
 ; branch on type of input data
 if(verbose) then print,'OBSTYPE = ',type
-logo_nres,rutname,' OBSTYPE = '+type
-case type of
+logo_nres2,rutname,'INFO',' OBSTYPE = '+type
+case 1 of
 
 ; one or two stars plus ThAr.  Routines write out metadata files as they go
-; 'EXPERIMENTAL': begin         ; temporary, to deal with Rob's test file
-  'TARGET': begin
-  logo_nres,rutname,'###TARGET block'
+; (type eq 'EXPERIMENTAL'): begin         ; temporary, to deal with Rob's test file
+  (type eq 'TARGET'): begin
+  logo_nres2,rutname,'INFO','###TARGET block'
   if(verbose) then print,'###TARGET block'
+; test for TARGET image with invalid OBJECTS keyword
+  if(objects eq 'none&none&none') then begin
+    logo_nres2,rutname,'ERROR','TARGET with objects=none&none&none'
+    break
+  endif
   calib_extract,flatk=0
   autoguider
   expmeter
@@ -121,22 +126,22 @@ case type of
   end
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv
-  'BIAS': begin
-  logo_nres,rutname,'###BIAS block'
+  (type eq 'BIAS'): begin
+  logo_nres2,rutname,'INFO','###BIAS block'
   if(verbose) then print,'###BIAS block'
   copy_bias
   end
 
 ; a dark image.  Make copy in reduced/dark dir, add entry to csv/standards.csv
-  'DARK': begin
-  logo_nres,rutname,'###DARK block'
+  (type eq 'DARK'): begin
+  logo_nres2,rutname,'INFO','###DARK block'
   if(verbose) then print,'###DARK block'
   copy_dark
   end
 
 ; a flat image
-  'FLAT': begin
-  logo_nres,rutname,'###FLAT block'
+  (type eq 'FLAT' or type eq 'LAMPFLAT'): begin
+  logo_nres2,rutname,'INFO','###FLAT block'
   if(verbose) then print,'###FLAT block'
   calib_extract,flatk=flatk
   if(keyword_set(flatk)) then begin
@@ -145,8 +150,8 @@ case type of
   end
 
 ; a DOUBLE image
-  'DOUBLE': begin
-  logo_nres,rutname,'###DOUBLE block'
+  (type eq 'DOUBLE' or type eq 'ARC'): begin
+  logo_nres2,rutname,'INFO','###DOUBLE block'
   if(verbose) then print,'###DOUBLE block'
   calib_extract,/dble
   mk_double1,ierr      ; saves pointer to output file in standards.csv file.
@@ -154,8 +159,8 @@ case type of
 
 ; bad input
   else: begin
-    logo_nres,rutname,'FATAL  Invalid data file TYPE keyword'
-    if(verbose) then print,'Invalid data file.  Type must be TARGET, BIAS, DARK, FLAT, or DOUBLE.'
+    logo_nres2,rutname,'ERROR','FATAL  Invalid data file TYPE keyword'
+    if(verbose) then print,'Invalid data file.  Type must be TARGET, BIAS, DARK, (FLAT or LAMPFLAT), or (DOUBLE or ARC).'
   end
 endcase
 

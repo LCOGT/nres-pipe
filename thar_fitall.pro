@@ -33,7 +33,7 @@ ierr=0
 thar_setup,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
 ;if(ierr_c ne 0) then stop
 if(ierr_c ne 0) then begin
-  logo_nres,rutname,'FATAL ierr='+string(ierr)+' from thar_setup'
+  logo_nres2,rutname,'ERROR','FATAL ierr='+string(ierr)+' from thar_setup'
   goto,fini
 endif
 site_c=sgsite
@@ -59,7 +59,7 @@ iy0=dblarr(nmax)
 iz0=dblarr(nmax)
 ifun=dblarr(nmax)
 if(ierr_c ne 0) then begin
-  logo_nres,rutname,'FATAL err=1'
+  logo_nres2,rutname,'ERROR','FATAL err=1'
   goto,fini
 endif
 
@@ -98,6 +98,9 @@ if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
   endif
 endif
 
+logo_nres2,rutname,'INFO',{state:'after mpfit',nmatch:nmatch_c,$
+     scatter:sqrt(dlam2_c)}
+
 ; update the model parameters in common
 sinalp_c=sinalp_c+vals(0)
 grinc_c=radian*asin(sinalp_c)
@@ -106,9 +109,11 @@ y0_c=y0_c+vals(2)
 z0_c=z0_c+vals(3)
 
 ; do weighted least-squares solution to restricted cubic functions of order
-; to minimize residuals.  Skip this in nmatch_c is too small
+; to minimize residuals.  Skip this if nmatch_c is too small
 if(nmatch_c ge minmatch) then begin
   thar_rcubic,cubfrz=cubfrz
+  logo_nres2,rutname,'INFO',{state:'after rcubic',nmatch:nmatch_c,$
+     scatter:sqrt(dlam2_c)}
 endif else begin
   rms_c=0.
   lammid_c=0.

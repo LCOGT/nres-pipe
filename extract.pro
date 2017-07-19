@@ -98,7 +98,7 @@ sobjg=where(objs ne 'NONE',nobjg)-fib0    ; indices of extractable fibers
 sbrite=where(objs ne 'THAR' and objs ne 'NONE',nsbr)
 ebrite=nx*cowid*nord*reform(rebin(ebox,1,1,1,mfib),mfib)
 if(mfib ne nobjg) then begin
-  logo_nres,rutname,'FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
+  logo_nres2,rutname,'ERROR','FATAL mfib='+string(mfib)+' not equal nobjg='+string(nobjg)
   ierr=1
   goto,fini
 endif
@@ -162,7 +162,9 @@ for ifib=0,mfib-1 do begin
   if(shiftme eq 1 and ifib eq 0) then begin
     dymed=dymedian(mom0,mom1,cct)
     if(abs(median(dymed)) gt 0.1) then begin
-      print,'median(dymed)=',median(dymed),'    Shifting...'
+      logo_nres2,rutname,'INFO','median(dymed)=  '+string(median(dymed),$
+         format='(f6.3)')+'  Shifting...'
+;     print,'median(dymed)=',median(dymed),'    Shifting...'
       dymed0=dymed0+dymed
       dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
 ;     uu=mom1(1950:2150,*)
