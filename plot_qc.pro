@@ -119,8 +119,9 @@ for i=0,nplot-1 do begin
   ytit='Summed Inten (kADU)'
   tit=object+'   '+datestrd+'_'+fibs+'    FileIn = '+origname
 
-  pspec=echdat.spectrum
+  pspec=echdat.spectrum(*,*,ifib)
   pseugau,pspec
+  pspec=pspec(xbot:xtop,stord)
   plot,lambda,pspec/1e3,xran=xran,yran=yran,tit=tit,/xsty,/ysty,ytit=ytit,$
       charsiz=cs2,thick=2
   xyouts,0.95*xran(0)+0.05*xran(1),0.9*yran(0)+0.1*yran(1),'Order='+$
@@ -228,8 +229,8 @@ for i=0,nplot-1 do begin
     le xra(1,3)+.2,ns1)
   tspec=blazspec(*,*,ist)
   pseugau,tspec
-  pdat0=tspec(s0,ordrs(0),ist)/1.e3
-  pdat1=tspec(s1,ordrs(2),ist)/1.e3
+  pdat0=tspec(s0,ordrs(0))/1.e3
+  pdat1=tspec(s1,ordrs(2))/1.e3
   plam0=lam(s0,ordrs(0))
   plam1=lam(s1,ordrs(2))
   ran0=[max(pdat0)-min(pdat0),max(pdat1)-min(pdat1)]

@@ -126,8 +126,8 @@ for i=0,1 do begin
     widcco(i)=widcc
     bjdo(i)=sxpar(dathdr,'MJD-OBS')+2400000.5d0
     ccmo(i,*)=ccm
-    delvo(i,*)=delv
-    rvvo(i)=rvv
+    delvo(i,*)=delv         ; x-coord vector for ccmo, in km/s
+    rvvo(i)=rvv             ; shift of cross-correl peak, in km/s (no BC corr)
 
     zdatnew=fltarr(nx,nord)
 

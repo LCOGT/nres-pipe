@@ -1,4 +1,4 @@
-pro trace_refine,tracein,flatin1,flatin2,nleg=nleg
+pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely
 ; This routine accepts the name of a trace file found in tracedir,
 ; and uses it to extract profiles for all orders and fibers from the
 ; input files flatin1 and, optionally, flatin2.
@@ -22,6 +22,9 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg
 ; If keyword nleg is set, its value becomes the new number of legendre
 ; polynomials used to describe the order positions.  If not, the value
 ; in the input trace file is used.
+; If keyword dely is set, the input trace file is modified to shift the
+; orders upwards (to larger y) by an amount equal to dely pixels.
+; This shift is independent of x, order number, and fiber.
 
 @nres_comm
 
@@ -69,6 +72,9 @@ fib0=sxpar(tracehdr,'FIB0')
 fib1=sxpar(tracehdr,'FIB1')
 
 trace=reform(tracea(0:npoly-1,*,*,0))
+
+if(keyword_set(dely)) then trace(0,*,*)=trace(0,*,*)+dely
+
 prof=tracea(0:cowid-1,*,*,1:*)
 
 ;if(nfib ne (ninfil+1)) then begin
@@ -86,6 +92,11 @@ endelse
 ; read the input image file(s) main data segment
 imagein1=getenv('NRESRAWDAT')+flatin1
 dat1=readfits(imagein1,hdr1)
+
+; trim data array if necessary
+sz=size(dat1)
+if(sz(1) gt 4096 or sz(2) gt 4096) then dat1=dat1(0:4095,0:4095)
+
 site1=strupcase(strtrim(sxpar(hdr1,'SITEID'),2))
 camera1=strtrim(sxpar(hdr1,'INSTRUME'),2)
 if(strtrim(site1,2) ne strtrim(site,2) or strtrim(camera1,2) $
@@ -96,7 +107,7 @@ if(strtrim(site1,2) ne strtrim(site,2) or strtrim(camera1,2) $
 endif
 mjdd=sxpar(hdr1,'MJD-OBS')
 jdd=mjdc+2400000.5d0
-exptime=sxpar(hdr1,'EXPTIME')
+exptime1=sxpar(hdr1,'EXPTIME')
 
 ; get bias and dark for this file
 get_calib,'BIAS',biasfile,bias,biashdr,gerr
@@ -111,7 +122,7 @@ endif
 
 ; bias and dark subtract the data file, trim overscan if necessary
 cordat=dat1-bias
-cordat=cordat-exptime*dark
+cordat=cordat-exptime1*dark
 sz=size(cordat)
 if(sz(1) eq 2080) then cordat=cordat(0:2047,*)
 ny=sz(2)
@@ -129,9 +140,15 @@ if(medboxsz eq 0) then medboxsz=23
 if(ninfil eq 2) then begin
   imagein2=getenv('NRESRAWDAT')+flatin2
   dat2=readfits(imagein2,hdr2)
-; assume same site, camera, exposure time.  Ignore change in MJD.
+
+; trim dat2 if necessary
+  sz=size(dat2)
+  if(sz(1) gt 4096 or sz(2) gt 4096) then dat2=dat2(0:4095,0:4095)
+
+  exptime2=sxpar(hdr2,'EXPTIME')
+; assume same site, camera, differnet exposure time.  Ignore change in MJD.
   cordat2=dat2-bias
-  cordat2=cordat2-exptime*dark
+  cordat2=cordat2-exptime2*dark
   if(sz(1) eq 2080) then cordat2=cordat2(0:2047,*)
 ; backsub,cordat2,ord_vectors,ord_wid,nfib,medboxsz
 endif
@@ -242,6 +259,7 @@ for iter=0,itermax do begin
       if(j ne zdark) then begin
         if(max(abs(mom1(*,i,j))) eq 0.) then stop
         cc=lstsqr(mom1(*,i,j),legs,wtss(*,i,j),nleg,rms,chisq,outp,1,cov)
+      if(j eq 0 and i eq 25) then print,cc
         trace1(*,i,j)=trace1(*,i,j)+cc
         rmsa(i,j)=rms
       endif
@@ -251,7 +269,7 @@ for iter=0,itermax do begin
 ; print rms deviation
   trms=total(abs(rmsa(0:nord-3,*)))
   print,'total rms =',trms
-  if(trms gt tdy or abs(tdy-trms) le .01) then goto,done
+  if(iter ge 3 and (trms gt tdy or abs(tdy-trms) le .01)) then goto,done
   tdy=trms
   
 ; make new ord_vectors, except for last iter
@@ -368,13 +386,13 @@ tracprof(0:nleg-1,*,*,0)=trace1
 tracprof(0:cowid-1,*,*,1:*)=prof1
 
 ; write out the new trace array
-;jd=systime(/julian)      ; file creation time, for sorting similar trace files
+jd=systime(/julian)      ; file creation time, for sorting similar trace files
 ;mjd=jd-2400000.5d0
 datereald=date_conv(jdd,'R')
 datestrd=string(datereald,format='(f13.5)')
 strput,datestrd,'00',0
-datestrd=strlowcase(site)+datestrd
-fout='TRAC'+datestrc+'.fits'
+datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
+fout='TRAC'+datestrd+'.fits'
 filout=nresrooti+tracedir+fout
 
 mkhdr,hdr,tracprof
