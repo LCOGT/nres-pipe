@@ -99,7 +99,7 @@ datout=median(datin,dimension=3)
 ;mjd=jd-2400000.5d0
 jdd=mjdd+2400000.5d0
 datereald=date_conv(jdd+.0001,'R')        ; add eps to avoid overwriting input
-datestrd=string(daterealc,format='(f13.5)')
+datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
 fout=type+datestrd+'.fits'
 case type of
