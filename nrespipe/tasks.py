@@ -62,6 +62,11 @@ def make_stacked_calibrations(self, site, camera, calibration_type, date_range, 
     """
     os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
+
+
+    date_range = [datetime.datetime.strptime(date_range[0], settings.date_format),
+                  datetime.datetime.strptime(date_range[1], settings.date_format)]
+
     try:
         cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
         cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera, date_range=date_range_to_idl(date_range))
@@ -75,9 +80,10 @@ def make_stacked_calibrations(self, site, camera, calibration_type, date_range, 
 def make_stacked_calibrations_for_one_night(self, site, camera, nres_instrument):
     end = datetime.utcnow()
     start = end - datetime.timedelta(hours=24)
+    date_range = [start.strftime(settings.date_format), end.strftime(settings.date_format)]
     for calibtration_type in ['BIAS', 'DARK', 'FLAT']:
         make_stacked_calibrations.delay(calibration_type=calibtration_type, site=site, camera=camera,
-                                        date_range=[start, end], data_reduction_root_path=settings.data_reduction_root,
+                                        date_range=date_range, data_reduction_root_path=settings.data_reduction_root,
                                         nres_instrument=nres_instrument)
 
 

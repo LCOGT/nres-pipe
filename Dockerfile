@@ -2,7 +2,8 @@ FROM docker.lcogt.net/miniconda3:4.3.21
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 
 RUN yum -y install epel-release && \
-    yum install -y freetype libXp libXpm libXmu redhat-lsb-core-4.1-27.el7.centos.1.x86_64 supervisor
+    yum install -y freetype libXp libXpm libXmu redhat-lsb-core-4.1-27.el7.centos.1.x86_64 supervisor && \
+    yum -y clean all
 
 RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest mock requests ipython celery\
         && conda clean -y --all
@@ -27,7 +28,8 @@ RUN mkdir /home/archive && /usr/sbin/groupadd -g 10000 "domainusers" \
         && /usr/sbin/useradd -g 10000 -d /home/archive -M -N -u 10087 archive \
         && chown -R archive:domainusers /home/archive
 
-RUN pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/
+RUN pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ && \
+    rm -rf ~/.cache/pip
 
 WORKDIR /nres/code
 COPY . /nres/code
