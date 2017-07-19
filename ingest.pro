@@ -107,6 +107,7 @@ if(extn ne 1) then begin       ; do this skip if not CDP
   goto,skipit
 endif
 
+if ((type ne 'BIAS') and (type ne 'DARK')) then begin
 ; read the remaining data segments and their headers
 fxbopen,iun,filename,1,expmhdr        ; exposure meter
 nt_expm=sxpar(expmhdr,'NAXIS2')
@@ -220,10 +221,11 @@ tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
 ;sxaddpar,dathdr,'LATITUDE',-30.16772
 ;sxaddpar,dathdr,'HEIGHT',2201.0
 
+endif
 skipit:
 
 ; should put some error trapping in here
 
 fini:
-stop
+;stop
 end

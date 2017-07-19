@@ -83,6 +83,6 @@ endfor
 ; do svd
 svdc,mat,w,u,v
 
-stop
+;stop
 
 end

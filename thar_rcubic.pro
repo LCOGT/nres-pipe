@@ -119,7 +119,7 @@ endelse
 ;coefs_c=coefs_c+lstsqr(matchdif_c,funs,matchwts_c,ncoefs_c,rms,chisq,$
 ;    outp_c,1,cov)
 
-stop
+;stop
 
 coefs_incr_c=lstsqr(matchdif_c,funs,matchwts_c,ncoefs_c,rms,chisq,$
     outp_c,1,cov)

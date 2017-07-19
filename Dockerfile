@@ -27,6 +27,8 @@ RUN mkdir /home/archive && /usr/sbin/groupadd -g 10000 "domainusers" \
         && /usr/sbin/useradd -g 10000 -d /home/archive -M -N -u 10087 archive \
         && chown -R archive:domainusers /home/archive
 
+RUN pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/
+
 WORKDIR /nres/code
 COPY . /nres/code
 

@@ -137,7 +137,7 @@ def set_file_as_processed(path, db_address):
     db_address : str
                  SQLAlchemy style url to the database
     """
-    filepath = os.path.split(path)[0]
+    filepath, filename = os.path.split(path)
     checksum = utils.get_md5(path)
 
     record = get_or_create(db_address, ProcessingState, {'filename': filename},
@@ -146,9 +146,10 @@ def set_file_as_processed(path, db_address):
     record.filepath = filepath
     record.checksum = checksum
 
-    with get_session(db_address) as db_session:
-        db_session.add(record)
-        db_session.commit()
+    db_session = get_session(db_address)
+    db_session.add(record)
+    db_session.commit()
+    db_session.close()
 
 
 def save_metadata(path, db_address):

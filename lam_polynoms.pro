@@ -71,6 +71,6 @@ for i=0,nord-1 do begin
 endfor
 fib_poly=dxx*dlamdx
 
-stop
+;stop
 
 end

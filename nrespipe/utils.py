@@ -1,6 +1,7 @@
 import hashlib
 import os
 import time
+import datetime
 
 import requests
 from astropy.io import fits
@@ -82,3 +83,43 @@ def post_to_fits_exchange(broker_url, image_path):
         producer = conn.Producer(exchange=exchange)
         producer.publish({'path': image_path})
         producer.release()
+
+
+def date_range_to_idl(date_range):
+    """
+    Convert a set of dates into a string that can be used by the IDL pipeline
+
+    Parameters
+    ----------
+    date_range : iterable
+                 2 elements
+
+    Returns
+    -------
+    date_string : str
+    """
+    return ",".join([datetime_to_idl(date_range[0]), datetime_to_idl(date_range[1])])
+
+
+def datetime_to_idl(d):
+    """
+    Convert a datetime object to the format that the IDL pipeline expects
+
+    Parameters
+    ----------
+    d : datetime
+
+    Returns
+    -------
+    fractional_day_string : str
+
+    Notes
+    -----
+    The output string has the following structure: yyyyddd.xxxxx, where
+    yyyy is the four digit year.
+    ddd is the day number of the year
+    xxxxx is fractional day of the year.
+    """
+    seconds_in_one_day = 86400.0
+    day = (d - datetime.datetime(d.year, 1, 1, 0, 0, 0)).total_seconds() / seconds_in_one_day
+    return  "{year:04d}{day:09.5f}".format(year=d.year, day=day)

@@ -33,7 +33,7 @@ cfun=cfun+coefs(0) + coefs(1)*jord + coefs(2)*jord^2 + coefs(3)*jord^3 + $
      coefs(9)*jx^3 + coefs(10)*jord^4 + coefs(11)*jx*jord^3 + $
      coefs(12)*jx^2*jord^2 + coefs(13)*jx^3*jord + coefs(14)*jx^4
 
-stop
+;stop
 
 ; make functions for legendre poly fit
 lx0=legendre(lx,0)
