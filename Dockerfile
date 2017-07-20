@@ -2,7 +2,7 @@ FROM docker.lcogt.net/miniconda3:4.3.21
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 
 RUN yum -y install epel-release && \
-    yum install -y freetype libXp libXpm libXmu redhat-lsb-core-4.1-27.el7.centos.1.x86_64 supervisor && \
+    yum install -y freetype libXp libXpm libXmu redhat-lsb-core-4.1-27.el7.centos.1.x86_64 supervisor fpack && \
     yum -y clean all
 
 RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest mock requests ipython celery\
@@ -16,6 +16,13 @@ RUN mkdir -p /opt/idl/src && \
 RUN mkdir -p /opt/idl/xtra/astron && \
     curl -o /opt/idl/xtra/astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/astron.tar.gz" && \
     tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/ && rm -f /opt/idl/xtra/astron.tar.gz
+
+RUN curl -o /opt/idl/xtra/coyote_astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/coyote_astron.tar.gz" && \
+    tar -xzf /opt/idl/xtra/coyote_astron.tar.gz -C /opt/idl/xtra/astron/ && rm -f /opt/idl/xtra/coyote_astron.tar.gz
+
+RUN curl -o /opt/idl/xtra/mpfit.tar.gz "http://www.physics.wisc.edu/~craigm/idl/down/mpfit.tar.gz" && \
+    mkdir -p /opt/idl/xtra/mpfit &&  tar -xzf /opt/idl/xtra/mpfit.tar.gz -C /opt/idl/xtra/mpfit/ && \
+    rm -f /opt/idl/xtra/mpfit.tar.gz
 
 
 RUN curl -o /opt/idl/xtra/exofast.tar.gz http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz && \
@@ -39,7 +46,8 @@ RUN python /nres/code/setup.py install
 # trailing slash is required for nres root
 ENV EXOFAST_PATH="/opt/idl/xtra/exofast/" IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lco.gtn:/usr/local/itt/license/license.dat" \
     PATH="${PATH}:/opt/idl/idl/bin" \
-    IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:<IDL_DEFAULT>" NRESROOT="/nres/" ASTRO_DATA="/opt/idl/xtra/astrolib/data"
+    IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
+    NRESROOT="/nres/" ASTRO_DATA="/opt/idl/xtra/astrolib/data"
 
 # COPY docker/supervisor-app.conf /etc/supervisor/conf.d/
 COPY docker/ /
