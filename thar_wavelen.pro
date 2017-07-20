@@ -259,6 +259,7 @@ tharout=nresrooti+thardir+tharo
 ;stds_addline,'THAR',tharo,1,site,camera,jdc,'0000'
 fxwrite,tharout,hdr,lam_all
 logo_nres2,rutname,'INFO','WRITE '+tharout
+tarlist=[tarlist,tharout]
 
 fxbhmake,hdr,nfib          ; make an extension header for nrow table
 dum=dblarr(nfib)             ; dummy data array with length of columns

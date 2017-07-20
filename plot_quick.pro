@@ -294,5 +294,7 @@ endfor
 
 sun
 
+tarlist=[tarlist,plotname]
+
 fini:
 end

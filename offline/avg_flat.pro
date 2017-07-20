@@ -55,7 +55,7 @@ nord=sxpar(hdr0,'NAXIS2')
 nfib=sxpar(hdr0,'NAXIS3')
 fib0=sxpar(hdr0,'FIB0')
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
-if(obty ne 'FLAT') then begin
+if(~((obty eq 'FLAT') or (obty eq 'LAMPFLAT'))) then begin
   print,'OBSTYPE of '+files(0)+' is not FLAT in avg_flat'
   stop
 endif
@@ -151,7 +151,7 @@ jdd=mjdd+2400000.5d0
 datereald=date_conv(jdd+.0001,'R')  ; add eps to avoid overwriting input data
 datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
-fout='FLAT'+datestrc+'.fits'
+fout='FLAT'+datestrd+'.fits'
 filout=flatdir+fout
 branch='flat/'
 

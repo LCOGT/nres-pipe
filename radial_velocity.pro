@@ -274,13 +274,13 @@ fxaddpar,hdr,'MJD',mjdc,'Creation date'
 
 for i=0,1 do begin
   stri=string(i,format='(i1)')
-  fxaddpar,hdr,'RCC'+stri,rcco(i)
-  fxaddpar,hdr,'WIDCC'+stri,widcco(i)
-  fxaddpar,hdr,'AMPCC'+stri,ampcco(i)
-  fxaddpar,hdr,'BJD'+stri,bjdo(i)
-  fxaddpar,hdr,'REDSHA'+stri,rroa(i)
-  fxaddpar,hdr,'REDSHM'+stri,rrom(i)
-  fxaddpar,hdr,'REDSHER'+stri,rroe(i)
+  fxaddpar,hdr,'RCC'+stri,rcco(i),'Cross-Corr redshift'
+  fxaddpar,hdr,'WIDCC'+stri,widcco(i),'Cross-Corr width (km/s)'
+  fxaddpar,hdr,'AMPCC'+stri,ampcco(i),'Cross-Corr peak height'
+  fxaddpar,hdr,'BJD'+stri,bjdo(i),'Exposure center barycen date'
+  fxaddpar,hdr,'REDSHA'+stri,rroa(i),'Avg blockfit redshift'
+  fxaddpar,hdr,'REDSHM'+stri,rrom(i),'Median blockfit redshift'
+  fxaddpar,hdr,'REDSHER'+stri,rroe(i),'Blockfit redshift formal err'
 endfor
 
 ; write out the data as a fits extension table.
@@ -288,6 +288,7 @@ endfor
 ; dimensioned (2,nord,nblock) containing various redshift fitting
 ; parameters or error estimates.
 fxwrite,rvout,hdr ;### guess this isn't needed, causes unit leak
+tarlist=[tarlist,rvout]
 fxbhmake,hdr,1                   ; make extension header, only 1 row
 fxbaddcol,jn1,hdr,rro,'RedShft','Redshift frm blockfit'
 fxbaddcol,jn2,hdr,erro,'ErrRShft','Redshift error'

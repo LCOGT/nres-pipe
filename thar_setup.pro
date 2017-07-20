@@ -100,6 +100,7 @@ get_calib,'TRIPLE',tripfile,tripdat,triphdr,gerr
 if(gerr eq 0) then begin
   trip_unpack,tripdat,triphdr,trp=trp ; put TRIPLE data into specdat, coefs_c, 
                  ; fibcoefs_c or not, depending on the value of keyword trp.
+  tarlist=[tarlist,nresrooti+'reduced/'+tripfile]
 endif
 
 sz=size(corspec)

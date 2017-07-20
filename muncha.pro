@@ -56,6 +56,8 @@ pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 ;   in cases in which we desire a lot of wavelength solutions to be averaged,
 ;   eg for tracking the time behavior of wavlen solution parameters.
 
+compile_opt hidden
+
 @nres_comm
 
 ; constants
@@ -87,6 +89,7 @@ flatdir='reduced/flat/'
 tracedir='reduced/trace/'
 tripdir='reduced/trip/'
 zerodir='reduced/zero/'
+tardir='reduced/tar'
 filin0=filin
 
 ; open the input file, read data segments and headers into common
@@ -123,6 +126,9 @@ case 1 of
 ; spec_classify
 ; obs2txt                ; writes all metadata to obs.txt
   plot_qc                ; writes extract and thar quality control plot
+  tarpath=nresrooti+tardir
+  stop
+  tarout,tarlist,tarpath   ; collect useful output into a directory, tar it.
   end
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv

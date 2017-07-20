@@ -5,6 +5,8 @@ function mylegendre,x,ord
 ; for |x| > 1, allowing its use (with caution) on the extended arrays
 ; used in, eg, lambda3ofx.pro
 
+compile_opt hidden
+
 if(ord lt 0 or ord gt 4) then begin
   print,'mylegendre requires 0 <= ord <= 4'
   y=x-x            ; return all zeros

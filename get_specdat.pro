@@ -5,6 +5,8 @@ pro get_specdat,mjd,err
 ; the MJD that is the most recent relative to the input parm mjd.
 ; Results are placed in common structure specdat.
 
+compile_opt hidden
+
 @nres_comm
 
 err=0

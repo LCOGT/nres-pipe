@@ -37,6 +37,8 @@ pro lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,$
 ; Method is to combine the diffraction equation with geometrical relations
 ; for image scale and rotation.
 
+compile_opt hidden
+
 ; constants
 !except=2
 radian=180d0/!dpi
