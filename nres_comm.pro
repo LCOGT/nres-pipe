@@ -13,4 +13,4 @@ common nres,filin0,nfib,mfib,fib0,fib1,$
        ccd,specdat,orddiff,tracedat,echdat,$
        flatdat,agu1red,agu2red,$
        expmred,tharred,rvindat,rvred,spclassred,$
-       verbose
+       verbose,tarlist

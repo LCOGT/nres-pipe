@@ -18,6 +18,8 @@ pro mk_badlamwts,lam03
 ; of specified width in wavelength (for "w" features) or pixels (for "x"
 ; features), and in half-width in orders (for "x" features).
 
+compile_opt hidden
+
 @nres_comm
 
 ; constants

@@ -3,6 +3,8 @@ pro rd_badlams,nent,etype,elam,ehwid,ehht
 ; $NRESROOT/$NRESINST/reduced/config/badlams.txt, and returns its contents
 ; in arrays etype(nent), elam(nent), ehwid(nent), ehht(nent)
 
+compile_opt hidden
+
 ; constants
 nresroot=getenv('NRESROOT')
 nresinst=getenv('NRESINST')

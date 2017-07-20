@@ -257,5 +257,8 @@ endfor
 sun
 !p.multi=[0,1,1]
 
+tarlist=[tarlist,outpath]
+
+
 fini:
 end

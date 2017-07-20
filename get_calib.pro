@@ -18,6 +18,8 @@ pro get_calib,stype,filename,cdat,chdr,gerr
 ; at least one of these, take the closest one.  If none, take the closest
 ; line with navg=1.
 
+compile_opt hidden
+
 ; common block
 @nres_comm
 

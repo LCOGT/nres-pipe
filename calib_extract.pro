@@ -11,6 +11,8 @@ pro calib_extract,flatk=flatk,dble=dble
 ; It gets necessary info about the spectrograph from the "spectrographs"
 ; config file, and from the image main block header.
 
+compile_opt hidden
+
 @nres_comm
 ; common data for NRES image reduction routines
 ;common nres,filin0,nfib,mfib,fib0,fib1,$
@@ -66,6 +68,7 @@ if(not keyword_set(flatk)) then begin
   get_calib,'FLAT',flatfile,flat,flathdr,gerr
   logo_nres2,rutname,'INFO','READ '+flatfile
   flatdat={flat:flat,flatfile:flatfile,flathdr:flathdr}
+  tarlist=[nresrooti+'reduced/'+flatfile]
   errsum=errsum+gerr
 endif
 get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
@@ -221,8 +224,8 @@ if(~keyword_set(flatk)) then begin
     blazo='BLAZ'+datestrd+'.fits'
     extro='EXTR'+datestrd+'.fits'
     specout=nresrooti+'/'+specdir+speco
-    blazout=nresrooti+'/'+blazdir+blazo
-    extrout=nresrooti+'/'+extrdir+extro
+    blazout=nresrooti+blazdir+blazo
+    extrout=nresrooti+extrdir+extro
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
@@ -235,6 +238,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NORD',specdat.nord
   sxaddpar,hdr,'NX',specdat.nx
   sxaddpar,hdr,'DATESTRD',datestrd
+  tarlist=[tarlist,nresrooti+'reduced/'+tracefile]
 
   writefits,specout,corspec,hdr
   logo_nres2,rutname,'INFO','WRITE '+specout
@@ -243,6 +247,7 @@ if(~keyword_set(flatk)) then begin
   if(not keyword_set(dble)) then begin
     writefits,extrout,extrspec,hdr        ; same hdr as specout
     logo_nres2,rutname,'INFO','WRITE '+extrout
+    tarlist=[tarlist,extrout]
 
 ; then write blaze = raw - flat
     hdrb=hdr
@@ -258,6 +263,7 @@ if(~keyword_set(flatk)) then begin
     endfor
     writefits,blazout,blazspec,hdrb
     logo_nres2,rutname,'INFO','WRITE '+blazout
+    tarlist=[tarlist,blazout]
   endif
 endif
 
@@ -269,7 +275,7 @@ echdat.origname=filname
 echdat.siteid=site
 echdat.camera=camera
 echdat.exptime=exptime
-echdat.flatname=flatfile
+if(not keyword_set(flatk))then echdat.flatname=flatfile else echdat.flatname=''
 
 fini:
 

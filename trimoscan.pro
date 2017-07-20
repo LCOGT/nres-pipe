@@ -3,6 +3,8 @@ pro trimoscan,ierr
 ; the data array in conformance with information stored in the header.
 ; Results are stuck in the nres common data area.
 
+compile_opt hidden
+
 @nres_comm
 
 ierr=0

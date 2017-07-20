@@ -8,6 +8,8 @@ pro ingest,filin,ierr
 ; sanity checks, ierr is set to a positive integer (value depending on the 
 ; nature  of the error).
 
+compile_opt hidden
+
 @nres_comm
 ;common nres,nfib,nresroot,tempdir,expmdir,thardir,specdir,ccordir,rvdir,
 ;       classdir,diagdir,csvdir,flatdir,tracedir,tripdir,$

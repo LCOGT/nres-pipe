@@ -13,6 +13,8 @@ pro logo_nres2,rutname,log_level,logval
 ; double, string.
 ; The tag name strings are searchable using standard LCO tools.
 
+compile_opt hidden
+
 ; constants
 ts0=210866760000.d0               ; JD of 0h 1 Jan 1970
 

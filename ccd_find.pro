@@ -5,6 +5,8 @@ pro ccd_find,err
 ; its data in the common structure ccd, with err=0.
 ; If the desired camera is not found, returns err=1 and a structure of nulls.
 
+compile_opt hidden
+
 @nres_comm
 
 ccdfile=nresrooti+'reduced/csv/ccds.csv'
