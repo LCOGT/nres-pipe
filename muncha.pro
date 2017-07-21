@@ -127,7 +127,6 @@ case 1 of
 ; obs2txt                ; writes all metadata to obs.txt
   plot_qc                ; writes extract and thar quality control plot
   tarpath=nresrooti+tardir
-  stop
   tarout,tarlist,tarpath   ; collect useful output into a directory, tar it.
   end
 
