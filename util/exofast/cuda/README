@@ -1,0 +1,19 @@
+#***********************************************************************
+# These CUDA routines have not been extensively tested and are in a
+# state of flux; use with caution. 
+#***********************************************************************
+
+# You must compile the shared library ($EXOFAST_PATH/cuda/exofast.so) 
+# on your system, then these CUDA-enabled routines will work.
+
+# This is how we compiled it (inside this directory):
+nvcc -gencode arch=compute_13,\"code=sm_13,compute_13\" -gencode arch=compute_13,\"code=sm_13,compute_13\" -I$HOME/NVIDIA_GPU_Computing_SDK/C/common/inc/ -L$HOME/NVIDIA_GPU_Computing_SDK/C/lib -I/opt/itt/idl/idl80/external/include/ -lcutil_x86_64 --shared -o exofast.so keplereq.cu c_wrappers.c --compiler-options '-fPIC' 
+
+rm *.o
+rm *.so
+
+nvcc -gencode arch=compute_13,\"code=sm_13,compute_13\" -gencode arch=compute_13,\"code=sm_13,compute_13\" -I$HOME/NVIDIA_GPU_Computing_SDK/C/common/inc/ -L$HOME/NVIDIA_GPU_Computing_SDK/C/lib -I/opt/itt/idl/idl80/external/include/ -lcutil_x86_64 keplereq.cu --compile --compiler-options '-fPIC'
+
+gcc -fPIC -I/opt/itt/idl/idl80/external/include/ -g -c -Wall c_wrappers.c 
+gcc -shared -W1,-soname,exofast.so -o exofast.so *.o -lc
+ldd -d -r exofast.so 

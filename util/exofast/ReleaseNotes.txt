@@ -1,0 +1,98 @@
+2014/09/16:
+ - Minor documentation updates to adhere to published code
+ - Updated README to include installation instructions for BJD and 
+   ZBARYCORR code
+ - Fixed typo in crontab wget script
+2014/08/17:
+ - Minor documenation clarifications in zbarycorr.pro
+2014/07/27:
+ - Fixed bug in zbarycorr for obsname handling. Updated documentation 
+   and added dependencies to the repo.
+2014/07/23:
+ - updates to zbarycorr to include shapiro delay and better
+   documentation, rename rvbarycorr to barycorr, and removed debugging
+   stuff from jdutctojdtdb.
+2014/07/15:
+ - Added time utlilities (e.g., UTC2BJD) and barycenter correction code
+   (zbarycorr.pro and rvbarycorr.pro) to the repo.
+2012/02/26:
+ - Detrending broke in 2013/12/05 update. Fixed here.
+ - When a period prior is given, the RV fit no longer does
+   lomb-scargle -- it only tries that period.
+ - In EXOFAST_PREFITRV, add degree of freedom when period is given
+ - In EXOFAST_GETMCMCSCALE, changed print statement to message statement
+2013/02/08: 
+ - Fixed typo in primary transit probabilities. Previously, results
+   were incorrectly multiplied by Rstar/Rsun (probabilities were
+   correct for secondary transit probabilities).
+2013/02/04:
+ - Update URLs to now-published paper:
+   http://adsabs.harvard.edu/abs/2013PASP..125...83E
+ - Changed filenames for stromgren limb darkening save files so they
+   are unique for case-insensitive filesystems (e.g., Mac OSX)
+ - EXOFAST_PREFITRV now returns -1 if no fit is found.
+ - Minor documentation updates
+2013/01/14:
+ - Updated URL of exoplanets.csv in readexo.pro for recent changes to
+   exoplanets.org.
+ - For future notifications of updates, follow @exofastupdates on
+   twitter https://twitter.com/exofastupdates
+2013/01/03:
+ - Fixed minor bugs that broke the example in the README for HAT-P-3b.
+2012/12/19:
+ - Several fixes for eccentric, transit-only fits (requires logg
+   prior). These types of fits are very slow (~1% acceptance rate) due
+   to the degeneracy of ecosw. Fitting a secondary simultaneously
+   should fix that, but is untested. Eccentric, transit-only fits should
+   still be interpreted with extreme caution because it assumes the
+   mass of companion is negligible and the stellar mass from Torres
+   (and therefore logg, Teff, [Fe/H]) is correct.
+   NOTE: Rough errors (i.e., prior widths) from the KIC are
+   sigma_Teff~150 K, sigma_logg~0.3, sigma_[Fe/H]~0.2, but it depends
+   on the type of star. Some have catastrophic errors.
+   See Brown et al., 2011, http://adsabs.harvard.edu/abs/2011AJ....142..112B 
+ - Most important, now models where e >= (1-Rstar/a) are excluded,
+   since they would have a periastron inside the star, instead of e <
+   1 as the previous constraint. This is still conservative, as the
+   ignored tidal effects will be important before this limit, but it
+   solves some numerical problems for poorly constrained
+   eccentricities. High-eccentricity models should be viewed with
+   skepticism, as they are likely to be influenced by tides.
+ - Print Carter et al., 2008 error estimates when only best-fit is done 
+   See http://adsabs.harvard.edu/abs/2008ApJ...689..499C, eqs 19 & 23
+ - More intuitive outputs when chain isn't well-mixed (now show the
+   index to original parameter array, not the subset of fitted parameters).
+
+2012/12/09:
+ - Change step size in cosi for initial AMOEBA fit to rstar/a, instead
+   of 0.1. This means the step size, which is approximately the range
+   of parameter space it will explore, corresponds to an impact
+   parameter of 1. This is a dramatic improvement for long-period
+   planets, where the previous step size would force it to explore
+   primarily non-transiting solutions.
+ - Added additional output files -- the model for each input time.
+
+2012/12/05:
+ - Major upgrade makes EXOFAST more compatible with Kepler data
+ - Added support for Long Cadence (and arbitrary cadence) data
+ - Better handling of quadratic limb darkening that takes into account
+   the theoretical uncertainties of the Claret and Bloeman 2011 limb
+   darkening tables, based on their Fig 1 (see eq 26, Section 5.2 of
+   Eastman et al, 2013 for discussion).
+ - EXOFAST_ROSSITER now adheres to sign conventions.
+ - Added (unintegrated) CUDA code (thanks Eric Ford!). See new
+   exofast/cuda directory. Still needs work, but a good starting
+   point for interested parties.
+   See also: https://github.com/AstroGPU/ExofastGpu
+ - Added debug checkbox online to output stderr (to help diagnose problems)
+
+2012/07/12:
+ - Fixed major bug in prior widths of Mstar/Rstar. Fits using versions
+   prior to this update will have underestimated errors in Mstar,
+   Rstar, and derived quantities.
+
+2012/06/28:
+ - Updates for compatiblity with Windows and IDL v6.1.  
+
+2012/06/25:
+ - Public release

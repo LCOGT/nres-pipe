@@ -1,0 +1,15 @@
+To compile the shared library, ifort is recommended:
+ifort -ipo -O3 -msse3 -fPIC -g -c *.f
+ifort -shared -Wl,-soname,exofast.so -o exofast.so *.o -lc
+rm *.o
+
+If ifort is unavailable, use g77 or f77:
+f77 -fPIC -Wall -g -c `ls *.f | grep -v IDL_wrappers`
+f77 -fPIC -Wall -Wno-globals -g -c IDL_wrappers_??.f
+f77 -shared -W1,-soname,exofast.so -o exofast.so *.o -lc
+rm *.o
+
+if adding additional wrappers, DO NOT INCLUDE "_" 
+anywhere in the name -- different compilers assign 
+them different entry point names which make writing 
+robust IDL routines to call them difficult

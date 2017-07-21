@@ -18,7 +18,7 @@ RUN mkdir -p /opt/idl/src \
 RUN mkdir -p /opt/idl/xtra/astron \
         && curl -o /opt/idl/xtra/astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/astron.tar.gz" \
         && tar -xzf /opt/idl/xtra/astron.tar.gz -C /opt/idl/xtra/astron/ \
-        && rm -f /opt/idl/xtra/astron.tar.gz
+        && rm -f /opt/idl/xtra/astron.tar.gz && mkdir -p /opt/idl/xtra/astrolib/data
 
 RUN curl -o /opt/idl/xtra/coyote_astron.tar.gz "https://idlastro.gsfc.nasa.gov/ftp/coyote_astron.tar.gz" \
         && tar -xzf /opt/idl/xtra/coyote_astron.tar.gz -C /opt/idl/xtra/astron/ \
@@ -29,11 +29,6 @@ RUN curl -o /opt/idl/xtra/mpfit.tar.gz "http://www.physics.wisc.edu/~craigm/idl/
         && tar -xzf /opt/idl/xtra/mpfit.tar.gz -C /opt/idl/xtra/mpfit/ \
         && rm -f /opt/idl/xtra/mpfit.tar.gz
 
-RUN curl -o /opt/idl/xtra/exofast.tar.gz http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz \
-        && tar -xzf /opt/idl/xtra/exofast.tar.gz -C /opt/idl/xtra/ \
-        && rm -f /opt/idl/xtra/exofast.tar.gz \
-        && mkdir -p /opt/idl/xtra/astrolib/data
-
 RUN mkdir /home/archive \
         && /usr/sbin/groupadd -g 10000 "domainusers" \
         && /usr/sbin/useradd -g 10000 -d /home/archive -M -N -u 10087 archive \
@@ -43,12 +38,13 @@ RUN pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-
         && rm -rf ~/.cache/pip
 
 WORKDIR /nres/code
+COPY ./util/exofast /nres/code/util/exofast
 COPY . /nres/code
 
 RUN python /nres/code/setup.py install
 
 # trailing slash is required for nres root
-ENV EXOFAST_PATH="/opt/idl/xtra/exofast/" \
+ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lco.gtn:/usr/local/itt/license/license.dat" \
     PATH="${PATH}:/opt/idl/idl/bin" \
     IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
