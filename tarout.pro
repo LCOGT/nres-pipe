@@ -1,10 +1,16 @@
 pro tarout,tarlist,tarpath
-; This routine creates a directory tardir in the directory specified in tarpath
+; This routine creates a directory tardirsssyyyyddd.fffff in the directory 
+; specified in tarpath
 ; (usually nresrooti+'tar/').  It then copies all of the files listed in the 
 ; string array tarlist into this directory, and creates a compressed tarball of 
-; the entire  directory named after the EXTR file in the directory.  
-; Last, it creates a file named 'beammeup.txt' in the reduced/tar directory,
-; containing the full pathname to the tarball.
+; the entire  directory named with all the trailing site & date info as in
+; the tar directory.
+; Having made the tarball, it deletes the directory it just tarred.
+; Last, it appends the full pathname to the tarball to a file 
+; named 'beammeup.txt' in the reduced/tar directory.
+; The wrapper should, at some point, archive all of the files pointed to by
+; beammeup, remove these files from the reduced/tar directory, and remove
+; the file beammeup.txt.
 
 ; check to see that tarlist contains at least 1 entry, and at least one
 ; with the substring 'EXTR' in its name.
@@ -20,40 +26,43 @@ if(nf ge 1) then begin
   endfor
 endif
 
-stop
-
 if(ix lt 0) then goto,fini           ; didn't find an 'EXTR' filename
 
 epos=strpos(tarlist(ix),'.fits')
 if(epos le 4) then goto,fini         ; nothing in the filename body
-body=strmid(tarlist(ix),pos+4,epos-4)
+body=strmid(tarlist(ix),pos+4,epos-pos-4)
 
-; make directory to hold files to be tarred.
-dirpath=tarpath+'/tardir'
-cmd1='mkdir '+dirpath
-stop
-spawn,cmd1
+; make directory to hold files to be tarred.  
+dirpath=tarpath+'/tardir'+body
+
+; check for existence of dirpath directory.  If nonexistent, create it.
+status=file_test(dirpath,/directory)
+if(~status) then begin
+  cmd1='mkdir '+dirpath
+  spawn,cmd1
+endif
 
 for i=0,nf-1 do begin
   curfile=tarlist(i)
-  cmd2='cp curfile dirpath'
-  stop
+  cmd2='cp '+curfile+' '+dirpath
   spawn,cmd2
 endfor
 
 ; tar the directory
-tarfname=dirpath+'/TAR'+strtrim(body,2)+'.tar.gz'
+tarfname=tarpath+'/TAR'+strtrim(body,2)+'.tar.gz'
 cmd3='tar -czf '+tarfname+' '+dirpath
-stop
 spawn,cmd3
 
 ; write out the tarball's name 
-openw,iun,dirpath+'beammeup.txt',/get_lun
+openw,iun,tarpath+'/beammeup.txt',/get_lun,/append
 printf,iun,tarfname
 close,iun
 free_lun,iun
 
+; remove the directory we just tarred
+cmd4='rm -r '+dirpath
+spawn,cmd4
+
 fini:
-stop
 
 end

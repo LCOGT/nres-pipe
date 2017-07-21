@@ -14,6 +14,10 @@ pro expmeter
 
 @nres_comm
 
+; this is brought in by ingest.pro
+;expmdat={nt_expm:nt_expm,jd_expm:jd_expm,fib0c:fib0c,fib1c:fib1c,fib2c:fib2c,$
+;        flg_expm:flg_expm}
+
 ; stub stuff in next line --  should refer to keyword from expmhdr
 expetime=sxpar(dathdr,'EXPTIME')
 
