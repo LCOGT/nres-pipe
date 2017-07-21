@@ -51,7 +51,7 @@ eff_tel=0.
 eff_telspec=0.
 
 ; do photometry on the star image
-star=readfits(starimage,hdrstar)
+star=readfits(starimage,hdrstar,/silent)
 expstar=sxpar(hdrstar,'EXPTIME')
 gainstar=sxpar(hdrstar,'GAIN')           ; e- per ADU
 sz=size(star)
@@ -104,7 +104,7 @@ if(keyword_set(broad)) then goto,fini
 
 ; read the sky image, calculate the count rate per pixel
 ; median(star) is a stand-in for a bias measurement
-ddsky=float(readfits(skyimage,hdrsky))-median(star)
+ddsky=float(readfits(skyimage,hdrsky,/silent))-median(star)
 ; estimate signal as median over center 1/3 x 1/3 of the image
 exptsky=sxpar(hdrsky,'EXPTIME')
 gainsky=sxpar(hdrsky,'GAIN')
@@ -114,7 +114,7 @@ equivmag=-2.5*alog10(fib_flux/(dlam*telarea*flux0(1)))   ; equiv mag star seen b
 
 ; read the sky spectrum, calculate the flux (spec_ADU/s) from the sky, integrated
 ; over the narrowband filter range of wavelengths.
-sssky=float(readfits(skyspec,hdrspec))
+sssky=float(readfits(skyspec,hdrspec,/silent))
 ssexpt=sxpar(hdrspec,'EXPTIME')
 ;gain_spec=sxpar(hdrspec,'GAIN')
 gain_spec=1.0               ; assumes image has been 'fixed'

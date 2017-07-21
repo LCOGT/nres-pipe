@@ -12,7 +12,7 @@ pro svd_thar,filin,w,u,v
 
 @nres_comm
 
-dd=readfits(filin,hdr0)
+dd=readfits(filin,hdr0,/silent)
 mjdd=sxpar(hdr0,'MJD-OBS')
 site=strupcase(strtrim(sxpar(hdr0,'SITEID'),2))
 get_specdat,mjdd,err

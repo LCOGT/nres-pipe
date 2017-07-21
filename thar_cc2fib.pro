@@ -14,7 +14,7 @@ smwid=51                 ; lowpass filter width
 ccwid=50                 ; compute cc for +/- this width
 
 ; get the data
-dd=readfits(filin,hdr)
+dd=readfits(filin,hdr,/silent)
 sz=size(dd)
 nx=sz(1)
 nord=sz(2)

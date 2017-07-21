@@ -31,7 +31,7 @@ endif
 logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
 filename=nresrawdat+strtrim(filin,2)
-dat=readfits(filename,dathdr)
+dat=readfits(filename,dathdr,/silent)
 type=strupcase(strtrim(sxpar(dathdr,'OBSTYPE'),2))
 extn=sxpar(dathdr,'EXTEND')
 dat0=dat
@@ -191,7 +191,7 @@ agu2dat={nt_agu:nt_agu2,fname_agu:fname_agu2,jd_agu:jd_agu2,$
       cd2_1_agu:cd2_1_agu2,cd2_2_agu:cd2_2_agu2,filter:filter_agu2}
 
 if(verbose) then print,'reading telescope1'
-tel1arr=readfits(filename,tel1hdr,exten=4)                ; telescope 1
+tel1arr=readfits(filename,tel1hdr,exten=4,/silent)                ; telescope 1
 long1=sxpar(tel1hdr,'LONGITUD')
 lat1=sxpar(tel1hdr,'LATITUDE')
 height1=sxpar(tel1hdr,'HEIGHT')
@@ -206,7 +206,7 @@ tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
       ra:ra1,dec:dec1,ras:ra1s,decs:dec1s,object:object1}
 
 if(verbose) then print,'reading telescope2'
-tel2arr=readfits(filename,tel2hdr,exten=5)                ; telescope 2
+tel2arr=readfits(filename,tel2hdr,exten=5,/silent)                ; telescope 2
 long2=sxpar(tel2hdr,'LONGITUD')
 lat2=sxpar(tel2hdr,'LATITUDE')
 height2=sxpar(tel2hdr,'HEIGHT')

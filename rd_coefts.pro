@@ -31,7 +31,7 @@ parm4=dblarr(4,nfiles)            ; 4-parameter fit values
 itemp=fltarr(nfiles)
 mjd=dblarr(nfiles)
 for i=0,nfiles-1 do begin
-  dd=readfits(files(i),hdr0)
+  dd=readfits(files(i),hdr0,/silent)
   if(i eq 0) then begin
     sz=size(dd)
     nx=sz(1)
@@ -40,7 +40,7 @@ for i=0,nfiles-1 do begin
   endif
   origfile=sxpar(hdr0,'ORIGNAME')
   origpath=root+'rawdat/'+strtrim(origfile,2)
-  od=readfits(origpath,hdrorig)
+  od=readfits(origpath,hdrorig,/silent)
   itemp(i)=sxpar(hdrorig,'TT_ITEMP')
   mjd(i)=sxpar(hdrorig,'MJD-OBS')
   

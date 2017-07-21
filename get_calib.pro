@@ -78,7 +78,7 @@ endelse
 
 ; read the file
 path=nresrooti+'/reduced/'+filename
-cdat=readfits(path,chdr)     ; requires all these types of std files to
+cdat=readfits(path,chdr,/silent)     ; requires all these types of std files to
                              ; be standard FITS files, not tables. 
 fini:
 
