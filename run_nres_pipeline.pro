@@ -1,5 +1,4 @@
 pro run_nres_pipeline
-    compile_opt HIDDEN
     catch, error_status
     if error_status ne 0 then begin
       CATCH, /CANCEL
@@ -11,6 +10,7 @@ pro run_nres_pipeline
       PRINT, !ERROR_STATE.MSG
       exit, status=1
     endif
+    restore, getenv('NRES_IDL_PRECOMPILE')
     args = command_line_args(count=nargs)
     if nargs eq 0 then begin
         print, 'Filename required to run NRES pipeline.'

@@ -29,17 +29,22 @@ RUN curl -o /opt/idl/xtra/mpfit.tar.gz "http://www.physics.wisc.edu/~craigm/idl/
         && tar -xzf /opt/idl/xtra/mpfit.tar.gz -C /opt/idl/xtra/mpfit/ \
         && rm -f /opt/idl/xtra/mpfit.tar.gz
 
+RUN curl -o /opt/idl/xtra/exofast.tgz "http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz" \
+        && mkdir -p /opt/idl/xtra/exofast \
+        && tar -xzf /opt/idl/xtra/exofast.tgz -C /opt/idl/xtra/exofast/ \
+        && rm -f /opt/idl/xtra/exofast.tgz
+
 RUN mkdir /home/archive \
         && /usr/sbin/groupadd -g 10000 "domainusers" \
         && /usr/sbin/useradd -g 10000 -d /home/archive -M -N -u 10087 archive \
         && chown -R archive:domainusers /home/archive
 
-RUN pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
+RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
         && rm -rf ~/.cache/pip
 
+COPY . /nres/code/
+
 WORKDIR /nres/code
-COPY ./util/exofast /nres/code/util/exofast
-COPY . /nres/code
 
 RUN python /nres/code/setup.py install
 
@@ -49,7 +54,11 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     PATH="${PATH}:/opt/idl/idl/bin" \
     IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
     NRESROOT="/nres/" \
-    ASTRO_DATA="/opt/idl/xtra/astrolib/data"
+    ASTRO_DATA="/opt/idl/xtra/exofast/bary"
+
+RUN idl -e precompile_nrespipe -quiet  -args '/nres/code/precompile.sav'
+
+ENV NRES_IDL_PRECOMPILE='/nres/code/precompile.sav'
 
 COPY docker/ /
 

@@ -10,7 +10,7 @@ from nrespipe import dbs
 import logging
 
 from kombu import Connection, Exchange
-
+import shutil
 
 logger = logging.getLogger('nrespipe')
 
@@ -123,3 +123,30 @@ def datetime_to_idl(d):
     seconds_in_one_day = 86400.0
     day = (d - datetime.datetime(d.year, 1, 1, 0, 0, 0)).total_seconds() / seconds_in_one_day
     return  "{year:04d}{day:09.5f}".format(year=d.year, day=day)
+
+
+def funpack(input_path, directory):
+    """Unpack a fits file to a temporary directory
+
+    Parameters
+    ----------
+    input_path : str
+                Path to file to unpack
+    directory : str
+                output directory
+
+    Notes
+    -----
+    If fits file is already unpacked, we just copy the file to the output directory
+
+    """
+    if os.path.splitext(input_path)[1] == '.fz':
+        uncompressed_filename = os.path.splitext(os.path.basename(input_path))[0]
+        output_path = os.path.join(directory, uncompressed_filename)
+        os.system('funpack -O {0} {1}'.format(output_path, input_path))
+
+    else:
+        output_path = os.path.join(directory, os.path.basename(input_path))
+        shutil.copy(input_path, directory)
+
+    return output_path

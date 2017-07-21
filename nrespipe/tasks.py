@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_nres_file, which_nres, date_range_to_idl
+from nrespipe.utils import need_to_process, is_nres_file, which_nres, date_range_to_idl, funpack
 from nrespipe import settings
 
 import tempfile
@@ -30,26 +30,17 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
         raise FileNotFoundError
 
     with tempfile.TemporaryDirectory() as temp_directory:
-        input_path = path
-        if os.path.splitext(input_path) == '.fz':
-            uncompressed_filename = os.path.splitext(os.path.basename(path))[0]
-            output_path = os.path.join(temp_directory, uncompressed_filename)
-            os.system('funpack -O {0} {1}'.format(output_path, path))
-
-        else:
-            output_path = os.path.join(temp_directory, os.path.basename(path))
-            shutil.copy(input_path, output_path)
-
-        path = output_path
+        input_filename = os.path.basename(path)
+        path = funpack(path, temp_directory)
 
         if not is_nres_file(path):
-            logger.info('Not NRES file. Skipping...', extra={'tags': {'filename': os.path.basename(input_path)}})
+            logger.info('Not NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
 
-        elif not need_to_process(input_path, db_address):
-            logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': os.path.basename(input_path)}})
+        elif not need_to_process(path, db_address):
+            logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
 
         else:
-            logger.info('Processing NRES file', extra={'tags': {'filename': os.path.basename(input_path)}})
+            logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_instrument = which_nres(path)
             os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, '')
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
