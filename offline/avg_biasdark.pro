@@ -8,6 +8,7 @@ pro avg_biasdark,type,flist,array=array
 ; super-BIAS or super-DARK into the appropriate directory.
 ; It adds a descriptive line to the standards.csv file.
 ; All input files must come from the same site and camera.
+; Only files that are NOT averages of other files are included in the average.
 ; This routine is intended to be called from an offline routine mk_supercal,
 ; not from muncha, hence it does not reference the nres_comm common block.
 
@@ -17,6 +18,7 @@ nresrooti=nresroot+getenv('NRESINST')
 root=nresrooti+'reduced/'
 biasdir=root+'bias/'
 darkdir=root+'dark/'
+inst=getenv('NRESINST')+'reduced/'
 
 ; check that type is okay
 if(type ne 'BIAS' and type ne 'DARK') then begin
@@ -48,6 +50,7 @@ fn=root+files(0)
 dd=float(readfits(fn,hdr0,/silent))
 nx=sxpar(hdr0,'NAXIS1')
 ny=sxpar(hdr0,'NAXIS2')
+navgd=sxpar(hdr0,'NFRAVGD')
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
 if(obty ne strtrim(type,2)) then begin
   print,'OBSTYPE of '+files(0)+' does not match requested type '+type
@@ -61,7 +64,7 @@ mjdd=sxpar(hdr0,'MJD-OBS')
 datin=fltarr(nx,ny,nfile)
 datin(*,*,0)=dd
 gooddat=lonarr(nfile)
-gooddat(0)=1
+if(navgd eq 1) then gooddat(0)=1 else goodat(0)=0
 for i=1,nfile-1 do begin
   fn=root+files(i)
   dd=float(readfits(fn,hdr,/silent))
@@ -70,9 +73,11 @@ for i=1,nfile-1 do begin
   sitet=strtrim(sxpar(hdr,'SITEID'),2)
   camerat=strtrim(sxpar(hdr,'INSTRUME'),2)
   obtyt=strtrim(sxpar(hdr,'OBSTYPE'),2)
+  navgd=sxpar(hdr,'NFRAVGD')
   if((nxt ne nx) or (nyt ne ny) or (sitet ne site) or (camerat ne camera) $
-       or (obtyt ne obty)) then begin
+       or (obtyt ne obty) or (navgd ne 1)) then begin
     print,'Input file '+fn+' does not match 1st input file parameters'
+    print,'or is an averaged file'
     gooddat(i)=0
   endif else begin
     gooddat(i)=1
@@ -118,7 +123,15 @@ endcase
 sxaddpar,hdr0,'MJD-OBS',mjdd
 sxaddpar,hdr0,'NFRAVGD',nfile
 sxaddpar,hdr0,'ORIGNAME',files(0)
+for i=0,nfile-1 do begin
+  ssi=string(i,format='(i02)')
+  kwd='INPFIL'+ssi
+  sxaddpar,hdr0,kwd,inst+files(i)
+endfor
 writefits,filout,datout,hdr0
+
+; put the output file into a tarfile for archiving
+tarzit,filout
 
 ; add line to standards.csv
 cflg='0000'

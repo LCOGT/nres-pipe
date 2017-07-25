@@ -54,6 +54,7 @@ nx=sxpar(hdr0,'NAXIS1')
 nord=sxpar(hdr0,'NAXIS2')
 nfib=sxpar(hdr0,'NAXIS3')
 fib0=sxpar(hdr0,'FIB0')
+navgd=sxpar(hdr0,'NFRAVGD')
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
 if(~((obty eq 'FLAT') or (obty eq 'LAMPFLAT'))) then begin
   print,'OBSTYPE of '+files(0)+' is not FLAT in avg_flat'
@@ -65,6 +66,8 @@ camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
 ; make data array, fill it up
 datin=fltarr(nx,nord,nfib,nfile)
 fib0a=intarr(nfile)
+navgds=intarr(nfile)
+navgds(0)=navgd
 datin(*,*,*,0)=dd
 fib0a(0)=fib0
 for i=1,nfile-1 do begin
@@ -74,6 +77,7 @@ for i=1,nfile-1 do begin
   nordt=sxpar(hdr,'NAXIS2')
   nfibt=sxpar(hdr,'NAXIS3')
   fib0t=sxpar(hdr,'FIB0')
+  navgds(i)=sxpar(hdr,'NFRAVGD')
   sitet=strtrim(sxpar(hdr,'SITEID'),2)
   camerat=strtrim(sxpar(hdr,'INSTRUME'),2)
   obtyt=strtrim(sxpar(hdr,'OBSTYPE'),2)
@@ -85,6 +89,17 @@ for i=1,nfile-1 do begin
   datin(*,*,*,i)=dd
   fib0a(i)=fib0t
 endfor
+
+; exclude data for which (navgd ne 1)
+s1=where(navgds eq 1,ns1)
+if(ns1 gt 0) then begin
+  nfile=ns1
+  datin=datin(*,*,*,s1)
+  fib0a=fib0a(s1)
+endif else begin
+  print,'No unaveraged input files'
+  stop
+endelse
 
 ; average the input data arrays
 ; There are 2 cases -- nfib=2 or nfib=3.
@@ -161,6 +176,9 @@ sxaddpar,hdr0,'NFRAVGD',nfile
 sxaddpar,hdr0,'ORIGNAME',files(0)
 ; ##### make modified 'OBJECTS' keyword to cover all 3 fibers #####
 writefits,filout,datout,hdr0
+
+; make tar file of output, for archiving
+tarzit,filout
 
 ; add line to standards.csv
 if(nfib eq 2) then cflg='0010' else cflg='0030' 
