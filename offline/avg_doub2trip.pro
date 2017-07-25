@@ -84,7 +84,7 @@ endfor
 
 ; read first input file, move useful data from header into nres_comm
 pathname=reddir+s0name
-dd=readfits(pathname,dblehdr0)
+dd=readfits(pathname,dblehdr0,/silent)
 mjdd=sxpar(dblehdr0,'MJD-OBS')
 
 ; use site name to find nfib value for these data from spectrographs.csv

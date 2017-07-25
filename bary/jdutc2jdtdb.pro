@@ -118,7 +118,7 @@ if not keyword_set(TT_IN) then begin
             print, 'or input JD_TT and set the /TT_IN keyword'
             print, 'JD_TT = JD_UTC + 32.184 + N'
             print, 'where N is the number of leap seconds' 
-            stop
+            ;stop
         endelse
     endif
 

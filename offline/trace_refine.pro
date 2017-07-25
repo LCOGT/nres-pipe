@@ -52,7 +52,7 @@ filin0=tracein
 
 ; read the input trace file, unpack it, stick needed stuff into common
 tracefil=nresrooti+tracedir+tracein
-tracea=readfits(tracefil,tracehdr)
+tracea=readfits(tracefil,tracehdr,/silent)
 nx=sxpar(tracehdr,'NX')
 ; set nx for size of arrays with overscan trimmed off
 if(nx eq 2080L) then nx=2048
@@ -91,7 +91,7 @@ endelse
 
 ; read the input image file(s) main data segment
 imagein1=getenv('NRESRAWDAT')+flatin1
-dat1=readfits(imagein1,hdr1)
+dat1=readfits(imagein1,hdr1,/silent)
 
 ; trim data array if necessary
 sz=size(dat1)
@@ -139,7 +139,7 @@ if(medboxsz eq 0) then medboxsz=23
 ; if there are 2 input files, read and process the 2nd one
 if(ninfil eq 2) then begin
   imagein2=getenv('NRESRAWDAT')+flatin2
-  dat2=readfits(imagein2,hdr2)
+  dat2=readfits(imagein2,hdr2,/silent)
 
 ; trim dat2 if necessary
   sz=size(dat2)

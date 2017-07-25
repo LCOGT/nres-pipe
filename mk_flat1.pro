@@ -26,6 +26,8 @@ flat=fltarr(nx,nord,nfib)
 parmstr=string(nx)+' '+string(nord)+' '+string(nfib)+' '+string(fib0)
 logo_nres2,rutname,'INFO','inparms = '+parmstr
 
+rmsspec=echdat.specrms
+
 ; set to zero all points where flat le flatmin or where S/N le snmin
 sg=where((rmsspec le 1.e4) and (rmsspec gt 0.),nsg)
 sn=fltarr(nx,nord,nfib)

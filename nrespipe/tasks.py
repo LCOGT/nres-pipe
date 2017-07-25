@@ -14,13 +14,13 @@ from nrespipe.utils import need_to_process, is_nres_file, which_nres, date_range
 from nrespipe import settings
 
 import tempfile
-import shutil
 
 
 app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
+logger.propagate = False
 
 
 @app.task(bind=True, max_retries=3, default_retry_delay=3 * 60)
@@ -65,6 +65,10 @@ def make_stacked_calibrations(self, site, camera, calibration_type, date_range, 
 
     date_range = [datetime.datetime.strptime(date_range[0], settings.date_format),
                   datetime.datetime.strptime(date_range[1], settings.date_format)]
+    logger.info('Stacking Calibration frames', extra={'tags': {'site': site, 'instrument': camera,
+                                                               'caltype': calibration_type,
+                                                               'start': date_range[0].strftime(settings.date_format),
+                                                               'end': date_range[1].strftime(settings.date_format)}})
 
     try:
         cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
@@ -84,25 +88,6 @@ def make_stacked_calibrations_for_one_night(self, site, camera, nres_instrument)
         make_stacked_calibrations.delay(calibration_type=calibtration_type, site=site, camera=camera,
                                         date_range=date_range, data_reduction_root_path=settings.data_reduction_root,
                                         nres_instrument=nres_instrument)
-
-
-
-@app.task(bind=True, max_retries=None, default_retry_delay=3 * 60)
-def make_rv_zero_file(self, telescope, dayobs, db_address):
-    #mk_zero: make a zero file, what you compare to for a radial velocity calculation - 5 high S/N on the same star on the same night, that are consecutive is ideal, minimal acceptable: 3 spectra of the same object on the same night (iterate over per star, stack all taken within 5 hours), S/N ~50 ok, want 200,
-    pass
-
-
-@app.task(bind=True, max_retries=None, default_retry_delay=3 * 60)
-def make_triple_arc_from_double(self, telescope, dayobs, db_address):
-#avg_doubtwotrip: arcs -> make arc for all three fibers (may also be called far_triple, one calls the other), stack all from the night, would be nice to alternate filenames to be alternating between fibers 0,1 to fibers 1,2 if possible, info in the header
-    pass
-
-@app.task(bind=True, max_retries=None, default_retry_delay=3 * 60)
-def make_trace_file(self, telescope, dayobs, db_address):
-#trace_file: run nightly, takes a list of flats, run on all flats taken that night
-    pass
-
 
 @app.task
 def collect_queue_length_metric(rabbit_api_root):

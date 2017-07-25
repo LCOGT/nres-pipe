@@ -66,7 +66,7 @@ nfiles=n_elements(flist)
 ; read the first file, get sizes of things
 ; put data into nres_comm or thar_comm variables, as appropriate
 fname=nresrooti+'/reduced/blaz/'+flist(0)
-dd=readfits(fname,hdr)
+dd=readfits(fname,hdr,/silent)
 sz=size(dd)
 nx=sz(1)
 nord=sz(2)
@@ -112,7 +112,7 @@ mjdavg=mjdobs
 navg=1
 for i=1,nfiles-1 do begin
   fname=nresrooti+'/reduced/blaz/'+flist(i)
-  dd=readfits(fname,hdr)
+  dd=readfits(fname,hdr,/silent)
   zout(*,*,0)=zout(*,*,0)+dd(*,*,ifib0)
   zout(*,*,1)=zout(*,*,1)+dd(*,*,ifib1)
   mjdavg=mjdavg+sxpar(hdr,'MJD-OBS')

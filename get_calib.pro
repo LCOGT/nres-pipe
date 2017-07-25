@@ -49,7 +49,7 @@ if(ns le 0) then begin
   filename='NULL'
   cdat=[[0.]]
   chdr=['NULL']
-stop
+;stop
   goto,fini
 endif
 fnames1=fnames(s)

@@ -86,7 +86,7 @@ if(type eq 'FLAT') then begin
   se=where(flagg eq flagg(0),nse)
   if(nse eq nsg) then begin           ; all flag values are the same
     filet=nresrooti+'reduced/'+files(0)   ; first file in list
-    dat=readfits(filet,hdr)
+    dat=readfits(filet,hdr, /silent)
     nax3=sxpar(hdr,'NAXIS3')
 ; relax rule prohibiting 3 fibers with only 2 illuminated
 ;   if(nax3 ge 3) then begin

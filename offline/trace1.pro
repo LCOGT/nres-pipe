@@ -24,7 +24,7 @@ rawdat=getenv('NRESRAWDAT')
 trace0i=trace0
 rerun:
 trace0in=nresrooti+'reduced/trace/'+trace0i
-tra0=readfits(trace0in,trhdr)
+tra0=readfits(trace0in,trhdr,/silent)
 sz=size(tra0)
 nc=sz(1)            ; number of coeffs (sort of)
 nord=sz(2)          ; number of orders
@@ -34,7 +34,7 @@ trcoefs=reform(tra0(0:4,9,*,0),5,3)  ; leg coeffs of trace order 9, all fibers
 
 ; get image data, extract useful keywords
 imgin=rawdat+image0
-img=readfits(imgin,hdri)
+img=readfits(imgin,hdri,/silent)
 sz=size(img)
 nx=sz(1)
 ny=sz(2)

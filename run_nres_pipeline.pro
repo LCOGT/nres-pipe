@@ -1,4 +1,5 @@
 pro run_nres_pipeline
+    compile_opt HIDDEN
     catch, error_status
     if error_status ne 0 then begin
       CATCH, /CANCEL

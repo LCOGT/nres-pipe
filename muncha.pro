@@ -1,4 +1,4 @@
-pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
+pro muncha,filin,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
   oskip=oskip,nostar=nostar
 ; This is the main routine organizing the processing pipeline for NRES
 ; spectroscopic data.
@@ -148,10 +148,8 @@ case 1 of
   (type eq 'FLAT' or type eq 'LAMPFLAT'): begin
   logo_nres2,rutname,'INFO','###FLAT block'
   if(verbose) then print,'###FLAT block'
-  calib_extract,flatk=flatk
-  if(keyword_set(flatk)) then begin
-    mk_flat1         ; makes single flat extracted spec, not an average
-  endif
+  calib_extract,flatk=1
+  mk_flat1         ; makes single flat extracted spec, not an average
   end
 
 ; a DOUBLE image

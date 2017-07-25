@@ -5,8 +5,9 @@ pro precompile_nrespipe
   endif else begin
     resolve_all,resolve_procedure='stack_nres_calibrations'
     resolve_all,resolve_procedure='run_nres_pipeline'
-
-    SAVE, /routines, FILENAME=args[0]
+    resolve_all,resolve_function='thar_mpfit'
+    resolve_all,resolve_function='rv_mpfit'
+    SAVE, /routines,/IGNORE_NOSAVE, FILENAME=args[0]
 
   endelse
 end
