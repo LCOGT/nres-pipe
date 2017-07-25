@@ -268,6 +268,9 @@ fxbcreate,unit,filepath,hdr,ext1
 fxbwritm,unit,['Star','Thar','Wavelength'],z0,z1,lamz
 fxbfinish,unit
 
+; make a tarfile for archiving
+tarzit,filepath
+
 ; add a line pointing to this file in the zeros.csv file
 ; use 3rd flag character to show which fiber was telescope fiber
 ; 0 -> '0', 2 -> '2'
