@@ -44,7 +44,7 @@ def is_nres_file(path):
 
 def which_nres(path):
     header = fits.getheader(path)
-    return header['TELESCOP'].lower()
+    return header['SITEID'].lower(), header['TELESCOP'].lower()
 
 
 def wait_for_task_rabbitmq(broker_url, username, password):

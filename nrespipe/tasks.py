@@ -41,8 +41,8 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
 
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
-            nres_instrument = which_nres(path)
-            os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, '')
+            nres_site, nres_instrument = which_nres(path)
+            os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site)
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
             try:
                 dbs.save_metadata(path, db_address)
