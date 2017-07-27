@@ -101,7 +101,7 @@ def get_or_create(db_address, table_model, equivalence_criteria, record_attribut
     return record
 
 
-def get_processing_state(filename, filepath, checksum, db_address):
+def get_processing_state(filename, checksum, db_address):
     """
     Get the state of pipeline processing for a given file from the database.
 
