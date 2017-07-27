@@ -9,8 +9,6 @@ from nrespipe.utils import wait_for_task_rabbitmq
 from nrespipe import tasks
 import celery.bin.worker
 import argparse
-import os
-import datetime
 
 
 logger = logging.getLogger('nrespipe')
@@ -52,8 +50,6 @@ def stack_nres_calibrations():
                         help='NRES instrument name (e.g. nres01)')
     args = parser.parse_args()
 
-    date_format = '%Y-%m-%dT%H:%M:%S'
-    date_range = [datetime.datetime.strptime(args.start, date_format), datetime.datetime.strptime(args.end, date_format)]
     tasks.make_stacked_calibrations.delay(args.site, args.camera, args.calibration_type, [args.start, args.end],
                                           settings.data_reduction_root, args.nres_instrument)
 
@@ -62,3 +58,16 @@ def run_periodic_worker():
     logger.info('Starting periodic worker')
     worker = celery.bin.worker.worker(app=tasks.app)
     worker.run(concurrency=1, queue='periodic')
+
+
+def create_db():
+    pass
+
+def create_deployment_directories():
+    """zero  trace  temp  spec  plot  extr  diag  dark  config  ccor  bias
+       trip  thar   tar   rv    flat  expm  dble  csv   class   blaz
+    """
+    pass
+
+def copy_in_empty_csv_files():
+    pass
