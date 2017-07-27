@@ -107,7 +107,7 @@ for i=0,nplot-1 do begin
   device,set_font='Helvetica'
 
   !p.multi=[0,1,3]
-  loadct,coltab
+  loadct,coltab,/silent
 
 ; plot spectrum intensity vs x for standard order
   lambda=tharred.lam(xbot:xtop,stord,iplot)
@@ -155,7 +155,7 @@ for i=0,nplot-1 do begin
   
 ; do the plots
   !p.multi=[3,3,3]
-  loadct,coltab
+  loadct,coltab,/silent
   yran=[0.,1.05*max(medintn)/1e3]
   plot,ordindx,medintn/1e3,psym=-1,yran=yran,/xsty,/ysty,xtit=xtit,ytit=ytit0,$
      tit=tit,charsiz=cs2,thick=2
@@ -171,7 +171,7 @@ for i=0,nplot-1 do begin
 
 ; new plot page --  do wavelength solution plots
   !p.multi=[0,1,2]
-  loadct,coltab
+  loadct,coltab,/silent
   tit=datestrd
   xtit='Wavelength (nm)'
   ytit='lambda Mismatch (nm)'
@@ -204,7 +204,7 @@ for i=0,nplot-1 do begin
 
 ; new plot page --  plot spectra and vacuum line wavelengths for O2 A & B bands
   !p.multi=[0,2,2]
-  loadct,coltab
+  loadct,coltab,/silent
 
   tit=datestrd
   tit2=[' B-band',' B-band',' A-band',' A-band']
