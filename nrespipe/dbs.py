@@ -19,7 +19,6 @@ class ProcessingState(Base):
     __tablename__ = 'processingstate'
     id = Column(Integer, primary_key=True, autoincrement=True)
     filename = Column(String(50), unique=True, index=True)
-    filepath = Column(String(100))
     checksum = Column(CHAR(32), default='0'*32)
     processed = Column(Boolean, default=False)
 
@@ -123,7 +122,7 @@ def get_processing_state(filename, filepath, checksum, db_address):
             The current state of processing for the file of interest
     """
     return get_or_create(db_address, ProcessingState, {'filename': filename},
-                         {'checksum': checksum, 'filepath': filepath})
+                         {'checksum': checksum})
 
 
 def set_file_as_processed(path, db_address):
@@ -137,20 +136,15 @@ def set_file_as_processed(path, db_address):
     db_address : str
                  SQLAlchemy style url to the database
     """
-    filepath, filename = os.path.split(path)
+    filename = os.path.basename(path)
     checksum = utils.get_md5(path)
 
     record = get_or_create(db_address, ProcessingState, {'filename': filename},
-                           {'checksum': checksum, 'filepath': filepath})
+                           {'checksum': checksum})
     record.processed = True
-    record.filepath = filepath
     record.checksum = checksum
 
     db_session = get_session(db_address)
     db_session.add(record)
     db_session.commit()
     db_session.close()
-
-
-def save_metadata(path, db_address):
-    pass

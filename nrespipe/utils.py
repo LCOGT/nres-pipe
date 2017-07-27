@@ -21,9 +21,9 @@ def get_md5(filepath):
 
 
 def need_to_process(path, db_address):
-    filepath, filename = os.path.split(path)
+    filename = os.path.basename(path)
     checksum = get_md5(path)
-    record = dbs.get_processing_state(filename, filepath, checksum, db_address)
+    record = dbs.get_processing_state(filename, checksum, db_address)
     return not record.processed or checksum != record.checksum
 
 
