@@ -5,7 +5,7 @@ pro logo_nres,rutname,logstr
 
 root=getenv('NRESROOT')
 inst=getenv('NRESINST')
-logo='log_muncha.txt'
+logo='reduced/log_muncha.txt'
 save_dir = strtrim(root,2)+strtrim(inst,2)
 if (file_test(save_dir, /DIRECTORY) EQ 0) then begin
   file_mkdir, save_dir

@@ -20,7 +20,7 @@ ts0=210866760000.d0               ; JD of 0h 1 Jan 1970
 
 root=getenv('NRESROOT')
 inst=getenv('NRESINST')
-logo='log_muncha.txt'
+logo='reduced/log_muncha.txt'
 outfil=strtrim(root,2)+strtrim(inst,2)+'/'+strtrim(logo,2)
 openw,iuno,outfil,/get_lun,/append
 
