@@ -58,7 +58,7 @@ def make_stacked_calibrations(self, site, camera, calibration_type, date_range, 
     """
     Stack the calibration files taken on a given night (BIAS, DARK, FLAT)
     """
-    os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, '')
+    os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, site, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
 
 
