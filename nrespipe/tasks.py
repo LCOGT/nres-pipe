@@ -45,7 +45,6 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
             os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site)
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
             try:
-                dbs.save_metadata(path, db_address)
                 console_output = subprocess.check_output(shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path)))
                 logger.info('IDL NRES pipeline output: {output}'.format(output=console_output))
                 dbs.set_file_as_processed(path, db_address)
