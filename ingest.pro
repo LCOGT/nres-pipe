@@ -193,33 +193,37 @@ agu2dat={nt_agu:nt_agu2,fname_agu:fname_agu2,jd_agu:jd_agu2,$
 if(verbose) then print,'reading telescope1'
 tel1arr=readfits(filename,tel1hdr,exten=4,/silent)                ; telescope 1
 long1=sxpar(tel1hdr,'LONGITUD')
-lat1=sxpar(tel1hdr,'LATITUDE')
-height1=sxpar(tel1hdr,'HEIGHT')
-ra1s=sxpar(tel1hdr,'RA')             ; string version
-dec1s=sxpar(tel1hdr,'DEC')           ; string version
-rawd=get_words(ra1s,delim=':')
-ra1=15.*ten(float(rawd))             ; decimal degrees
-decwd=get_words(dec1s,delim=':')
-dec1=ten(float(decwd))
-object1=sxpar(tel1hdr,'OBJECT')
-tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
+if (strtrim(long1) eq '') and (strtrim(long1) ne 'N/A') then begin 
+   lat1=sxpar(tel1hdr,'LATITUDE')
+   height1=sxpar(tel1hdr,'HEIGHT')
+   ra1s=sxpar(tel1hdr,'RA')             ; string version
+   dec1s=sxpar(tel1hdr,'DEC')           ; string version
+   rawd=get_words(ra1s,delim=':')
+   ra1=15.*ten(float(rawd))             ; decimal degrees
+   decwd=get_words(dec1s,delim=':')
+   dec1=ten(float(decwd))
+   object1=sxpar(tel1hdr,'OBJECT')
+   tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
       ra:ra1,dec:dec1,ras:ra1s,decs:dec1s,object:object1}
+endif
+
 
 if(verbose) then print,'reading telescope2'
 tel2arr=readfits(filename,tel2hdr,exten=5,/silent)                ; telescope 2
 long2=sxpar(tel2hdr,'LONGITUD')
-lat2=sxpar(tel2hdr,'LATITUDE')
-height2=sxpar(tel2hdr,'HEIGHT')
-ra2s=sxpar(tel2hdr,'RA')             ; string version
-dec2s=sxpar(tel2hdr,'DEC')           ; string version
-rawd=get_words(ra2s,delim=':')
-ra2=15.*ten(float(rawd))             ; decimal degrees
-decwd=get_words(dec2s,delim=':')
-dec2=ten(float(decwd))
-object2=sxpar(tel2hdr,'OBJECT')
-tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
+if (strtrim(long2) eq '') and (strtrim(long2) ne 'N/A') then begin 
+   lat2=sxpar(tel2hdr,'LATITUDE')
+   height2=sxpar(tel2hdr,'HEIGHT')
+   ra2s=sxpar(tel2hdr,'RA')             ; string version
+   dec2s=sxpar(tel2hdr,'DEC')           ; string version
+   rawd=get_words(ra2s,delim=':')
+   ra2=15.*ten(float(rawd))             ; decimal degrees
+   decwd=get_words(dec2s,delim=':')
+   dec2=ten(float(decwd)) 
+   object2=sxpar(tel2hdr,'OBJECT')
+   tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
       ra:ra2,dec:dec2,ras:ra2s,decs:dec2s,object:object2}
-
+endif
 ; stick longitude, latitude, height into dathdr, for later use
 ;sxaddpar,dathdr,'LONGITUD',-70.8046889
 ;sxaddpar,dathdr,'LATITUDE',-30.16772
