@@ -35,7 +35,7 @@ def run_listener():
 def run_celery_worker():
     logger.info('Starting celery worker')
     worker = celery.bin.worker.worker(app=tasks.app)
-    worker.run(concurrency=1)
+    worker.run(concurrency=1, name='worker')
 
 
 def stack_nres_calibrations():
@@ -57,7 +57,7 @@ def stack_nres_calibrations():
 def run_periodic_worker():
     logger.info('Starting periodic worker')
     worker = celery.bin.worker.worker(app=tasks.app)
-    worker.run(concurrency=1, queue='periodic')
+    worker.run(concurrency=1, queue='periodic', name='periodic')
 
 
 def create_db():
