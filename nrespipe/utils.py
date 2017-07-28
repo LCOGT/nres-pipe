@@ -28,6 +28,9 @@ def need_to_process(path, db_address):
 
 
 def is_nres_file(path):
+    # Only get raw files
+    if not '00.fits' in path:
+        return False
     try:
         header = fits.getheader(path)
     except:

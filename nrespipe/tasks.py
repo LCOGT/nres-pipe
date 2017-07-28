@@ -34,7 +34,7 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
         path = funpack(path, temp_directory)
 
         if not is_nres_file(path):
-            logger.info('Not NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
+            logger.info('Not raw NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
 
         elif not need_to_process(path, db_address):
             logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})

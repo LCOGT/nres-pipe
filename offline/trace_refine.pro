@@ -28,6 +28,9 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely
 
 @nres_comm
 
+jdc=systime(/julian)
+mjdc=jdc-2400000.5d0
+
 itermax=10
 sig0=10.                ; guess at read noise in e- per pixel.
 minamp=20.              ; min allowed amplitude of block-avgd cross-disp prof
