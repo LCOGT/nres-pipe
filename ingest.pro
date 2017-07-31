@@ -193,7 +193,7 @@ agu2dat={nt_agu:nt_agu2,fname_agu:fname_agu2,jd_agu:jd_agu2,$
 if(verbose) then print,'reading telescope1'
 tel1arr=readfits(filename,tel1hdr,exten=4,/silent)                ; telescope 1
 long1=sxpar(tel1hdr,'LONGITUD')
-if (strtrim(long1) eq '') and (strtrim(long1) ne 'N/A') then begin 
+if (strtrim(long1) ne '') and (strtrim(long1) ne 'N/A') then begin 
    lat1=sxpar(tel1hdr,'LATITUDE')
    height1=sxpar(tel1hdr,'HEIGHT')
    ra1s=sxpar(tel1hdr,'RA')             ; string version
@@ -211,7 +211,7 @@ endif
 if(verbose) then print,'reading telescope2'
 tel2arr=readfits(filename,tel2hdr,exten=5,/silent)                ; telescope 2
 long2=sxpar(tel2hdr,'LONGITUD')
-if (strtrim(long2) eq '') and (strtrim(long2) ne 'N/A') then begin 
+if (strtrim(long2) ne '') and (strtrim(long2) ne 'N/A') then begin 
    lat2=sxpar(tel2hdr,'LATITUDE')
    height2=sxpar(tel2hdr,'HEIGHT')
    ra2s=sxpar(tel2hdr,'RA')             ; string version
