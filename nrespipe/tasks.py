@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_nres_file, which_nres, date_range_to_idl, funpack
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5
 from nrespipe import settings
 
 import tempfile
@@ -26,19 +26,22 @@ logger.propagate = False
 @app.task(bind=True, max_retries=3, default_retry_delay=3 * 60)
 @metric_timer('nrespipe', async=False)
 def process_nres_file(self, path, data_reduction_root_path, db_address):
+    input_filename = os.path.basename(path)
+
     if not os.path.exists(path):
+        logger.error('File not found', extra={'tags': {'filename': input_filename}})
         raise FileNotFoundError
 
+    checksum = get_md5(path)
+    if not need_to_process(input_filename, checksum, db_address):
+        logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
+        return
+
     with tempfile.TemporaryDirectory() as temp_directory:
-        input_filename = os.path.basename(path)
         path = funpack(path, temp_directory)
 
-        if not is_nres_file(path):
+        if not is_raw_nres_file(path):
             logger.info('Not raw NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
-
-        elif not need_to_process(path, db_address):
-            logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
-
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_site, nres_instrument = which_nres(path)
@@ -47,7 +50,7 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
             try:
                 console_output = subprocess.check_output(shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path)))
                 logger.info('IDL NRES pipeline output: {output}'.format(output=console_output))
-                dbs.set_file_as_processed(path, db_address)
+                dbs.set_file_as_processed(input_filename, checksum, db_address)
             except subprocess.CalledProcessError as e:
                 logger.error('IDL NRES pipeline returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
 

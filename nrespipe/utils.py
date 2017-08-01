@@ -15,19 +15,30 @@ import shutil
 logger = logging.getLogger('nrespipe')
 
 def get_md5(filepath):
+    """
+    Calculate the MD% checksum of a file
+
+    Parameters
+    ----------
+    filepath : str
+               Full path to file for which to calculate an MD5
+
+    Returns
+    -------
+    md5 : str
+          Hexadecimal representation of the MD5 checksum
+    """
     with open(filepath, 'rb') as file:
         md5 = hashlib.md5(file.read()).hexdigest()
     return md5
 
 
-def need_to_process(path, db_address):
-    filename = os.path.basename(path)
-    checksum = get_md5(path)
+def need_to_process(filename, checksum, db_address):
     record = dbs.get_processing_state(filename, checksum, db_address)
     return not record.processed or checksum != record.checksum
 
 
-def is_nres_file(path):
+def is_raw_nres_file(path):
     # Only get raw files
     if not '00.fits' in path:
         return False

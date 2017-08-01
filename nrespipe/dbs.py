@@ -78,7 +78,7 @@ def get_or_create(db_address, table_model, equivalence_criteria, record_attribut
                            the same
 
     record_attributes : dict
-                        record attributes that will be set if the object is created.
+                        Extra record attributes that will be set if the object is created.
 
     Returns
     -------
@@ -87,14 +87,14 @@ def get_or_create(db_address, table_model, equivalence_criteria, record_attribut
     """
     # Build the query
     query = true()
-    for key in equivalence_criteria.keys():
-        query &= getattr(table_model, key) == equivalence_criteria[key]
+    for key, value in equivalence_criteria.items():
+        query &= getattr(table_model, key) == value
 
     # Connect to the database
     db_session = get_session(db_address)
     record = db_session.query(table_model).filter(query).first()
     if record is None:
-        record = table_model(**record_attributes)
+        record = table_model(**equivalence_criteria, **record_attributes)
         db_session.add(record)
         db_session.commit()
     db_session.close()
@@ -121,26 +121,22 @@ def get_processing_state(filename, checksum, db_address):
     state : nrespipe.dbs.ProcessingState
             The current state of processing for the file of interest
     """
-    return get_or_create(db_address, ProcessingState, {'filename': filename},
-                         {'checksum': checksum})
+    return get_or_create(db_address, ProcessingState, {'filename': filename, 'checksum': checksum}, {})
 
 
-def set_file_as_processed(path, db_address):
+def set_file_as_processed(filename, checksum, db_address):
     """
     Mark a file as processed in the database
 
     Parameters
     ----------
-    path : str
-           Full path to the file or interest
+    filename : str
+           File name of interest
+    checksum :
     db_address : str
                  SQLAlchemy style url to the database
     """
-    filename = os.path.basename(path)
-    checksum = utils.get_md5(path)
-
-    record = get_or_create(db_address, ProcessingState, {'filename': filename},
-                           {'checksum': checksum})
+    record = get_or_create(db_address, ProcessingState, {'filename': filename}, {'checksum': checksum})
     record.processed = True
     record.checksum = checksum
 
