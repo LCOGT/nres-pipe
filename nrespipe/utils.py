@@ -135,7 +135,8 @@ def datetime_to_idl(d):
     xxxxx is fractional day of the year.
     """
     seconds_in_one_day = 86400.0
-    day = (d - datetime.datetime(d.year, 1, 1, 0, 0, 0)).total_seconds() / seconds_in_one_day
+    # Note the +1 here. January 1st is day 1, not 0
+    day = (d - datetime.datetime(d.year, 1, 1, 0, 0, 0)).total_seconds() / seconds_in_one_day + 1
     return  "{year:04d}{day:09.5f}".format(year=d.year, day=day)
 
 
