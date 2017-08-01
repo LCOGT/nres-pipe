@@ -95,7 +95,7 @@ def make_stacked_calibrations_for_one_night(self, site, camera, nres_instrument)
 
 @app.task
 def collect_queue_length_metric(rabbit_api_root):
-    response = requests.get('"http://{base_url}:15672/api/queues/%2f/celery/'.format(base_url=rabbit_api_root),
+    response = requests.get('http://{base_url}:15672/api/queues/%2f/celery/'.format(base_url=rabbit_api_root),
                             auth=HTTPBasicAuth('guest', 'guest')).json()
     send_tsdb_metric('nrespipe.queue_length', response['messages'], async=False)
 
