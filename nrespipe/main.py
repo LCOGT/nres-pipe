@@ -13,6 +13,7 @@ import argparse
 
 
 logger = logging.getLogger('nrespipe')
+logger.propagate = False
 fits_exchange = Exchange('fits_files', type='fanout')
 
 
@@ -68,3 +69,15 @@ def run_beats_scheduler():
     logger.info('Starting Beats Scheduler')
     beat = celery.bin.beat.beat(app=tasks.app)
     beat.run()
+
+def create_db():
+    pass
+
+def create_deployment_directories():
+    """zero  trace  temp  spec  plot  extr  diag  dark  config  ccor  bias
+       trip  thar   tar   rv    flat  expm  dble  csv   class   blaz
+    """
+    pass
+
+def copy_in_empty_csv_files():
+    pass
