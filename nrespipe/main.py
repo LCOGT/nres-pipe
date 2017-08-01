@@ -8,6 +8,7 @@ from nrespipe.listener import NRESListener
 from nrespipe.utils import wait_for_task_rabbitmq
 from nrespipe import tasks
 import celery.bin.worker
+import celery.bin.beat
 import argparse
 
 
@@ -33,9 +34,10 @@ def run_listener():
 
 
 def run_celery_worker():
+    wait_for_task_rabbitmq(settings.rabbitmq_host, settings.broker_username, settings.broker_password)
     logger.info('Starting celery worker')
     worker = celery.bin.worker.worker(app=tasks.app)
-    worker.run(concurrency=1, name='worker')
+    worker.run(concurrency=1, hostname='worker')
 
 
 def stack_nres_calibrations():
@@ -55,19 +57,14 @@ def stack_nres_calibrations():
 
 
 def run_periodic_worker():
+    wait_for_task_rabbitmq(settings.rabbitmq_host, settings.broker_username, settings.broker_password)
     logger.info('Starting periodic worker')
     worker = celery.bin.worker.worker(app=tasks.app)
-    worker.run(concurrency=1, queue='periodic', name='periodic')
+    worker.run(concurrency=1, queues='periodic', hostname='periodic')
 
 
-def create_db():
-    pass
-
-def create_deployment_directories():
-    """zero  trace  temp  spec  plot  extr  diag  dark  config  ccor  bias
-       trip  thar   tar   rv    flat  expm  dble  csv   class   blaz
-    """
-    pass
-
-def copy_in_empty_csv_files():
-    pass
+def run_beats_scheduler():
+    wait_for_task_rabbitmq(settings.rabbitmq_host, settings.broker_username, settings.broker_password)
+    logger.info('Starting Beats Scheduler')
+    beat = celery.bin.beat.beat(app=tasks.app)
+    beat.run()

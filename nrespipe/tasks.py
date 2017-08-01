@@ -87,9 +87,11 @@ def make_stacked_calibrations_for_one_night(self, site, camera, nres_instrument)
     start = end - datetime.timedelta(hours=24)
     date_range = [start.strftime(settings.date_format), end.strftime(settings.date_format)]
     for calibtration_type in ['BIAS', 'DARK', 'FLAT']:
-        make_stacked_calibrations.delay(calibration_type=calibtration_type, site=site, camera=camera,
-                                        date_range=date_range, data_reduction_root_path=settings.data_reduction_root,
-                                        nres_instrument=nres_instrument)
+        make_stacked_calibrations.apply_async(kwargs={'calibration_type': calibtration_type, 'site': site,
+                                                      'camera': camera, 'date_range': date_range,
+                                                      'data_reduction_root_path': settings.data_reduction_root,
+                                                      'nres_instrument': nres_instrument},
+                                              queue='celery')
 
 @app.task
 def collect_queue_length_metric(rabbit_api_root):
