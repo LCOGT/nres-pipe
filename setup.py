@@ -20,5 +20,5 @@ setup(name='nrespipe',
       entry_points={'console_scripts': ['run_nres_listener=nrespipe.main:run_listener',
                                         'run_nres_tasks=nrespipe.main:run_celery_worker',
                                         'run_nres_periodic_worker=nrespipe.main:run_periodic_worker',
-                                        'nres_stack_calibrations=nrespipe.main:stack_nres_calibrations'
+                                        'nres_stack_calibrations=nrespipe.main:stack_nres_calibrations',
                                         'run_nres_beats=nrespipe.main:run_beats_scheduler']})
