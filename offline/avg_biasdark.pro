@@ -46,7 +46,8 @@ nfile=n_elements(files)
 
 ; read the data files and their headers
 ; get the first one, check each successive one for size, type, site, camera
-fn=root+files(0)
+fn=root+files[0]
+
 dd=float(readfits(fn,hdr0,/silent))
 nx=sxpar(hdr0,'NAXIS1')
 ny=sxpar(hdr0,'NAXIS2')
@@ -59,6 +60,8 @@ endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
 mjdd=sxpar(hdr0,'MJD-OBS')
+; Make the list of images that we are combining
+combined_filenames = [sxpar(hdr0, 'ORIGNAME')]
 
 ; make data array, fill it up
 datin=fltarr(nx,ny,nfile)
@@ -66,7 +69,7 @@ datin(*,*,0)=dd
 gooddat=lonarr(nfile)
 if(navgd eq 1) then gooddat(0)=1 else goodat(0)=0
 for i=1,nfile-1 do begin
-  fn=root+files(i)
+  fn=root+files[i]
   dd=float(readfits(fn,hdr,/silent))
   nxt=sxpar(hdr,'NAXIS1')
   nyt=sxpar(hdr,'NAXIS2')
@@ -74,6 +77,7 @@ for i=1,nfile-1 do begin
   camerat=strtrim(sxpar(hdr,'INSTRUME'),2)
   obtyt=strtrim(sxpar(hdr,'OBSTYPE'),2)
   navgd=sxpar(hdr,'NFRAVGD')
+  combined_filenames = [combined_filenames, sxpar(hdr, 'ORIGNAME')]
   if((nxt ne nx) or (nyt ne ny) or (sitet ne site) or (camerat ne camera) $
        or (obtyt ne obty) or (navgd ne 1)) then begin
     print,'Input file '+fn+' does not match 1st input file parameters'
@@ -119,19 +123,28 @@ case type of
 endcase
 
 ; make output header = 1st input header with mods, write out the data
+fits_read,root+files[-1],data, output_header
 ;sxaddpar,hdr0,'MJD',mjd
-sxaddpar,hdr0,'MJD-OBS',mjdd
-sxaddpar,hdr0,'NFRAVGD',nfile
-sxaddpar,hdr0,'ORIGNAME',files(0)
+sxaddpar,output_header,'MJD-OBS',mjdd
+sxaddpar,output_header,'NFRAVGD',nfile
+site = strtrim(strlowcase(sxpar(output_header, 'SITEID')),2)
+telescope = strtrim(strlowcase(sxpar(output_header, 'TELESCOP')),2)
+instrument = strtrim(strlowcase(sxpar(output_header, 'INSTRUME')),2)
+dayobs = strtrim(sxpar(output_header,'DAY-OBS'), 2)
+output_filename = strtrim(STRLOWCASE(type),2) + '_' + site + '_' + telescope + '_' + instrument + '_' + dayobs
+sxaddpar,output_header,'OUTNAME',output_filename,'Output filename'
+sxaddpar,output_header,'RLEVEL', 91, 'Data processing level'
+;sxaddpar,hdr0,'ORIGNAME',files(0)
+
 for i=0,nfile-1 do begin
-  ssi=string(i,format='(i02)')
-  kwd='INPFIL'+ssi
-  sxaddpar,hdr0,kwd,inst+files(i)
+  ssi=string(i + 1,format='(i03)')
+  kwd='IMCOM'+ssi
+  sxaddpar,output_header,kwd,strip_fits_extension(combined_filenames[i])
 endfor
-writefits,filout,datout,hdr0
+writefits,filout,datout,output_header
 
 ; put the output file into a tarfile for archiving
-tarzit,filout
+fpack_stacked_calibration,filout, output_filename
 
 ; add line to standards.csv
 cflg='0000'

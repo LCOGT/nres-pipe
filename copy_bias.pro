@@ -12,7 +12,13 @@ rutname='copy_bias'
 ; grab the data file from nres_common, make the header
 logo_nres2,rutname,'INFO','making bias header'
 bias=float(dat)
-mkhdr,hdr,bias
+;mkhdr,hdr,bias
+size_bias = size(bias)
+hdr = dathdr
+sxaddpar, hdr, 'NAXIS', size_bias[0]
+sxaddpar, hdr, 'BITPIX', -32
+sxaddpar, hdr, 'NAXIS1', size_bias[1]
+sxaddpar, hdr, 'NAXIS2', size_bias[2]
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'

@@ -22,7 +22,14 @@ dark=dark/exptime                     ; normalize to 1s exposure time
 exptime=1.0
 
 ; make the header and fill it out
-mkhdr,hdr,dark
+;mkhdr,hdr,dark
+size_dark = size(dark)
+hdr = dathdr
+sxaddpar, hdr, 'NAXIS', size_dark[0]
+sxaddpar, hdr, 'BITPIX', -32
+sxaddpar, hdr, 'NAXIS1', size_dark[1]
+sxaddpar, hdr, 'NAXIS2', size_dark[2]
+
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
