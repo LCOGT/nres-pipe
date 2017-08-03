@@ -38,10 +38,17 @@ def need_to_process(filename, checksum, db_address):
     return not record.processed or checksum != record.checksum
 
 
-def is_raw_nres_file(path):
+def filename_is_blacklisted(path):
     # Only get raw files
     if not '00.fits' in path:
-        return False
+        return True
+
+    for blacklisted_filetype in settings.blacklisted_filenames:
+        if blacklisted_filetype in path:
+            return True
+
+
+def is_raw_nres_file(path):
     try:
         header = fits.getheader(path)
     except:

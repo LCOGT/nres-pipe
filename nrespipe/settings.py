@@ -24,6 +24,9 @@ FITS_BROKER = os.getenv('FITS_BROKER', 'memory://localhost')
 db_address = os.getenv('DB_URL', 'sqlite:///test.db')
 data_reduction_root = os.getenv('NRES_DATA_ROOT', './')
 
+
+blacklisted_filenames = ['g00', 'x00']
+
 # Format for parsing dates throughout the code
 date_format = '%Y-%m-%dT%H:%M:%S'
 

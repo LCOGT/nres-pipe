@@ -11,6 +11,7 @@ from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metr
 
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5
+from nrespipe.utils import filename_is_blacklisted
 from nrespipe import settings
 
 import tempfile
@@ -31,6 +32,10 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
     if not os.path.exists(path):
         logger.error('File not found', extra={'tags': {'filename': input_filename}})
         raise FileNotFoundError
+
+    if not filename_is_blacklisted(path):
+        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': input_filename}})
+        return
 
     checksum = get_md5(path)
     if not need_to_process(input_filename, checksum, db_address):
