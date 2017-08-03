@@ -8,7 +8,7 @@ from celery.schedules import crontab
 logConf = { "formatters": { "default": {"()": LCOGTFormatter}},
             "handlers": { "console": { "class": "logging.StreamHandler", "formatter": "default",
                                        "stream": "ext://sys.stdout"}},
-            "loggers": { "nrespipe": { "handlers": ["console"], "level": logging.DEBUG}},
+            "loggers": { "nrespipe": { "handlers": ["console"], "level": logging.INFO}},
             "version": 1 }
 
 logging.config.dictConfig(logConf)
