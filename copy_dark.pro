@@ -31,7 +31,7 @@ sxaddpar, hdr, 'NAXIS1', size_dark[1]
 sxaddpar, hdr, 'NAXIS2', size_dark[2]
 
 if sxpar(biashdr, 'OUTNAME') then begin
-  bias_filename = strtrim(sxpar(biashdr, 'ORIGNAME'),2)
+  bias_filename = strip_fits_extension(strtrim(sxpar(biashdr, 'ORIGNAME'),2))
 endif else begin
   bias_filename = strtrim(sxpar(biashdr, 'OUTNAME'), 2)
 endelse
@@ -40,7 +40,7 @@ sxaddpar, hdr, 'L1IDBIAS', bias_filename , 'ID of bias frame used'
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
-sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+sxaddpar,hdr,'ORIGNAME',strip_fits_extension(filname),'Original raw filename'
 sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','DARK'

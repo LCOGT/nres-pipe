@@ -22,7 +22,7 @@ sxaddpar, hdr, 'NAXIS2', size_bias[2]
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
-sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+sxaddpar,hdr,'ORIGNAME',strip_fits_extension(filname),'Original raw filename'
 sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','BIAS'
