@@ -34,7 +34,7 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
 
     checksum = get_md5(path)
     if not need_to_process(input_filename, checksum, db_address):
-        logger.info('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
+        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
         return
 
     with tempfile.TemporaryDirectory() as temp_directory:
