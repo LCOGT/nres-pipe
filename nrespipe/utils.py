@@ -7,6 +7,7 @@ import requests
 from astropy.io import fits
 
 from nrespipe import dbs
+from nrespipe import settings
 import logging
 
 from kombu import Connection, Exchange
