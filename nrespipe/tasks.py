@@ -33,7 +33,7 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
         logger.error('File not found', extra={'tags': {'filename': input_filename}})
         raise FileNotFoundError
 
-    if not filename_is_blacklisted(path):
+    if filename_is_blacklisted(path):
         logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': input_filename}})
         return
 
