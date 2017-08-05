@@ -53,7 +53,8 @@ def process_nres_file(path, data_reduction_root_path, db_address):
             os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site, '')
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
             try:
-                console_output = subprocess.check_output(shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path)))
+                cmd = shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path))
+                console_output = subprocess.check_output(cmd ,stderr=subprocess.STDOUT)
                 logger.info('IDL NRES pipeline output: {output}'.format(output=console_output))
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
             except subprocess.CalledProcessError as e:
@@ -80,7 +81,7 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
     try:
         cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
         cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera, date_range=date_range_to_idl(date_range))
-        console_output = subprocess.check_output(shlex.split(cmd))
+        console_output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
         logger.info('IDL NRES Calibration Stacker output: {output}'.format(output=console_output))
     except subprocess.CalledProcessError as e:
         logger.error('IDL Calibration Stacker returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
