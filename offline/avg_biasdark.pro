@@ -127,24 +127,14 @@ fits_read,root+files[-1],data, output_header
 ;sxaddpar,hdr0,'MJD',mjd
 sxaddpar,output_header,'MJD-OBS',mjdd
 sxaddpar,output_header,'NFRAVGD',nfile
-site = strtrim(strlowcase(sxpar(output_header, 'SITEID')),2)
-telescope = strtrim(strlowcase(sxpar(output_header, 'TELESCOP')),2)
-instrument = strtrim(strlowcase(sxpar(output_header, 'INSTRUME')),2)
-dayobs = strtrim(sxpar(output_header,'DAY-OBS'), 2)
-output_filename = strtrim(STRLOWCASE(type),2) + '_' + site + '_' + telescope + '_' + instrument + '_' + dayobs
-sxaddpar,output_header,'OUTNAME',output_filename,'Output filename'
-sxaddpar,output_header,'RLEVEL', 91, 'Data processing level'
+set_output_calibration_name, output_header, type
 ;sxaddpar,hdr0,'ORIGNAME',files(0)
 
-for i=0,nfile-1 do begin
-  ssi=string(i + 1,format='(i03)')
-  kwd='IMCOM'+ssi
-  sxaddpar,output_header,kwd,strip_fits_extension(combined_filenames[i])
-endfor
+save_combined_images_in_header, output_header, combined_filenames
 writefits,filout,datout,output_header
 
 ; put the output file into a tarfile for archiving
-fpack_stacked_calibration,filout, output_filename
+fpack_stacked_calibration,filout, sxpar(output_header, 'OUTNAME')
 
 ; add line to standards.csv
 cflg='0000'

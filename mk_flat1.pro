@@ -66,12 +66,15 @@ fout='FLAT'+datestrd+'.fits'
 filout=nresrooti+flatdir+fout
 
 ; make header for FITS file
-mkhdr,hdr,flat
-sxaddpar,hdr,'MJD',mjdc,'Creation date'
+;mkhdr,hdr,flat
+hdr = dathdr
+update_data_size_in_header, hdr, flat
+
 nfravg=1
+sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
-sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+sxaddpar,hdr,'ORIGNAME',strip_fits_extension(filname),'Original raw filename'
 sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE',type

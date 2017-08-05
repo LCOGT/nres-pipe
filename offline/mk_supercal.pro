@@ -1,6 +1,6 @@
-pro mk_supercal,type,site,camera,dateran,object
+pro mk_supercal,type,site,camera,dateran
 ; This routine runs stand-alone (not called by muncha).  It locates all
-; calibration files of the given type (BIAS, DARK, FLAT, or ZERO),
+; calibration files of the given type (BIAS, DARK, FLAT, DOUBLE, or ZERO),
 ; taken with the given camera (eg fl07) at the given site (eg bpl)
 ; and within the given date range.
 ; dateran(2) contains the start and end UT date of the search given as a
@@ -12,7 +12,7 @@ pro mk_supercal,type,site,camera,dateran,object
 ; format.
 ; The routine writes the names of these into a temporary file calibin.txt in the
 ; temp directory.  It then calls avg_biasdark or avg_flat to combine flats,
-; or avg_zero to combine zeros.  The result is written to the appropriate
+; or avg_doub2trip to combine doubles, or avg_zero to combine zeros.  The result is written to the appropriate
 ; subdirectory of /reduced, and a line describing the new calibration file
 ; is written to standards.csv.
 ; Rules for combining calibration data are:
@@ -21,8 +21,7 @@ pro mk_supercal,type,site,camera,dateran,object
 ; For FLAT, if NAXIS3=3 (3 fibers exist) there must be at least one file
 ;  having fib0=0 and one with fib0=1
 ; *****
-; For ZERO, selected input files must have the given object input parameter,
-;  and the search must yield at least 2 input files.
+
 
 ; constants
 nresroot=getenv('NRESROOT')
@@ -31,6 +30,7 @@ tempdir='reduced/temp/'
 biasdir='reduced/bias/'
 darkdir='reduced/dark/'
 flatdir='reduced/flat/'
+dbledir='reduced/dble/'
 zerodir='reduced/zero/'
 
 ; make julian dates corresp to dateran
@@ -38,7 +38,7 @@ jdran=[date_conv(dateran(0),'J'),date_conv(dateran(1),'J')]
 
 ; if BIAS, DARK, or FLAT, read standards.csv and search for matching input parms
 ; complain if processing rules are not obeyed.
-if((type eq 'BIAS') or (type eq 'DARK') or (type eq 'FLAT')) then begin
+if((type eq 'BIAS') or (type eq 'DARK') or (type eq 'FLAT') or (type eq 'DOUBLE') then begin
   stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
 
   sites=strtrim(strupcase(sites),2)
@@ -111,6 +111,7 @@ free_lun,iun
 ; depending on data type, call the appropriate routine to do the work
 if(type eq 'BIAS' or type eq 'DARK') then avg_biasdark,type,flist
 if(type eq 'FLAT') then avg_flat,flist
+if(type eq 'DOUBLE') then avg_doub2trip,flist
 if(type eq 'ZERO') then avg_zero,flist
 
 fini:

@@ -167,12 +167,19 @@ if(~keyword_set(flatk)) then begin
 ; latitude=sxpar(dathdr,'LATITUDE')
 ; longitud=sxpar(dathdr,'LONGITUD')
 ; height=sxpar(dathdr,'HEIGHT')
-  mkhdr,hdr,corspec
+;  mkhdr,hdr,corspec
+
+  hdr = dathdr
+  update_data_size_in_header, hdr, corspec
+  sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
+  sxaddpar, hdr, 'L1IDDARK', get_output_name(darkhdr) , 'ID of bias frame used'
   sxaddpar,hdr,'MJD',mjdc,'Creation date'
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
-  sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
-  sxaddpar,hdr,'FLATFILE',flatfile,'extracted flat filename'
+  sxaddpar,hdr,'ORIGNAME', strip_fits_extension(filname), 'Orignal raw filename'
+  if not keyword_set(flatk) then begin
+      sxaddpar,hdr,'L1IDFLAT', get_output_name(flathdr), 'ID of flat frame used'
+  endif
   sxaddpar,hdr,'SITEID',site 
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
@@ -226,6 +233,7 @@ if(~keyword_set(flatk)) then begin
     specout=nresrooti+'/'+specdir+speco
     blazout=nresrooti+blazdir+blazo
     extrout=nresrooti+extrdir+extro
+    sxaddpar,hdr,'L1IDDBLE',get_output_name(dblhdr)
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects

@@ -24,9 +24,9 @@ logger = logging.getLogger('nrespipe')
 logger.propagate = False
 
 
-@app.task(bind=True, max_retries=3, default_retry_delay=3 * 60)
+@app.task(max_retries=3, default_retry_delay=3 * 60)
 @metric_timer('nrespipe', async=False)
-def process_nres_file(self, path, data_reduction_root_path, db_address):
+def process_nres_file(path, data_reduction_root_path, db_address):
     input_filename = os.path.basename(path)
 
     if not os.path.exists(path):
@@ -60,8 +60,8 @@ def process_nres_file(self, path, data_reduction_root_path, db_address):
                 logger.error('IDL NRES pipeline returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
 
 
-@app.task(bind=True, max_retries=3, default_retry_delay=3 * 60)
-def make_stacked_calibrations(self, site, camera, calibration_type, date_range, data_reduction_root_path,
+@app.task(max_retries=3, default_retry_delay=3 * 60)
+def make_stacked_calibrations(site, camera, calibration_type, date_range, data_reduction_root_path,
                               nres_instrument):
     """
     Stack the calibration files taken on a given night (BIAS, DARK, FLAT)
@@ -87,8 +87,8 @@ def make_stacked_calibrations(self, site, camera, calibration_type, date_range, 
 
 
 @app.task
-def make_stacked_calibrations_for_one_night(self, site, camera, nres_instrument):
-    end = datetime.utcnow()
+def make_stacked_calibrations_for_one_night(site, camera, nres_instrument):
+    end = datetime.datetime.utcnow()
     start = end - datetime.timedelta(hours=24)
     date_range = [start.strftime(settings.date_format), end.strftime(settings.date_format)]
     for calibtration_type in ['BIAS', 'DARK', 'FLAT']:

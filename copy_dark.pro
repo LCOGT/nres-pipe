@@ -23,19 +23,9 @@ exptime=1.0
 
 ; make the header and fill it out
 ;mkhdr,hdr,dark
-size_dark = size(dark)
 hdr = dathdr
-sxaddpar, hdr, 'NAXIS', size_dark[0]
-sxaddpar, hdr, 'BITPIX', -32
-sxaddpar, hdr, 'NAXIS1', size_dark[1]
-sxaddpar, hdr, 'NAXIS2', size_dark[2]
-
-if sxpar(biashdr, 'OUTNAME') then begin
-  bias_filename = strip_fits_extension(strtrim(sxpar(biashdr, 'ORIGNAME'),2))
-endif else begin
-  bias_filename = strtrim(sxpar(biashdr, 'OUTNAME'), 2)
-endelse
-sxaddpar, hdr, 'L1IDBIAS', bias_filename , 'ID of bias frame used'
+update_data_size_in_header, hdr, dark
+sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
 
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'

@@ -13,12 +13,8 @@ rutname='copy_bias'
 logo_nres2,rutname,'INFO','making bias header'
 bias=float(dat)
 ;mkhdr,hdr,bias
-size_bias = size(bias)
 hdr = dathdr
-sxaddpar, hdr, 'NAXIS', size_bias[0]
-sxaddpar, hdr, 'BITPIX', -32
-sxaddpar, hdr, 'NAXIS1', size_bias[1]
-sxaddpar, hdr, 'NAXIS2', size_bias[2]
+update_data_size_in_header, hdr, bias
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
