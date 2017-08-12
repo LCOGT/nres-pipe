@@ -89,7 +89,7 @@ flatdir='reduced/flat/'
 tracedir='reduced/trace/'
 tripdir='reduced/trip/'
 zerodir='reduced/zero/'
-tardir='reduced/tar'
+tardir='reduced/tar/'
 filin0=filin
 
 ; open the input file, read data segments and headers into common
@@ -118,6 +118,9 @@ case 1 of
   calib_extract,flatk=0
   autoguider
   expmeter
+  if not keyword_set(tharlist) then begin
+    tharlist = 'mtchThAr.txt'
+  endif
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
   if(not keyword_set(nostar)) then begin
     radial_velocity,ierr,nostar=nostar

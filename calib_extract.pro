@@ -233,7 +233,6 @@ if(~keyword_set(flatk)) then begin
     specout=nresrooti+'/'+specdir+speco
     blazout=nresrooti+blazdir+blazo
     extrout=nresrooti+extrdir+extro
-    sxaddpar,hdr,'L1IDDBLE',get_output_name(dblhdr)
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
@@ -250,7 +249,7 @@ if(~keyword_set(flatk)) then begin
 
   writefits,specout,corspec,hdr
   logo_nres2,rutname,'INFO','WRITE '+specout
-
+  tarlist=[tarlist,specout]
 ; write extr = raw spectrum with low-signal ends trimmed
   if(not keyword_set(dble)) then begin
     writefits,extrout,extrspec,hdr        ; same hdr as specout

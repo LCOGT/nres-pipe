@@ -38,7 +38,7 @@ jdran=[date_conv(dateran(0),'J'),date_conv(dateran(1),'J')]
 
 ; if BIAS, DARK, or FLAT, read standards.csv and search for matching input parms
 ; complain if processing rules are not obeyed.
-if((type eq 'BIAS') or (type eq 'DARK') or (type eq 'FLAT') or (type eq 'DOUBLE') then begin
+if((type eq 'BIAS') or (type eq 'DARK') or (type eq 'FLAT') or (type eq 'DOUBLE')) then begin
   stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
 
   sites=strtrim(strupcase(sites),2)

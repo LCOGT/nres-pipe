@@ -52,16 +52,18 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     NRESROOT="/nres/" \
     ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary"
 
+RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
+        && rm -rf ~/.cache/pip
+
+# Switch to wget?
 RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && curl --ftp-pasv -o $ASTRO_DATA/finals.all ftp://maia.usno.navy.mil/ser7/finals.all \
         && cp $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat \
+        && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
-
-RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
-        && rm -rf ~/.cache/pip
 
 COPY . /nres/code/
 

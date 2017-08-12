@@ -36,7 +36,7 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                                'options': {'queue': 'periodic'}
                                                },
                  'stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
-                                               'schedule': crontab(minute=0, hour=15),
+                                               'schedule': crontab(minute=0, hour=16),
                                                'kwargs': {'site': 'lsc', 'camera': 'fl09', 'nres_instrument': 'nres01'},
                                                'options': {'queue': 'periodic'}
                                                }

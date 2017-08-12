@@ -32,6 +32,8 @@ logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
 filename=nresrawdat+strtrim(filin,2)
 dat=readfits(filename,dathdr,/silent)
+; Fix the origname in the header just in case
+sxaddpar, dathdr, 'ORIGNAME', file_basename(filename)
 type=strupcase(strtrim(sxpar(dathdr,'OBSTYPE'),2))
 extn=sxpar(dathdr,'EXTEND')
 dat0=dat
@@ -115,7 +117,8 @@ if ((type ne 'BIAS') and (type ne 'DARK')) then begin
 ; read the remaining data segments and their headers
 fxbopen,iun,filename,1,expmhdr        ; exposure meter
 nt_expm=sxpar(expmhdr,'NAXIS2')
-fxbread,iun,jd_expm,'JD_START'
+jd_expm = get_jd_from_bin_header(expmhdr, iun)
+
 fxbread,iun,fib0c,'FIB0COUNTS'
 fxbread,iun,fib1c,'FIB1COUNTS'
 fxbread,iun,fib2c,'FIB2COUNTS'
@@ -130,7 +133,7 @@ nt_agu1=sxpar(agu1hdr,'NAXIS2')
 filter_agu1=sxpar(agu1hdr,'FILTER')
 if(nt_agu1 gt 0) then begin
   fxbread,iun,fname_agu1,'FILENAME'
-  fxbread,iun,jd_agu1,'JD_UTC'
+  jd_agu1 =get_jd_from_bin_header(agu1hdr, iun)
   fxbread,iun,nsrc_agu1,'N_SRCS'
   fxbread,iun,skyv_agu1,'SKYVAL'
   fxbread,iun,crval1_agu1,'CRVAL1'
@@ -163,7 +166,7 @@ nt_agu2=sxpar(agu2hdr,'NAXIS2')
 filter_agu2=sxpar(agu2hdr,'FILTER')
 if(nt_agu2 gt 0) then begin
   fxbread,iun,fname_agu2,'FILENAME'
-  fxbread,iun,jd_agu2,'JD_UTC'
+  jd_agu2 = get_jd_from_bin_header(agu2hdr, iun)
   fxbread,iun,nsrc_agu2,'N_SRCS'
   fxbread,iun,skyv_agu2,'SKYVAL'
   fxbread,iun,crval1_agu2,'CRVAL1'

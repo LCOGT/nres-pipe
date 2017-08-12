@@ -47,18 +47,21 @@ def process_nres_file(path, data_reduction_root_path, db_address):
 
         if not is_raw_nres_file(path):
             logger.debug('Not raw NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
+            dbs.set_file_as_processed(input_filename, checksum, db_address)
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_site, nres_instrument = which_nres(path)
             os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site, '')
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-            try:
-                cmd = shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path))
-                console_output = subprocess.check_output(cmd ,stderr=subprocess.STDOUT)
-                logger.info('IDL NRES pipeline output: {output}'.format(output=console_output))
+            cmd = shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path))
+            console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            logger.info('IDL NRES pipeline output: {output}'.format(output=console_output.stdout))
+            if console_output.stderr:
+                logger.warning('IDL STDERR Output: {stderr}'.format(stderr=console_output.stderr))
+            if console_output.returncode > 0:
+                logger.error('IDL NRES pipeline returned with a non-zero exit status')
+            else:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
-            except subprocess.CalledProcessError as e:
-                logger.error('IDL NRES pipeline returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
@@ -78,13 +81,16 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
                                                                'start': date_range[0].strftime(settings.date_format),
                                                                'end': date_range[1].strftime(settings.date_format)}})
 
-    try:
-        cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
-        cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera, date_range=date_range_to_idl(date_range))
-        console_output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
-        logger.info('IDL NRES Calibration Stacker output: {output}'.format(output=console_output))
-    except subprocess.CalledProcessError as e:
-        logger.error('IDL Calibration Stacker returned with a non-zero exit status. Terminal output: {output}'.format(output=e.output))
+
+    cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
+    cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera, date_range=date_range_to_idl(date_range))
+
+    console_output = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    logger.info('IDL NRES Calibration Stacker output: {output}'.format(output=console_output.stdout))
+    if console_output.stderr:
+        logger.warning('IDL STDERR Output: {stderr}'.format(stderr=console_output.stderr))
+    if console_output.returncode > 0:
+        logger.error('IDL Calibration Stacker returned with a non-zero exit status')
 
 
 @app.task
