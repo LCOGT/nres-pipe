@@ -1,4 +1,4 @@
-pro ingest,filin,ierr
+pro ingest,filin,ierr,literal=literal
 ; This routine opens the multi-extension file filin and reads its contents
 ; (headers and data segments) into the nres common data area.
 ; The name filin should be relative to the $NRESRAWDAT data directory.
@@ -7,6 +7,9 @@ pro ingest,filin,ierr
 ; On normal return ierr=0, but if expected data are not found or fail basic
 ; sanity checks, ierr is set to a positive integer (value depending on the 
 ; nature  of the error).
+; If keyword literal is set, then filin is interpreted as either a
+; complete pathname or as relative to the cwd.  Otherwise filin is taken
+; to be relative to the NRESRAWDAT directory.
 
 compile_opt hidden
 
@@ -30,7 +33,11 @@ endif
 ; open the input FITS file, read the main data segment and header
 logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
-filename=nresrawdat+strtrim(filin,2)
+if(keyword_set(literal)) then begin
+  filename=strtrim(filin,2)
+endif else begin
+  filename=nresrawdat+strtrim(filin,2)
+endelse
 dat=readfits(filename,dathdr)
 type=strupcase(strtrim(sxpar(dathdr,'OBSTYPE'),2))
 extn=sxpar(dathdr,'EXTEND')
@@ -114,14 +121,18 @@ endif
 ; read the remaining data segments and their headers
 fxbopen,iun,filename,1,expmhdr        ; exposure meter
 nt_expm=sxpar(expmhdr,'NAXIS2')
-fxbread,iun,jd_expm,'JD_START'
+fxbread,iun,jd_expm,'MJD_START'
+; temp hack for data before 10 Aug 2017
+;fxbread,iun,jd_expm,'JD_START'
+;
+fxbread,iun,exp_time,'EXP_TIME'
 fxbread,iun,fib0c,'FIB0COUNTS'
 fxbread,iun,fib1c,'FIB1COUNTS'
 fxbread,iun,fib2c,'FIB2COUNTS'
 fxbread,iun,flg_expm,'EMFLAGS'
 fxbclose,iun
 expmdat={nt_expm:nt_expm,jd_expm:jd_expm,fib0c:fib0c,fib1c:fib1c,fib2c:fib2c,$
-        flg_expm:flg_expm}
+        flg_expm:flg_expm,exp_time:exp_time}
 
 if(verbose) then print,'reading AGU1'
 fxbopen,iun,filename,2,agu1hdr                      ; AGU #1
@@ -129,7 +140,10 @@ nt_agu1=sxpar(agu1hdr,'NAXIS2')
 filter_agu1=sxpar(agu1hdr,'FILTER')
 if(nt_agu1 gt 0) then begin
   fxbread,iun,fname_agu1,'FILENAME'
-  fxbread,iun,jd_agu1,'JD_UTC'
+   fxbread,iun,jd_agu1,'MJD_START'
+; temp hack for data before 10 Aug 2017
+; fxbread,iun,jd_agu1,'JD_UTC'
+;
   fxbread,iun,nsrc_agu1,'N_SRCS'
   fxbread,iun,skyv_agu1,'SKYVAL'
   fxbread,iun,crval1_agu1,'CRVAL1'
@@ -162,7 +176,10 @@ nt_agu2=sxpar(agu2hdr,'NAXIS2')
 filter_agu2=sxpar(agu2hdr,'FILTER')
 if(nt_agu2 gt 0) then begin
   fxbread,iun,fname_agu2,'FILENAME'
-  fxbread,iun,jd_agu2,'JD_UTC'
+  fxbread,iun,jd_agu2,'MJD_START'
+; temp hack for data before 10 Aug 2017
+; fxbread,iun,jd_agu2,'JD_UTC'
+;
   fxbread,iun,nsrc_agu2,'N_SRCS'
   fxbread,iun,skyv_agu2,'SKYVAL'
   fxbread,iun,crval1_agu2,'CRVAL1'

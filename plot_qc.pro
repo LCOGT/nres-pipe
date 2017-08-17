@@ -14,7 +14,7 @@ pro plot_qc
 ; echdat.specdy = displacement of data from extraction block center (pix)
 ;  plotted vs x for standard order (nord*0.4) and
 ;  median over center 25% of x values, vs order number
-; matchdif_c vs matchlam_c = residuals of fit to wavelength vs pix (nm)
+; matchdif_c - outp_c vs matchlam_c = residuals of fit to wavelength vs pix (nm)
 ;  for all matched ThAr lines
 ; c*rr0 = estimated redshift (km/s) of stellar spectrum, uncorrected for
 ;   barycentric motion:
@@ -177,7 +177,7 @@ for i=0,nplot-1 do begin
   ytit='lambda Mismatch (nm)'
   xran=[380,880]
   yran=[-.02,.02]
-  plot,matchlam_c,matchdif_c,psym=4,xran=xran,yran=yran,/xsty,/ysty,$
+  plot,matchlam_c,newdif_c,psym=4,xran=xran,yran=yran,/xsty,/ysty,$
     xtit=xtit,ytit=ytit,tit=tit,charsiz=cs1,thick=2
   xyouts,390,-0.015,'nMatch='+strtrim(string(nmatch_c,format='(i4)'),2)
 
@@ -251,8 +251,6 @@ for i=0,nplot-1 do begin
 
   psend
 endfor
-
-;stop
 
 sun
 !p.multi=[0,1,1]

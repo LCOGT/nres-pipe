@@ -1,10 +1,15 @@
-pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely
+pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely,eflat=eflat
 ; This routine accepts the name of a trace file found in tracedir,
 ; and uses it to extract profiles for all orders and fibers from the
 ; input files flatin1 and, optionally, flatin2.
 ; These should be raw tungsten-halogen flats.  If the trace covers only 2 fibers,
 ; then only flatin1 is required.  If 3 fibers, then
 ; flatin1 should contain data for fibers [0,1], and flatin2 for [1,2]
+; If keyword eflat is provided, it is the name of an extracted flat
+; (eg FLATlsc2017nnn.nnnnn.fits), which will be used for constraining the
+; weights used in trace-refine's fits, on a per-order basis.
+; If keyword eflat is not provided, then the eflat data are taken to
+; be unity for all x-positions and orders.
 ; The routine creates an improved trace file by iteratively computing
 ; cross-dispersion 1st moments of the flat orders, and fitting adjustments
 ; to the trace file polynomial coefficients to minimize the rms difference
@@ -31,6 +36,7 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely
 itermax=10
 sig0=10.                ; guess at read noise in e- per pixel.
 minamp=20.              ; min allowed amplitude of block-avgd cross-disp prof
+efthrsh=0.05            ; min eflat value for which shift weights are > 0. 
 
 ; how many images are input?
 ninfil=n_params()-1
@@ -72,10 +78,22 @@ fib0=sxpar(tracehdr,'FIB0')
 fib1=sxpar(tracehdr,'FIB1')
 
 trace=reform(tracea(0:npoly-1,*,*,0))
+prof=tracea(0:cowid-1,*,*,1:*)
 
 if(keyword_set(dely)) then trace(0,*,*)=trace(0,*,*)+dely
 
-prof=tracea(0:cowid-1,*,*,1:*)
+if(keyword_set(eflat)) then begin
+  effile=nresrooti+flatdir+strtrim(eflat,2)
+  efwt=readfits(effile,efhdr)
+  efwt=rebin(efwt(*,*,1),nx,nord,nfib)     ; take only fiber1 values
+endif else begin
+  efwt=fltarr(nx,nord,nfib)+1.
+endelse
+; set efwt to 0 for values < efthrsh, otherwise unity
+s0=where(efwt lt efthrsh,ns0)
+if(ns0 gt 0) then efwt(s0)=0.
+s1=where(efwt gt 0.,ns1)
+if(ns1 gt 0) then efwt(s1)=1.
 
 ;if(nfib ne (ninfil+1)) then begin
 ;  print,'NFIB and number of input files do not agree'
@@ -106,8 +124,9 @@ if(strtrim(site1,2) ne strtrim(site,2) or strtrim(camera1,2) $
   goto,fini
 endif
 mjdd=sxpar(hdr1,'MJD-OBS')
-jdd=mjdc+2400000.5d0
+jdd=mjdd+2400000.5d0
 exptime1=sxpar(hdr1,'EXPTIME')
+jdc=jdd
 
 ; get bias and dark for this file
 get_calib,'BIAS',biasfile,bias,biashdr,gerr
@@ -201,7 +220,7 @@ for iter=0,itermax do begin
   yy=rebin(reform((findgen(cowid)-(cowid-1)/2.),1,cowid),nx,cowid)
   yy=reform(yy,nx,cowid,1,1)
   yy=rebin(yy,nx,cowid,nord,nfib)
-  wtsm=fltarr(nx,nord,nfib)     ; weights applied to moments
+; wtsm=fltarr(nx,nord,nfib)     ; weights applied to moments
   wtss=fltarr(nx,nord,nfib)     ; weights applied to shifts
   mom01=reform(cowid*rebin(ebox1,nx,1,nord,nfib),nx,nord,nfib)
   mom11=reform(cowid*rebin(ebox1*yy,nx,1,nord,nfib),nx,nord,nfib)
@@ -220,11 +239,20 @@ for iter=0,itermax do begin
     mom1=mom11
   endelse
 
+; correct mom0 for background
+  for j=0,nord-1 do begin
+    bkg1=ptile(ebox1(*,*,j,0),2)
+    bkg2=ptile(ebox2(*,*,j,2),2)
+    bkg=bkg1 < bkg2
+    mom0(*,j,*)=(mom0(*,j,*)-cowid*bkg) > 100.
+  endfor
+
 ; reject weak mom0 points, compute shifts, reject bad shifts, make wts for the rest
   s0=where(mom0 le 5.*sig,ns0)         ; sig is read noise summed across ebox
   s1=where(mom0 gt 5.*sig,ns1)
-  if(ns1 gt 0) then wtss(s1)=sqrt(mom0(s1))       ; pay more attention to edges
-                                 ; than an honest optimum weighting indicates
+; if(ns1 gt 0) then wtss(s1)=sqrt(mom0(s1))*efwt       ; pay more attention to edges
+  if(ns1 gt 0) then wtss(s1)=efwt(s1)       ; pay more attention to edges
+            ; than an honest optimum weighting indicates, but no wt if eflat ~ 0
   if(ns1 gt 0) then mom1(s1)=mom1(s1)/mom0(s1)
   if(ns0 gt 0) then mom1(s0)=0.
   s2=where(abs(mom1) gt cowid/2.,ns2)
@@ -269,7 +297,7 @@ for iter=0,itermax do begin
 ; print rms deviation
   trms=total(abs(rmsa(0:nord-3,*)))
   print,'total rms =',trms
-  if(iter ge 3 and (trms gt tdy or abs(tdy-trms) le .01)) then goto,done
+  if(iter ge 5 and (trms gt tdy or abs(tdy-trms) le .01)) then goto,done
   tdy=trms
   
 ; make new ord_vectors, except for last iter
@@ -386,8 +414,8 @@ tracprof(0:nleg-1,*,*,0)=trace1
 tracprof(0:cowid-1,*,*,1:*)=prof1
 
 ; write out the new trace array
-jd=systime(/julian)      ; file creation time, for sorting similar trace files
-;mjd=jd-2400000.5d0
+jdc=systime(/julian)      ; file creation time, for sorting similar trace files
+mjdc=jdc-2400000.5d0
 datereald=date_conv(jdd,'R')
 datestrd=string(datereald,format='(f13.5)')
 strput,datestrd,'00',0
@@ -417,8 +445,6 @@ flags='0010'
 if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
 stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jd,flags
-
-stop
 
 fini:
 end
