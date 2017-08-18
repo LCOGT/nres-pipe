@@ -161,6 +161,7 @@ for i=0,nord_c-1 do begin
   skip:
 endfor
 newdif=newdif(1:*) 
+newdif_c=newdif
 
 ; make diagnostic equal to wavelength difference across Mg b line order,
 ; minus a nominal value
@@ -173,7 +174,5 @@ endif else begin
 endelse
 mgbdisp_c=lam_c(nx_c-1,mgbord)-lam_c(0,mgbord)-dlamnom
 lammid_c=total(lam_c(2000,mgbord-5:mgbord+5))/11.
-
-;stop
 
 end

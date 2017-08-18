@@ -51,15 +51,36 @@ if(~status) then begin
   spawn,cmd1
 endif
 
+rv_template_filename = ''
+arc_filename = ''
+trace_filename = ''
+
 for i=0,nf-1 do begin
   curfile=tarlist[i]
   filename = file_basename(curfile)
-  if strpos(filename, 'SPEC') ge 0 then begin
+  if strpos(filename, 'ZERO') ge 0 then begin
+    rv_template_filename = curfile
+  endif else if strpos(filename, 'SPEC') ge 0 then begin
     output_filename=reduced_name +'.fits'
   endif else if strpos(filename, 'EXTR') ge 0 then begin
     output_filename= reduced_name + '-noflat.fits'
   endif else if strpos(filename, 'BLAZ') ge 0 then begin
     output_filename= reduced_name + '-blaze.fits'
+  endif else if strpos(filename, 'RADV') ge 0 then begin
+    output_filename= reduced_name + '-rv.fits'
+  endif else if strpos(filename, 'THAR') ge 0 then begin
+    output_filename= reduced_name + '-wave.fits'
+  endif else if strpos(filename, 'TRIP') ge 0 then begin
+    readfits, filename, this_data, this_header
+    output_filename = get_output_name(this_header)
+    arc_filename = output_filename
+  endif else if strpos(filename, 'TRAC') ge 0 then begin
+    readfits, filename, this_data, this_header
+    output_filename = get_output_name(this_header)
+    trace_filename = output_filename
+  endif else if strpos(filename, '.fits') ge 0 then begin
+    readfits, filename, this_data, this_header
+    output_filename = get_output_name(this_header)
   endif else begin
     output_filename = filename
   endelse
@@ -67,8 +88,12 @@ for i=0,nf-1 do begin
   spawn,cmd2
 endfor
 
+remove, rv_template_filename, tarlist
+
 ; tar the directory
 cd, dirpath, current=orig_dir
+
+add_relationship_keywords_to_headers, file_search(reduced_filename + '*.fits'), rv_template_filename, arc_filename, trace_filename
 
 ; fpack the files
 data_files = file_search('*.fits')
@@ -77,6 +102,11 @@ foreach file, data_files do begin
   spawn, 'fpack -q 64 ' + file
   spawn, 'rm -f ' + file
 endforeach
+
+combine_plot_files, reduced_name
+
+write_readme_file, file_search('*')
+
 
 cd, '..'
 cmd3='tar --warning=no-file-changed -czf '+reduced_name+'.tar.gz '+reduced_name

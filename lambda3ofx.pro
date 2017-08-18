@@ -26,7 +26,7 @@ pro lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,$
 ;  behavior in the wavelength solution.  The number of elements must be
 ;  10 or 15.  Any or all elements may be zero;  if all are zero, the
 ;  polynomial correction is skipped.
-;  .fibcoefs(2,7) = floating coeffs giving shift in pixel units between
+;  .fibcoefs(10,2) = floating coeffs giving shift in pixel units between
 ;    fiber1 and fiber0 = fibcoefs(*,0)
 ;    fiber1 and fiber2 = fibcoefs(*,1)
 ;

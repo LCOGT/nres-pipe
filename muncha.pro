@@ -1,5 +1,5 @@
 pro muncha,filin,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
-  oskip=oskip,nostar=nostar
+  oskip=oskip,nostar=nostar, literal=literal
 ; This is the main routine organizing the processing pipeline for NRES
 ; spectroscopic data.
 ; On input:
@@ -61,7 +61,7 @@ compile_opt hidden
 @nres_comm
 
 ; constants
-verbose=0                         ; 0=print nothing; 1=dataflow tracking
+verbose=1                         ; 0=print nothing; 1=dataflow tracking
 rutname='muncha'
 
 ; record start in logfile
@@ -93,7 +93,7 @@ tardir='reduced/tar/'
 filin0=filin
 
 ; open the input file, read data segments and headers into common
-ingest,filin,err
+ingest,filin,err,literal=literal
 if(err) then begin
   logstr='Invalid input data in ingest.  Err = '+string(err,format='(i2)')
   logo_nres2,rutname,'INFO',logstr

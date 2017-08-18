@@ -3,7 +3,7 @@ MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
 RUN yum -y install epel-release \
-        && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack \
+        && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
 RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest mock requests ipython celery \

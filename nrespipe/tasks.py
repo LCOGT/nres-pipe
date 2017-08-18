@@ -22,6 +22,7 @@ app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 logger.propagate = False
+logging.captureWarnings(True)
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)

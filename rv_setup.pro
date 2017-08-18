@@ -173,6 +173,7 @@ for i=0,1 do begin
       zeropath=zeroroot+zeroname
       rd_zero,zeropath,hdr,star,thar,lam
       tarlist=[tarlist,zeropath]
+      
 ;     fxbopen,unit,zeropath,1,hdr        ; get 1st extension of ZERO file
 ;     fxbread,unit,star,'Star',1         ; read 'Star' col, row 1
 ;     fxbread,unit,thar,'ThAr',1         ; 'ThAr' col

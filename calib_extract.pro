@@ -177,6 +177,8 @@ if(~keyword_set(flatk)) then begin
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
   sxaddpar,hdr,'ORIGNAME', strip_fits_extension(filname), 'Orignal raw filename'
+  sxaddpar,hdr,'RLEVEL', 91, 'Reduction level'
+  sxaddpar,hdr,'L1PUBDAT', get_public_release_date(hdr), '[UTC] Date the frame becomes public'
   if not keyword_set(flatk) then begin
       sxaddpar,hdr,'L1IDFLAT', get_output_name(flathdr), 'ID of flat frame used'
   endif

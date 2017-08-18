@@ -1,4 +1,4 @@
-pro run_muncha1,flist,flatk=flatk,nostar=nostar
+pro run_muncha1,flist,flatk=flatk,nostar=nostar,literal=literal
 ; This routine reads a list of input filenames, and runs muncha.pro on
 ; each.
 
@@ -8,7 +8,7 @@ while(not eof(iun)) do begin
   readf,iun,ss
   fname=strtrim(ss,2)
   muncha,fname,trp=0,tharlist='mtchThAr.txt',/cubfrz,oskip=[0],flatk=flatk,$
-      nostar=nostar
+      nostar=nostar,literal=literal
 endwhile
 
 close,iun
