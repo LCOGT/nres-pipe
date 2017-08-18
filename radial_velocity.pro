@@ -263,7 +263,11 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
 rvname='RADV'+datestrd+'.fits'
 rvout=nresrooti+rvdir+rvname
 
-fxhmake,hdr,/extend                        ; no primary data segment
+hdr = copy_header(dathdr)
+sxdelpar, hdr, 'NAXIS1'
+sxdelpar, hdr, 'NAXIS2'
+sxaddpar, hdr, 'NAXIS', 0
+
 fxaddpar,hdr,'OBJECTS',targnames(0)+'&'+targnames(1)
 fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera

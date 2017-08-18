@@ -17,8 +17,8 @@ aguact=intarr(2)+1           ; active = 1 assumed by default
 
 ; stub stuff in next 3 lines --  should refer to keyword from tel1hdr, tel2hdr
 words=get_words(sxpar(dathdr,'OBJECTS'),nwd,delim='&')
-tel1hdr=dathdr
-tel2hdr=dathdr
+tel1hdr=copy_header(dathdr)
+tel2hdr=copy_header(dathdr)
 
 if(nwd eq 2) then begin       ; do this if only 2 fibers exist
   aguact(0)=0 

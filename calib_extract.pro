@@ -169,7 +169,7 @@ if(~keyword_set(flatk)) then begin
 ; height=sxpar(dathdr,'HEIGHT')
 ;  mkhdr,hdr,corspec
 
-  hdr = dathdr
+  hdr = copy_header(dathdr)
   update_data_size_in_header, hdr, corspec
   sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
   sxaddpar, hdr, 'L1IDDARK', get_output_name(darkhdr) , 'ID of bias frame used'

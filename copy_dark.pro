@@ -23,7 +23,7 @@ exptime=1.0
 
 ; make the header and fill it out
 ;mkhdr,hdr,dark
-hdr = dathdr
+hdr = copy_header(dathdr)
 update_data_size_in_header, hdr, dark
 sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
 

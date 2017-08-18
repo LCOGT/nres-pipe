@@ -13,7 +13,7 @@ rutname='copy_bias'
 logo_nres2,rutname,'INFO','making bias header'
 bias=float(dat)
 ;mkhdr,hdr,bias
-hdr = dathdr
+hdr = copy_header(dathdr)
 update_data_size_in_header, hdr, bias
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'

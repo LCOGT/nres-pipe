@@ -67,7 +67,7 @@ filout=nresrooti+flatdir+fout
 
 ; make header for FITS file
 ;mkhdr,hdr,flat
-hdr = dathdr
+hdr = copy_header(dathdr)
 update_data_size_in_header, hdr, flat
 
 nfravg=1
