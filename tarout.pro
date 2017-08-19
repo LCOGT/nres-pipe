@@ -71,15 +71,15 @@ for i=0,nf-1 do begin
   endif else if strpos(filename, 'THAR') ge 0 then begin
     output_filename= reduced_name + '-wave.fits'
   endif else if strpos(filename, 'TRIP') ge 0 then begin
-    readfits, filename, this_data, this_header
+    fits_read, filename, this_data, this_header
     output_filename = get_output_name(this_header)
     arc_filename = output_filename
   endif else if strpos(filename, 'TRAC') ge 0 then begin
-    readfits, filename, this_data, this_header
+    fits_read, filename, this_data, this_header
     output_filename = get_output_name(this_header)
     trace_filename = output_filename
   endif else if strpos(filename, '.fits') ge 0 then begin
-    readfits, filename, this_data, this_header
+    fits_read, filename, this_data, this_header
     output_filename = get_output_name(this_header)
   endif else begin
     output_filename = filename

@@ -1,6 +1,6 @@
 pro write_readme_file, filenames
   openw,iun,'README',/get_lun,/append
-  foreach filename, filenames begin
+  foreach filename, filenames do begin
 
     if strpos(filename, 'blaze') ge 0 then begin
       printf,iun,strtrim(filename,2) + ': Extracted spectrum with the blaze function subtracted'
