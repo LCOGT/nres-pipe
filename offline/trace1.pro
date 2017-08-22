@@ -56,6 +56,17 @@ sxaddpar,trhdrm,'INSTRUME',camerai
 sxaddpar,trhdrm,'FILE_IN',file_ini
 sxaddpar,trhdrm,'FIB0',fib0
 
+; strip off the / from the nresinstance
+this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
+jd = systime(/julian)
+; Calculate the standard date format for the output filename
+CALDAT, jd, month, day, year, hour, minute, second
+today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
+sxaddpar,trhdrm, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
+now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
+sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'L1PUBDAT', now
+
 ; scrunch data array in x, for easier plotting.  Make final x, y coord vectors
 scr=nx/nxc
 scf=round(scr)

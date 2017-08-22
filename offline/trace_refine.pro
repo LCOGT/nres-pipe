@@ -426,7 +426,7 @@ datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
 fout='TRAC'+datestrd+'.fits'
 filout=nresrooti+tracedir+fout
 
-mkhdr,hdr,tracprof
+hdr = copy_header(tracehdr)
 sxaddpar,hdr,'NX',nx
 sxaddpar,hdr,'NFIB',nfib
 sxaddpar,hdr,'NPOLY',nleg
@@ -442,6 +442,16 @@ sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'COWID',cowid
 sxaddpar,hdr,'NBLOCK',nblock
+; Calculate the standard date format for the output filename
+CALDAT, jd, month, day, year, hour, minute, second
+today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
+this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
+now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
+sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'L1PUBDAT', now
+
+
 writefits,filout,tracprof,hdr
 
 flags='0010'

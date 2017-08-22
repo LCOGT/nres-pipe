@@ -2,6 +2,7 @@ pro combine_plot_files, reduced_basename
 ps_files = file_search('*.ps')
 foreach file, ps_files do begin
   spawn, 'ps2pdf ' + file
+  spawn, 'rm -f ' + file
 endforeach
 
 pdf_files = file_search('*.pdf')

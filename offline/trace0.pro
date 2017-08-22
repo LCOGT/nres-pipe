@@ -95,7 +95,7 @@ for i=0,nord-1 do begin
   endfor
 endfor
 
-stop
+;stop
 
 ; do 2nd-order (quadratic) Legendre polynomial fits to order positions
 xp=2.*(xx-nx/2.)/nx        ; x coords transformed to [-1,1]
@@ -191,6 +191,23 @@ sxaddpar,hdr,'FILE_IN',strtrim(filin,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
 sxaddpar,hdr,'SITEID',sitec
 sxaddpar,hdr,'INSTRUME',camerac
+; strip off the / from the nresinstance 
+this_nres = strmid(strtrim(instance,2), 0, strlen(strtrim(instance,2)) - 1)
+sxaddpar,hdr,'TELESCOP', this_nres
+sxaddpar,hdr,'TELID', 'igla'
+sxaddpar,hdr,'PROPID', 'calibrate'
+sxaddpar,hdr,'BLKUID', '000000000'
+sxaddpar,hdr,'OBSTYPE', 'TRACE'
+; Calculate the standard date format for the output filename
+CALDAT, jd, month, day, year, hour, minute, second
+today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
+now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
+sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'L1PUBDAT', now
+sxaddpar,hdr,'RLEVEL', 91)
+
+
 writefits,filout,tracprof,hdr
 
 stds_addline,'TRACE',fout,1,site,camera,jd,'0000'

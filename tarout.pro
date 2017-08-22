@@ -93,7 +93,7 @@ remove, rv_template_filename, tarlist
 ; tar the directory
 cd, dirpath, current=orig_dir
 
-add_relationship_keywords_to_headers, file_search(reduced_filename + '*.fits'), rv_template_filename, arc_filename, trace_filename
+add_relationship_keywords_to_headers, file_search(reduced_name + '*.fits'), rv_template_filename, arc_filename, trace_filename
 
 ; fpack the files
 data_files = file_search('*.fits')
