@@ -272,6 +272,16 @@ if(~keyword_set(flatk)) then begin
     endfor
     writefits,blazout,blazspec,hdrb
     logo_nres2,rutname,'INFO','WRITE '+blazout
+    objects=sxpar(hdrb,'OBJECTS')
+    words=get_words(objects,nwd,delim='&')
+    words=strtrim(strupcase(words),2)
+    if(nwd eq 3) then begin
+      if(words(0) eq 'NONE' and words(1) eq 'THAR' and words(2) ne 'NONE') then $
+        flag='0020'
+      if(words(0) ne 'NONE' and words(1) eq 'THAR' and words(2) eq 'NONE') then $
+        flag='0010'
+    endif
+    stds_addline,'BLAZE',branch+fout,1,strtrim(site,2),strtrim(camera,2),jdd,flag
     tarlist=[tarlist,blazout]
   endif
 endif

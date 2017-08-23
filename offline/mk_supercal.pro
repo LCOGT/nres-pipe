@@ -1,4 +1,4 @@
-pro mk_supercal,type,site,camera,dateran
+pro mk_supercal,type,site,camera,dateran,object=object
   ; This routine runs stand-alone (not called by muncha).  It locates all
   ; calibration files of the given type (BIAS, DARK, FLAT, DOUBLE, or ZERO),
   ; taken with the given camera (eg fl07) at the given site (eg bpl)
@@ -57,25 +57,24 @@ pro mk_supercal,type,site,camera,dateran
 
   ; if ZERO, read zeros.csv and search for matching input parms
   if(type eq 'ZERO') then begin
-    zeros_rd,fnames,navgs,sites,cameras,jdates,targnames,teffs,loggs,bmvs,jmks,$
-      flags,zerohdr
+    stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr
     sites=strtrim(strupcase(sites),2)
     cameras=strtrim(strupcase(cameras),2)
     sitet=strtrim(strupcase(site))
     camerat=strtrim(strupcase(camera))
     objectt=strcompress(strupcase(object),/removeall)
     sg=where((sites eq sitet) and (cameras eq camerat) and (objects eq objectt) $
-      and (jdates ge jdran(0)) and (jdates le jdran(1)),nsg)
-    if(nsg ge 2) then begin    ; this is test for rules compliance for ZERO
+      and (jdates ge jdran(0)) and (jdates le jdran(1)) and (types eq 'BLAZE'),nsg)
+    if(nsg ge 3) then begin    ; this is test for rules compliance for ZERO
       files=fnames(sg)
     endif else begin
-      print,'Not enough matching files found'
+      print,'Not enough matching files found to make ZERO file'
       goto,fini
     endelse
   endif
 
   ; test for rules compliance
-  if((type eq 'BIAS' or type eq 'DARK') and nsg lt 3) then begin
+  if((type eq 'BIAS' or type eq 'DARK' or type eq 'ZERO') and nsg lt 3) then begin
     print,'Not enough matches found for BIAS or DARK averaging'
     goto,fini
   endif
@@ -137,7 +136,7 @@ pro mk_supercal,type,site,camera,dateran
   if(type eq 'BIAS' or type eq 'DARK') then avg_biasdark,type,flist
   if(type eq 'FLAT') then avg_flat,flist
   if(type eq 'DOUBLE') then avg_doub2trip,flist
-  if(type eq 'ZERO') then avg_zero,flist
+  if(type eq 'ZERO') then mk_zero,flist
 
   fini:
 end
