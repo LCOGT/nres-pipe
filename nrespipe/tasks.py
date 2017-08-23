@@ -15,7 +15,7 @@ from nrespipe.utils import filename_is_blacklisted
 from nrespipe import settings
 
 import tempfile
-
+import sys
 
 app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
@@ -23,6 +23,16 @@ app.config_from_object('nrespipe.settings')
 logger = logging.getLogger('nrespipe')
 logger.propagate = False
 logging.captureWarnings(True)
+
+idl_logger = logging.getLogger('idl-nres')
+idl_logger.propagate = False
+idl_log_formatter = logging.Formatter('%(message)s')
+idl_handler = logging.StreamHandler(sys.stdout)
+idl_handler.setFormatter(idl_log_formatter)
+idl_logger.addHandler(idl_handler)
+
+
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
@@ -56,20 +66,24 @@ def process_nres_file(path, data_reduction_root_path, db_address):
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
             cmd = shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path))
             console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info('IDL NRES pipeline output: {output}'.format(output=console_output.stdout))
+            logger.info('IDL NRES pipeline output:')
+            for message in console_output.stdout.splitlines():
+                idl_logger.info(message)
             if console_output.stderr:
-                logger.warning('IDL STDERR Output: {stderr}'.format(stderr=console_output.stderr))
+                logger.warning('IDL STDERR Output:')
+                for message in console_output.stderr.splitlines():
+                    idl_logger.warning(message)
             if console_output.returncode > 0:
-                logger.error('IDL NRES pipeline returned with a non-zero exit status')
+                logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
             else:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
 def make_stacked_calibrations(site, camera, calibration_type, date_range, data_reduction_root_path,
-                              nres_instrument):
+                              nres_instrument, target=''):
     """
-    Stack the calibration files taken on a given night (BIAS, DARK, FLAT)
+    Stack the calibration files taken on a given night (BIAS, DARK, FLAT, ARC, TEMPLATE)
     """
     os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, site, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
@@ -83,8 +97,9 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
                                                                'end': date_range[1].strftime(settings.date_format)}})
 
 
-    cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range}'
-    cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera, date_range=date_range_to_idl(date_range))
+    cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range} {target}'
+    cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera,
+                     date_range=date_range_to_idl(date_range), target=target)
 
     console_output = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     logger.info('IDL NRES Calibration Stacker output: {output}'.format(output=console_output.stdout))
