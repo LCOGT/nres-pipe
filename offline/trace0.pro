@@ -205,7 +205,7 @@ sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_
 now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
 sxaddpar,hdr,'DATE-OBS', now
 sxaddpar,hdr,'L1PUBDAT', now
-sxaddpar,hdr,'RLEVEL', 91)
+sxaddpar,hdr,'RLEVEL', 91
 
 
 writefits,filout,tracprof,hdr

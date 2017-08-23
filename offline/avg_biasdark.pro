@@ -127,6 +127,9 @@ fits_read,root+files[-1],data, output_header
 ;sxaddpar,hdr0,'MJD',mjd
 sxaddpar,output_header,'MJD-OBS',mjdd
 sxaddpar,output_header,'NFRAVGD',nfile
+sxaddpar,output_header,'L1PUBDAT', now
+sxaddpar,output_header,'RLEVEL', 91
+
 set_output_calibration_name, output_header, type
 ;sxaddpar,hdr0,'ORIGNAME',files(0)
 

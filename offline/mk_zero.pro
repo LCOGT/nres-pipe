@@ -193,7 +193,16 @@ dumm=fltarr(2)
 ;mkhdr,hdr,dumm
 ;mkhdr,hdr                                ; no data segment
 ;fxhmake,hdr,dumm,/extend                 ; dummy primary data segment
-fxhmake,hdr,/extend                      ; no primary data segment
+;fxhmake,hdr,/extend                      ; no primary data segment
+fits_read,nresrooti+'/reduced/blaz/'+flist[-1], data, hdr
+sxaddpar,hdr,'NAXIS', 0
+sxdelpar,hdr,'NAXIS1'
+sxdelpar,hdr,'NAXIS2'
+sxdelpar,hdr,'NAXIS3'
+sxaddpar,hdr,'OBSTYPE', 'TEMPLATE'
+sxaddpar,hdrout,'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
+sxaddpar,hdrout,'RLEVEL', 91
+set_output_calibration_name, hdrout, 'TEMPLATE'
 fxaddpar,hdr,'OBJECT',target
 fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera
@@ -269,7 +278,8 @@ fxbwritm,unit,['Star','Thar','Wavelength'],z0,z1,lamz
 fxbfinish,unit
 
 ; make a tarfile for archiving
-tarzit,filepath
+fpack_stacked_calibration,filepath, sxpar(hdr, 'OUTNAME')
+
 
 ; add a line pointing to this file in the zeros.csv file
 ; use 3rd flag character to show which fiber was telescope fiber

@@ -196,8 +196,21 @@ fout='TRIP'+datestrd+'.fits'
 filout=tripdir+fout
 branch='trip/'
 
+combined_filenames = []
+for i=0,nfile-1 do begin
+  combined_filenames = [combined_filenames, get_output_name(files[i])
+endfor
+
 ; make output header = 1st input header with mods, write out the data
-mkhdr,hdrout,lamav
+fits_read,reddir+'dble/'+files[-1],data, hdrout
+update_data_size_in_header, hdrout, lamav
+sxaddpar,hdrout,'OBSTYPE', 'ARC'
+set_output_calibration_name, hdrout, 'arc'
+sxaddpar,hdrout,'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
+sxaddpar,hdrout,'RLEVEL', 91
+
+save_combined_images_in_header, hdrout, combined_filenames
+
 sxaddpar,hdrout,'MJD',mjdd+.0001
 sxaddpar,hdrout,'NFRAVGD',nfile
 for i=0,nfilinp-1 do begin
@@ -257,6 +270,10 @@ for i=0,1 do begin
 endfor
 
 writefits,filout,lamav,hdrout
+
+; put the output file into a tarfile for archiving
+fpack_stacked_calibration,filout, sxpar(hdrout, 'OUTNAME')
+
 print,'TRIPLE file written to ',filout
 
 ; write line into standards.csv
