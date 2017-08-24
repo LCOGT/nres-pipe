@@ -5,11 +5,12 @@ from kombu import Exchange, Connection, Queue
 
 from nrespipe import settings
 from nrespipe.listener import NRESListener
-from nrespipe.utils import wait_for_task_rabbitmq
+from nrespipe.utils import wait_for_task_rabbitmq, funpack
 from nrespipe import tasks
 import celery.bin.worker
 import celery.bin.beat
 import argparse
+import tempfile
 
 
 logger = logging.getLogger('nrespipe')
@@ -60,6 +61,34 @@ def stack_nres_calibrations():
                                           settings.data_reduction_root, args.nres_instrument, target=args.target)
 
 
+def run_nres_trace0():
+    parser = argparse.ArgumentParser(description='Reduce all the data from a site at the end of a night.')
+    parser.add_argument('--site', dest='site', required=True, help='Site code (e.g. ogg)')
+    parser.add_argument('--camera', dest='camera', required=True, help='instrument code (e.g. fl09)')
+    parser.add_argument('--filename', required=True, help='Input trace file to convert to fits file.')
+    args = parser.parse_args()
+    tasks.delay.run_trace0(args.filename, args.site, args.camera)
+
+
+def run_nres_trace_refine():
+    parser = argparse.ArgumentParser(description='Reduce all the data from a site at the end of a night.')
+    parser.add_argument('--site', dest='site', required=True, help='Site code (e.g. ogg)')
+    parser.add_argument('--camera', dest='camera', required=True, help='instrument code (e.g. fl09)')
+    parser.add_argument('--flat_filename1', dest='flat1', required=True,
+                        help='Path to flat field data to trace)')
+    parser.add_argument('--flat_filename2', dest='flat2', required=False, default='',
+                        help='Path to flat field data to trace with alternate fiber illuminated.)')
+
+    args = parser.parse_args()
+    with tempfile.TemporaryDirectory() as tempdir:
+        unpacked_path1 = funpack(args.flat1, tempdir)
+        if args.flat2:
+            unpacked_path2 = funpack(args.flat2, tempdir)
+        else:
+            unpacked_path2 = args.flat2
+        tasks.delay.run_refine_trace(args.site, args.camera, unpacked_path1, input_flat2=unpacked_path2)
+
+
 def run_periodic_worker():
     wait_for_task_rabbitmq(settings.rabbitmq_host, settings.broker_username, settings.broker_password)
     logger.info('Starting periodic worker')
@@ -72,15 +101,3 @@ def run_beats_scheduler():
     logger.info('Starting Beats Scheduler')
     beat = celery.bin.beat.beat(app=tasks.app)
     beat.run()
-
-def create_db():
-    pass
-
-def create_deployment_directories():
-    """zero  trace  temp  spec  plot  extr  diag  dark  config  ccor  bias
-       trip  thar   tar   rv    flat  expm  dble  csv   class   blaz
-    """
-    pass
-
-def copy_in_empty_csv_files():
-    pass

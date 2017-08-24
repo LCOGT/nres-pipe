@@ -6,6 +6,8 @@ import datetime
 from celery import Celery
 import os
 from requests.auth import HTTPBasicAuth
+from glob import glob
+from astropy.io import fits
 
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 
@@ -33,6 +35,21 @@ idl_logger.addHandler(idl_handler)
 
 
 logging.basicConfig(filename='example.log',level=logging.DEBUG)
+
+
+def run_idl(idl_procedure, args):
+    cmd = shlex.split('idl -e {command} -quiet -args {args}'.format(command=idl_procedure, args=" ".join(args)))
+    console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    logger.info('IDL NRES pipeline output:')
+    for message in console_output.stdout.splitlines():
+        idl_logger.info(message)
+    if console_output.stderr:
+        logger.warning('IDL STDERR Output:')
+        for message in console_output.stderr.splitlines():
+            idl_logger.warning(message)
+    if console_output.returncode > 0:
+        logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
+    return console_output.returncode
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
@@ -64,18 +81,8 @@ def process_nres_file(path, data_reduction_root_path, db_address):
             nres_site, nres_instrument = which_nres(path)
             os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site, '')
             os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-            cmd = shlex.split('idl -e run_nres_pipeline -quiet -args {path}'.format(path=path))
-            console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info('IDL NRES pipeline output:')
-            for message in console_output.stdout.splitlines():
-                idl_logger.info(message)
-            if console_output.stderr:
-                logger.warning('IDL STDERR Output:')
-                for message in console_output.stderr.splitlines():
-                    idl_logger.warning(message)
-            if console_output.returncode > 0:
-                logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
-            else:
+            return_code = run_idl('run_nres_pipeline', [path])
+            if return_code == 0:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
 
 
@@ -96,17 +103,7 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
                                                                'start': date_range[0].strftime(settings.date_format),
                                                                'end': date_range[1].strftime(settings.date_format)}})
 
-
-    cmd = 'idl -e stack_nres_calibrations -quiet -args {calibration_type} {site} {camera} {date_range} {target}'
-    cmd = cmd.format(calibration_type=calibration_type, site=site, camera=camera,
-                     date_range=date_range_to_idl(date_range), target=target)
-
-    console_output = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    logger.info('IDL NRES Calibration Stacker output: {output}'.format(output=console_output.stdout))
-    if console_output.stderr:
-        logger.warning('IDL STDERR Output: {stderr}'.format(stderr=console_output.stderr))
-    if console_output.returncode > 0:
-        logger.error('IDL Calibration Stacker returned with a non-zero exit status')
+    run_idl('stack_nres_calibrations', [calibration_type, site, camera, date_range_to_idl(date_range), target])
 
 
 @app.task
@@ -114,8 +111,8 @@ def make_stacked_calibrations_for_one_night(site, camera, nres_instrument):
     end = datetime.datetime.utcnow()
     start = end - datetime.timedelta(hours=24)
     date_range = [start.strftime(settings.date_format), end.strftime(settings.date_format)]
-    for calibtration_type in ['BIAS', 'DARK', 'FLAT']:
-        make_stacked_calibrations.apply_async(kwargs={'calibration_type': calibtration_type, 'site': site,
+    for calibration_type in ['BIAS', 'DARK', 'FLAT', 'ARC']:
+        make_stacked_calibrations.apply_async(kwargs={'calibration_type': calibration_type, 'site': site,
                                                       'camera': camera, 'date_range': date_range,
                                                       'data_reduction_root_path': settings.data_reduction_root,
                                                       'nres_instrument': nres_instrument},
@@ -127,3 +124,51 @@ def collect_queue_length_metric(rabbit_api_root):
                             auth=HTTPBasicAuth('guest', 'guest')).json()
     send_tsdb_metric('nrespipe.queue_length', response['messages'], async=False)
 
+
+@app.task
+def run_trace0(input_filename, site, camera):
+    run_idl('run_nres_trace0', [input_filename, site, camera])
+
+@app.task
+def run_refine_trace(site, camera, input_flat1, input_flat2=''):
+    run_idl('run_nres_trace_refine', [site, camera, input_flat1, input_flat2])
+
+@app.task
+def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    last_night = yesterday.strftime('%Y%m%d')
+
+    # Get all the lamp flats from last night and which fibers were illuminated
+    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, last_night, 'raw')
+    flat_files = glob(os.path.join(raw_data_path, '*w00.fits*'))
+
+    if len(flat_files) == 0:
+        # Short circuit
+        return
+
+    flats_1 = []
+    flats_2 = []
+
+    for f in flat_files:
+        fiber = fits.getval(f, 'OBJECTS', 1)
+        if fiber.split('&')[2] == 'none':
+            flats_1.append(f)
+        else:
+            flats_2.append(f)
+
+
+    # If there are observations from both telescopes
+    if len(flats_1) > 0 and len(flats_2) > 0:
+        # Get the middle of each
+        flat1 = flats_1[(len(flats_1)) + 1 //  2]
+        flat2 = flats_2[(len(flats_2)) + 1 //  2]
+    elif len(flats_1) > 0:
+    # Otherwise get the middle lamp flat
+        flat1 = flats_1[(len(flats_1)) + 1 //  2]
+        flat2 = ''
+    else:
+        flat1 = flats_2[(len(flats_2)) + 1 //  2]
+        flat2 = ''
+    # run refine_trace on the main task queue
+    run_refine_trace.apply_async(kwargs={'site': site, 'camera': camera, 'input_flat1': flat1, 'input_flat2': flat2},
+                                 queue='celery')
