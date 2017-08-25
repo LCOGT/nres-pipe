@@ -69,7 +69,7 @@ def run_nres_trace0():
     parser.add_argument('--nres-instrument', dest='nres_instrument', required=True,
                         help='NRES instrument name (e.g. nres01)')
     args = parser.parse_args()
-    tasks.delay.run_trace0(args.filename, args.site, args.camera, args.nres_instrument, settings.data_reduction_root)
+    tasks.run_trace0.delay(args.filename, args.site, args.camera, args.nres_instrument, settings.data_reduction_root)
 
 
 def run_nres_trace_refine():
@@ -90,7 +90,7 @@ def run_nres_trace_refine():
             unpacked_path2 = funpack(args.flat2, tempdir)
         else:
             unpacked_path2 = args.flat2
-        tasks.delay.run_refine_trace(args.site, args.camera, args.nres_instrument, settings.data_reduction_root,
+        tasks.run_refine_trace.delay(args.site, args.camera, args.nres_instrument, settings.data_reduction_root,
                                      unpacked_path1, input_flat2=unpacked_path2)
 
 
