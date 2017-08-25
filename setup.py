@@ -22,5 +22,5 @@ setup(name='nrespipe',
                                         'run_nres_periodic_worker=nrespipe.main:run_periodic_worker',
                                         'nres_stack_calibrations=nrespipe.main:stack_nres_calibrations',
                                         'run_nres_beats=nrespipe.main:run_beats_scheduler',
-                                        'run_nres_trace0=nrespipe.main:run_nres_trace0,',
+                                        'run_nres_trace0=nrespipe.main:run_nres_trace0',
                                         'run_nres_trace_refine=nrespipe.main:run_nres_trace_refine']})
