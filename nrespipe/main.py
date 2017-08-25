@@ -79,19 +79,13 @@ def run_nres_trace_refine():
     parser.add_argument('--nres-instrument', dest='nres_instrument', required=True,
                         help='NRES instrument name (e.g. nres01)')
     parser.add_argument('--flat_filename1', dest='flat1', required=True,
-                        help='Path to flat field data to trace)')
+                        help='Path to flat field data to trace')
     parser.add_argument('--flat_filename2', dest='flat2', required=False, default='',
                         help='Path to flat field data to trace with alternate fiber illuminated.)')
 
     args = parser.parse_args()
-    with tempfile.TemporaryDirectory() as tempdir:
-        unpacked_path1 = funpack(args.flat1, tempdir)
-        if args.flat2:
-            unpacked_path2 = funpack(args.flat2, tempdir)
-        else:
-            unpacked_path2 = args.flat2
-        tasks.run_refine_trace.delay(args.site, args.camera, args.nres_instrument, settings.data_reduction_root,
-                                     unpacked_path1, input_flat2=unpacked_path2)
+    tasks.run_refine_trace.delay(args.site, args.camera, args.nres_instrument, settings.data_reduction_root,
+                                 args.flat1, input_flat2=args.flat2)
 
 
 def run_periodic_worker():

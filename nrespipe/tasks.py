@@ -17,21 +17,13 @@ from nrespipe.utils import filename_is_blacklisted
 from nrespipe import settings
 
 import tempfile
-import sys
 
 app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
-logger.propagate = False
-logging.captureWarnings(True)
+idl_logger = logging.getLogger('idl')
 
-idl_logger = logging.getLogger('idl-nres')
-idl_logger.propagate = False
-idl_log_formatter = logging.Formatter('%(message)s')
-idl_handler = logging.StreamHandler(sys.stdout)
-idl_handler.setFormatter(idl_log_formatter)
-idl_logger.addHandler(idl_handler)
 
 
 def run_idl(idl_procedure, args):
@@ -39,11 +31,11 @@ def run_idl(idl_procedure, args):
     console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     logger.info('IDL NRES pipeline output:')
     for message in console_output.stdout.splitlines():
-        idl_logger.info(message)
+        idl_logger.info(message.decode())
     if console_output.stderr:
         logger.warning('IDL STDERR Output:')
         for message in console_output.stderr.splitlines():
-            idl_logger.warning(message)
+            idl_logger.warning(message.decode())
     if console_output.returncode > 0:
         logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
     return console_output.returncode
@@ -128,11 +120,19 @@ def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_roo
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
     run_idl('run_nres_trace0', [input_filename, site, camera])
 
+
 @app.task
 def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_flat1, input_flat2=''):
     os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-    run_idl('run_nres_trace_refine', [site, camera, input_flat1, input_flat2])
+    with tempfile.TemporaryDirectory() as tempdir:
+        unpacked_path1 = funpack(input_flat1, tempdir)
+        if input_flat2:
+            unpacked_path2 = funpack(input_flat2, tempdir)
+        else:
+            unpacked_path2 = ''
+        run_idl('run_nres_trace_refine', [site, camera, unpacked_path1, unpacked_path2])
+
 
 @app.task
 def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):

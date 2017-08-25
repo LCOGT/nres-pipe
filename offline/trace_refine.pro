@@ -32,6 +32,9 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely,eflat=eflat
 ; This shift is independent of x, order number, and fiber.
 
 @nres_comm
+nresroot=getenv('NRESROOT')
+nres_instance=getenv('NRESINST')
+nresrooti=nresroot+strtrim(nres_instance,2)
 
 jdc=systime(/julian)
 mjdc=jdc-2400000.5d0
@@ -419,7 +422,7 @@ tracprof(0:cowid-1,*,*,1:*)=prof1
 ; write out the new trace array
 jdc=systime(/julian)      ; file creation time, for sorting similar trace files
 mjdc=jdc-2400000.5d0
-datereald=date_conv(jdd,'R')
+datereald=date_conv(jdc,'R')
 datestrd=string(datereald,format='(f13.5)')
 strput,datestrd,'00',0
 datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
@@ -443,11 +446,11 @@ sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'COWID',cowid
 sxaddpar,hdr,'NBLOCK',nblock
 ; Calculate the standard date format for the output filename
-CALDAT, jd, month, day, year, hour, minute, second
+CALDAT, jdc, month, day, year, hour, minute, second
 today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
 this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
-sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
-now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(site,2)+'_'+this_nres +'_'+camera+'_' +today
+now =  strtrim(year,2)+'-'+strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='(F06.3)'), 2)
 sxaddpar,hdr,'DATE-OBS', now
 sxaddpar,hdr,'L1PUBDAT', now
 sxaddpar,hdr,'RLEVEL', 91
@@ -458,7 +461,7 @@ writefits,filout,tracprof,hdr
 flags='0010'
 if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
-stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jd,flags
+stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jdc,flags
 
 fini:
 end

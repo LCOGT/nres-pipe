@@ -5,10 +5,16 @@ from datetime import timedelta
 from celery.schedules import crontab
 
 # logging
-logConf = { "formatters": { "default": {"()": LCOGTFormatter}},
+logging.captureWarnings(True)
+
+logConf = { "formatters": { "default": {"()": LCOGTFormatter},
+                            "idl": {'(fmt=u"%(message)s")': logging.Formatter}},
             "handlers": { "console": { "class": "logging.StreamHandler", "formatter": "default",
-                                       "stream": "ext://sys.stdout"}},
-            "loggers": { "nrespipe": { "handlers": ["console"], "level": logging.INFO}},
+                                       "stream": "ext://sys.stdout"},
+                          "idlconsole": {"class": "logging.StreamHandler", "formatter": "idl",
+                                         "stream": "ext://sys.stdout"}},
+            "loggers": {"nrespipe": { "handlers": ["console"], "level": logging.INFO, "propagate": False},
+                        "idl": {"handlers": ["idlconsole"], "level": logging.INFO, "propagate": False}},
             "version": 1 }
 
 logging.config.dictConfig(logConf)
