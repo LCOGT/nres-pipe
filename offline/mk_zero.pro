@@ -202,7 +202,7 @@ sxdelpar,hdr,'NAXIS3'
 sxaddpar,hdr,'OBSTYPE', 'TEMPLATE'
 sxaddpar,hdrout,'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
 sxaddpar,hdrout,'RLEVEL', 91
-'template_
+
 set_output_calibration_name, hdrout, 'TEMPLATE'
 outname = sxpar(hdrout,'OUTNAME')
 sxaddpar, hdrout, outname+'_'+strtrim(string(long(teff), format='(05I)'),2) + '_' + strtrim(string(long(logg * 100), format='(03I)'),2) 

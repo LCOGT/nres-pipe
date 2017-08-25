@@ -22,8 +22,7 @@ if nargs lt 4 then begin
 endif else begin
   date_range_array = double(strsplit(args[3], ',', /extract))
   
-  if nargs gt 4 then object=args[4]
-  else object=!NULL
+  if nargs gt 4 then object=args[4] else object=!NULL
   
   mk_supercal, args[0], args[1], args[2], date_range_array, object=object
 endelse

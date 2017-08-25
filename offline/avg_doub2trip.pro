@@ -198,7 +198,7 @@ branch='trip/'
 
 combined_filenames = []
 for i=0,nfile-1 do begin
-  combined_filenames = [combined_filenames, get_output_name(files[i])
+  combined_filenames = [combined_filenames, get_output_name(files[i])]
 endfor
 
 ; make output header = 1st input header with mods, write out the data
