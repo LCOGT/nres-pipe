@@ -34,9 +34,6 @@ idl_handler.setFormatter(idl_log_formatter)
 idl_logger.addHandler(idl_handler)
 
 
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
-
-
 def run_idl(idl_procedure, args):
     cmd = shlex.split('idl -e {command} -quiet -args {args}'.format(command=idl_procedure, args=" ".join(args)))
     console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
