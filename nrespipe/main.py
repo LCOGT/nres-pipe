@@ -66,14 +66,18 @@ def run_nres_trace0():
     parser.add_argument('--site', dest='site', required=True, help='Site code (e.g. ogg)')
     parser.add_argument('--camera', dest='camera', required=True, help='instrument code (e.g. fl09)')
     parser.add_argument('--filename', required=True, help='Input trace file to convert to fits file.')
+    parser.add_argument('--nres-instrument', dest='nres_instrument', required=True,
+                        help='NRES instrument name (e.g. nres01)')
     args = parser.parse_args()
-    tasks.delay.run_trace0(args.filename, args.site, args.camera)
+    tasks.delay.run_trace0(args.filename, args.site, args.camera, args.nres_instrument, settings.data_reduction_root)
 
 
 def run_nres_trace_refine():
     parser = argparse.ArgumentParser(description='Reduce all the data from a site at the end of a night.')
     parser.add_argument('--site', dest='site', required=True, help='Site code (e.g. ogg)')
     parser.add_argument('--camera', dest='camera', required=True, help='instrument code (e.g. fl09)')
+    parser.add_argument('--nres-instrument', dest='nres_instrument', required=True,
+                        help='NRES instrument name (e.g. nres01)')
     parser.add_argument('--flat_filename1', dest='flat1', required=True,
                         help='Path to flat field data to trace)')
     parser.add_argument('--flat_filename2', dest='flat2', required=False, default='',
@@ -86,7 +90,8 @@ def run_nres_trace_refine():
             unpacked_path2 = funpack(args.flat2, tempdir)
         else:
             unpacked_path2 = args.flat2
-        tasks.delay.run_refine_trace(args.site, args.camera, unpacked_path1, input_flat2=unpacked_path2)
+        tasks.delay.run_refine_trace(args.site, args.camera, args.nres_instrument, settings.data_reduction_root,
+                                     unpacked_path1, input_flat2=unpacked_path2)
 
 
 def run_periodic_worker():

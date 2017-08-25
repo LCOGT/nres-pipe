@@ -123,11 +123,15 @@ def collect_queue_length_metric(rabbit_api_root):
 
 
 @app.task
-def run_trace0(input_filename, site, camera):
+def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_root):
+    os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
+    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
     run_idl('run_nres_trace0', [input_filename, site, camera])
 
 @app.task
-def run_refine_trace(site, camera, input_flat1, input_flat2=''):
+def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_flat1, input_flat2=''):
+    os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
+    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
     run_idl('run_nres_trace_refine', [site, camera, input_flat1, input_flat2])
 
 @app.task
