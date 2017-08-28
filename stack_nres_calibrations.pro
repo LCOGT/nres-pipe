@@ -24,7 +24,15 @@ endif else begin
   
   if nargs gt 4 then object=args[4] else object=!NULL
   
-  mk_supercal, args[0], args[1], args[2], date_range_array, object=object
+  if strtrim(strlowcase(args[0]),2) eq 'template' then begin
+    type = 'ZERO'
+  endif else if strtrim(strlowcase(args[0]),2) eq 'arc' then begin
+    type = 'DOUBLE'
+  endif else begin
+    type = args[0]
+  endelse
+  
+  mk_supercal, type, args[1], args[2], date_range_array, object=object
 endelse
 
 end
