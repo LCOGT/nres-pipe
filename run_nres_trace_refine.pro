@@ -20,6 +20,7 @@ pro run_nres_trace_refine
     print, 'Instrument code (e.g. fl09)'
     print, 'First Raw input flat filename to trace'
     print, 'Second Raw input flat filename to trace from other telescope (optional)'
+    print, 'Order of the Lengendre Polynomial to fit the trace (optional, default=7)'
   endif else begin
     @nres_comm
     jdc = systime(/julian)
@@ -29,6 +30,7 @@ pro run_nres_trace_refine
     nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
     get_calib,'TRACE',tracefile,tracprof,tracehdr,gerr
     if nargs gt 3 then flat2=args[3] else flat2=!NULL
-    trace_refine, file_basename(tracefile), args[2], flat2
+    if nargs gt 4 then npoly=args[4] else npoly=7
+    trace_refine, file_basename(tracefile), args[2], flat2, nleg=npoly
   endelse
 end
