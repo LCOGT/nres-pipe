@@ -173,7 +173,7 @@ mjd=jd-2400000.5d0
 daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 strput,datestrc,'00',0
-fout='trace/TRAC'+datestrc+'.fits'
+fout='trace/TRAC'+strtrim(sitec,2)+datestrc+'.fits'
 filout=nresrooti+'reduced/'+fout
 
 mkhdr,hdr,tracprof
@@ -211,5 +211,8 @@ sxaddpar,hdr,'RLEVEL', 91
 writefits,filout,tracprof,hdr
 
 stds_addline,'TRACE',fout,1,site,camera,jd,'0000'
+
+; put the output file into a tarfile for archiving
+fpack_stacked_calibration,filout, sxpar(hdr, 'OUTNAME')
 
 end

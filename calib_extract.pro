@@ -281,7 +281,7 @@ if(~keyword_set(flatk)) then begin
       if(words(0) ne 'NONE' and words(1) eq 'THAR' and words(2) eq 'NONE') then $
         flag='0010'
     endif
-    stds_addline,'BLAZE',branch+fout,1,strtrim(site,2),strtrim(camera,2),jdd,flag
+    stds_addline,'BLAZE',blazdir+blazo,1,strtrim(site,2),strtrim(camera,2),jdd,flag
     tarlist=[tarlist,blazout]
   endif
 endif

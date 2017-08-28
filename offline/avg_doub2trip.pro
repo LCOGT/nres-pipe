@@ -190,7 +190,7 @@ lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 ;jdc=systime(/julian)      ; file creation time, for sorting similar calib files
 ;mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
 datereald=date_conv(jdd+.0001,'R')
-datestrd=string(daterealc,format='(f13.5)')
+datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
 fout='TRIP'+datestrd+'.fits'
 filout=tripdir+fout
@@ -198,11 +198,12 @@ branch='trip/'
 
 combined_filenames = []
 for i=0,nfile-1 do begin
-  combined_filenames = [combined_filenames, get_output_name(files[i])]
+  fits_read,reddir+files[i],data, this_header
+  combined_filenames = [combined_filenames, get_output_name(this_header)]
 endfor
 
 ; make output header = 1st input header with mods, write out the data
-fits_read,reddir+'dble/'+files[-1],data, hdrout
+fits_read,reddir+files[-1],data, hdrout
 update_data_size_in_header, hdrout, lamav
 sxaddpar,hdrout,'OBSTYPE', 'ARC'
 set_output_calibration_name, hdrout, 'arc'

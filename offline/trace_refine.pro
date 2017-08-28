@@ -448,7 +448,7 @@ sxaddpar,hdr,'NBLOCK',nblock
 CALDAT, jdc, month, day, year, hour, minute, second
 today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
 this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
-sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(site,2)+'_'+this_nres +'_'+camera+'_' +today
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(strlowcase(site),2)+'_'+this_nres +'_'+strtrim(strlowcase(camera),2)+'_' +today
 now =  strtrim(year,2)+'-'+strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='(F06.3)'), 2)
 sxaddpar,hdr,'DATE-OBS', now
 sxaddpar,hdr,'L1PUBDAT', now
@@ -456,6 +456,7 @@ sxaddpar,hdr,'RLEVEL', 91
 
 
 writefits,filout,tracprof,hdr
+fpack_stacked_calibration,filout, sxpar(hdr, 'OUTNAME')
 
 flags='0010'
 if(nfib eq 2) then flags='0020'
