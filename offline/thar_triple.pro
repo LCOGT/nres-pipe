@@ -57,7 +57,7 @@ dd12=readfits(fnam12,hdr12,/silent)
 site=strtrim(strupcase(sxpar(hdr01,'SITEID')),2)
 camera=strtrim(sxpar(hdr01,'INSTRUME'),2)
 mjdd=sxpar(hdr01,'MJD-OBS')
-jdd=mjd+2400000.5d0
+jdd=mjdd+2400000.5d0
 objects=strupcase(sxpar(hdr01,'OBJECTS'))
 words=get_words(objects,nwords,delim='&')
 nfib=nwords
