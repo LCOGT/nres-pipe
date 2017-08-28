@@ -103,6 +103,11 @@ endelse
 ; median average over the input data arrays
 datout=median(datin,dimension=3)
 
+
+; make output header = 1st input header with mods, write out the data
+fits_read,root+files[-1],data, output_header
+;sxaddpar,hdr0,'MJD',mjd
+mjdd=sxpar(output_header,'MJD-OBS')
 ; make date of 1st input file, output filename
 ;jd=systime(/julian)      ; file creation time, for sorting similar calib files
 ;mjd=jd-2400000.5d0
@@ -115,17 +120,14 @@ case type of
   'BIAS': begin
     filout=biasdir+fout
     branch='bias/'
-    end
+  end
   'DARK': begin
     filout=darkdir+fout
     branch='dark/'
-    end
+  end
 endcase
 
-; make output header = 1st input header with mods, write out the data
-fits_read,root+files[-1],data, output_header
-;sxaddpar,hdr0,'MJD',mjd
-sxaddpar,output_header,'MJD-OBS',mjdd
+
 sxaddpar,output_header,'NFRAVGD',nfile
 sxaddpar,output_header,'L1PUBDAT', now
 sxaddpar,output_header,'RLEVEL', 91

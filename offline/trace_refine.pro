@@ -437,7 +437,6 @@ sxaddpar,hdr,'NORD',nord
 sxaddpar,hdr,'FIB0',fib0
 sxaddpar,hdr,'FIB1',fib1
 sxaddpar,hdr,'ORDWIDTH',ord_wid
-sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'MJDC',mjdc,'Creation date'
 sxaddpar,hdr,'FILE_IN',strtrim(flatin1,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
@@ -461,7 +460,7 @@ writefits,filout,tracprof,hdr
 flags='0010'
 if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
-stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jdc,flags
+stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),sxpar(hdr, 'MJD-OBS') + 0.0001d + 2400000.5d0,flags
 
 fini:
 end

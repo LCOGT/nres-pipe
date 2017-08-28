@@ -174,7 +174,8 @@ branch='flat/'
 
 ; make output header = Last input header with mods, write out the data
 fits_read,root+files[-1],data, output_header
-sxaddpar,output_header,'MJD-OBS',mjdd
+mjdd=sxpar(hdr0,'MJD-OBS')
+jdd=mjdd+2400000.5d0
 sxaddpar,output_header,'NFRAVGD',nfile
 sxaddpar,output_header,'L1PUBDAT', now
 sxaddpar,output_header,'RLEVEL', 91

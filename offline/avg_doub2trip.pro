@@ -284,7 +284,9 @@ case opt of
   3: flg='0030'
   4: flg='0030'
 endcase
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jdc,flg
+
+
+stds_addline,'TRIPLE',branch+fout,2,site,camera,sxpar(hdrout,'MJD-OBS') + 0.001d + 2400000.5d,flg
 
 ; write out log information.
 print,'*** avg_doub2trip ***'
