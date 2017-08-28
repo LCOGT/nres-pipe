@@ -18,7 +18,7 @@ fname='dble/'+speco
 navg=1
 site=strtrim(sxpar(dathdr,'SITEID'),2)
 camera=strtrim(sxpar(dathdr,'INSTRUME'),2)
-jdate=jdc
+jdate=jdd
 objects=sxpar(dathdr,'OBJECTS')
 words=get_words(objects,nwd,delim='&')
 words=strtrim(strupcase(words),2)
