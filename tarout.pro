@@ -72,15 +72,15 @@ for i=0,nf-1 do begin
     output_filename= reduced_name + '-wave.fits'
   endif else if strpos(filename, 'TRIP') ge 0 then begin
     fits_read, curfile, this_data, this_header
-    output_filename = get_output_name(this_header)
+    output_filename = get_output_name(this_header) + '.fits'
     arc_filename = output_filename
   endif else if strpos(filename, 'TRAC') ge 0 then begin
     fits_read, curfile, this_data, this_header
-    output_filename = get_output_name(this_header)
+    output_filename = get_output_name(this_header) + '.fits'
     trace_filename = output_filename
   endif else if strpos(filename, '.fits') ge 0 then begin
     fits_read, curfile, this_data, this_header
-    output_filename = get_output_name(this_header)
+    output_filename = get_output_name(this_header) + '.fits'
   endif else begin
     output_filename = filename
   endelse
@@ -88,7 +88,7 @@ for i=0,nf-1 do begin
   spawn,cmd2
 endfor
 
-remove, rv_template_filename, tarlist
+remove, where(tarlist eq rv_template_filename), tarlist
 
 ; tar the directory
 cd, dirpath, current=orig_dir
