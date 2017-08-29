@@ -62,11 +62,28 @@ pro mk_supercal,type,site,camera,dateran,object=object
     cameras=strtrim(strupcase(cameras),2)
     sitet=strtrim(strupcase(site))
     camerat=strtrim(strupcase(camera))
-    objectt=strcompress(strupcase(object),/removeall)
-    sg=where((sites eq sitet) and (cameras eq camerat) and (objects eq objectt) $
+    objectt=strcompress(strupcase(object),/remove_all)
+    sg=where((sites eq sitet) and (cameras eq camerat) $
       and (jdates ge jdran(0)) and (jdates le jdran(1)) and (types eq 'BLAZE'),nsg)
     if(nsg ge 3) then begin    ; this is test for rules compliance for ZERO
       files=fnames(sg)
+      objects = []
+      foreach file, files do begin
+        fits_read,nresrooti+file, dat, hdr
+        objects_arr = strsplit(sxpar(hdr, 'OBJECTS'),'&',/extract)
+        if strlowcase(objects_arr[0]) eq 'none' then object=objects_arr[2] else object=objects_arr[0]
+        ; Remove anything after an underscore
+        if strpos(object, '_') ge 0 then begin
+          objects_arr = strsplit(object, '_', /extract)
+          object = objects_arr[0]  
+        endif
+        objects = [objects, object]
+      endforeach
+      files = files[where(objects eq objectt, nsg)]
+      if n_elements(files) lt 3 then begin
+        print,'Not enough files with matching objects found to make ZERO file'
+        goto,fini
+      endif
     endif else begin
       print,'Not enough matching files found to make ZERO file'
       goto,fini
@@ -74,7 +91,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
   endif
 
   ; test for rules compliance
-  if((type eq 'BIAS' or type eq 'DARK' or type eq 'ZERO') and nsg lt 3) then begin
+  if((type eq 'BIAS' or type eq 'DARK') and nsg lt 3) then begin
     print,'Not enough matches found for BIAS or DARK averaging'
     goto,fini
   endif

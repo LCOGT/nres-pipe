@@ -1,4 +1,4 @@
-pro fpack_stacked_calibration,filepath, output_filename
+pro fpack_stacked_calibration,input_path, output_filename
   ; This routine causes a compressed fits to be written into the
   ; reduced/tar directory, containing the
   ; file contained in /reduced/tar pointed to by filepath.
@@ -17,7 +17,7 @@ pro fpack_stacked_calibration,filepath, output_filename
   ix=strpos(filepath,'/',/reverse_search)
   nc=strlen(filepath)
   copyname=output_filename + '.fits'
-  cmd0='cp '+filepath+' '+tarpath+'/'+copyname
+  cmd0='cp '+input_path+' '+tarpath+'/'+copyname
   spawn,cmd0
 
   ; obtain current directory

@@ -34,6 +34,8 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 ; common block for ThAr reduction
 @thar_comm
 
+; initialize tarlist to an empty list
+tarlist = []
 ; constants
  nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
@@ -46,7 +48,7 @@ sxaddpar,hdro,'MJDC',mjdc
 daterealc=date_conv(jdc,'R')
 datestrc=string(daterealc,format='(f13.5)')
 fileout='zero/ZERO'+datestrc+'.fits'
-filepath=nresrooti+'/reduced/'+fileout
+output_path=nresrooti+'/reduced/'+fileout
 
 ; read the list
 flist=['']
@@ -65,7 +67,7 @@ nfiles=n_elements(flist)
 
 ; read the first file, get sizes of things
 ; put data into nres_comm or thar_comm variables, as appropriate
-fname=nresrooti+'/reduced/blaz/'+flist(0)
+fname=nresrooti+flist[-1]
 dd=readfits(fname,hdr,/silent)
 sz=size(dd)
 nx=sz(1)
@@ -81,7 +83,7 @@ datereald=date_conv(jdd,'R')
 datestrd=string(datereald,format='(f13.5)')
 datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
 fileout='zero/ZERO'+datestrd+'.fits'
-filepath=nresrooti+'/reduced/'+fileout
+output_path=nresrooti+'/reduced/'+fileout
 
 camera=sxpar(hdr,'INSTRUME')
 if(mfib eq 1 or((mfib eq 3) and ((objs(0) ne 'NONE') and $
@@ -111,7 +113,7 @@ zout(*,*,1)=dd(*,*,ifib1)            ; the ThAr spectrum
 mjdavg=mjdobs
 navg=1
 for i=1,nfiles-1 do begin
-  fname=nresrooti+'/reduced/blaz/'+flist(i)
+  fname=nresrooti+flist[i]
   dd=readfits(fname,hdr,/silent)
   zout(*,*,0)=zout(*,*,0)+dd(*,*,ifib0)
   zout(*,*,1)=zout(*,*,1)+dd(*,*,ifib1)
@@ -194,18 +196,18 @@ dumm=fltarr(2)
 ;mkhdr,hdr                                ; no data segment
 ;fxhmake,hdr,dumm,/extend                 ; dummy primary data segment
 ;fxhmake,hdr,/extend                      ; no primary data segment
-fits_read,nresrooti+'/reduced/blaz/'+flist[-1], data, hdr
+fits_read,nresrooti+flist[-1], data, hdr
 sxaddpar,hdr,'NAXIS', 0
 sxdelpar,hdr,'NAXIS1'
 sxdelpar,hdr,'NAXIS2'
 sxdelpar,hdr,'NAXIS3'
 sxaddpar,hdr,'OBSTYPE', 'TEMPLATE'
-sxaddpar,hdrout,'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
-sxaddpar,hdrout,'RLEVEL', 91
+sxaddpar,hdr,'L1PUBDAT', sxpar(hdr,'DATE-OBS')
+sxaddpar,hdr,'RLEVEL', 91
 
-set_output_calibration_name, hdrout, 'TEMPLATE'
-outname = sxpar(hdrout,'OUTNAME')
-sxaddpar, hdrout, outname+'_'+strtrim(string(long(teff), format='(05I)'),2) + '_' + strtrim(string(long(logg * 100), format='(03I)'),2) 
+set_output_calibration_name, hdr, 'TEMPLATE'
+outname = sxpar(hdr,'OUTNAME')
+sxaddpar, hdr, 'OUTNAME', outname+'_'+strtrim(string(long(teff), format='(05I)'),2) + '_' + strtrim(string(long(logg * 100), format='(03I)'),2) 
 
 fxaddpar,hdr,'OBJECT',target
 fxaddpar,hdr,'SITEID',site
@@ -268,7 +270,7 @@ fxaddpar,hdr,'F61',fibcoefs_c(6,1)
 ; while the intensities want to be single-precision floats.
 
 ; there is no main data segment.
-fxwrite,filepath,hdr
+fxwrite,output_path,hdr
 fxbhmake,hdr,1                    ; make extension header, only 1 row
 
 z0=reform(zout(*,*,0))
@@ -276,13 +278,13 @@ z1=reform(zout(*,*,1))
 fxbaddcol,jn1,hdr,z0,'Star','ZERO Star Inten'
 fxbaddcol,jn2,hdr,z1,'ThAr','ZERO ThAr Inten'
 fxbaddcol,jn3,hdr,lamz,'Wavelength','Wavelength (nm)'
-fxbcreate,unit,filepath,hdr,ext1
+fxbcreate,unit,output_path,hdr,ext1
 
 fxbwritm,unit,['Star','Thar','Wavelength'],z0,z1,lamz
 fxbfinish,unit
 
 ; make a tarfile for archiving
-fpack_stacked_calibration,filepath, sxpar(hdr, 'OUTNAME')
+fpack_stacked_calibration,output_path, sxpar(hdr, 'OUTNAME')
 
 
 ; add a line pointing to this file in the zeros.csv file
