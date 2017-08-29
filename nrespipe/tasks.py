@@ -12,7 +12,7 @@ from astropy.io import fits
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, post_to_fits_exchange
 from nrespipe.utils import filename_is_blacklisted
 from nrespipe import settings
 
@@ -26,7 +26,10 @@ idl_logger = logging.getLogger('idl')
 
 
 
-def run_idl(idl_procedure, args):
+def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
+    os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
+    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
+
     cmd = shlex.split('idl -e {command} -quiet -args {args}'.format(command=idl_procedure, args=" ".join(args)))
     console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     logger.info('IDL NRES pipeline output:')
@@ -38,6 +41,15 @@ def run_idl(idl_procedure, args):
             idl_logger.warning(message.decode())
     if console_output.returncode > 0:
         logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
+
+    file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'tar', 'beammeup.txt')
+    if os.path.exists(file_upload_list):
+        with open(file_upload_list) as f:
+            files_to_upload = f.read().split('\n')
+        for file_to_upload in files_to_upload:
+            post_to_fits_exchange(settings.broker_url, file_to_upload)
+        with open(file_upload_list, 'w') as f:
+            f.write('')
     return console_output.returncode
 
 
@@ -68,9 +80,7 @@ def process_nres_file(path, data_reduction_root_path, db_address):
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_site, nres_instrument = which_nres(path)
-            os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, nres_site, '')
-            os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-            return_code = run_idl('run_nres_pipeline', [path])
+            return_code = run_idl('run_nres_pipeline', [path], data_reduction_root_path, nres_site, nres_instrument)
             if return_code == 0:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
 
@@ -81,10 +91,6 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
     """
     Stack the calibration files taken on a given night (BIAS, DARK, FLAT, ARC, TEMPLATE)
     """
-    os.environ['NRESROOT'] = os.path.join(data_reduction_root_path, site, '')
-    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-
-
     date_range = [datetime.datetime.strptime(date_range[0], settings.date_format),
                   datetime.datetime.strptime(date_range[1], settings.date_format)]
     logger.info('Stacking Calibration frames', extra={'tags': {'site': site, 'instrument': camera,
@@ -92,7 +98,8 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
                                                                'start': date_range[0].strftime(settings.date_format),
                                                                'end': date_range[1].strftime(settings.date_format)}})
 
-    run_idl('stack_nres_calibrations', [calibration_type, site, camera, date_range_to_idl(date_range), target])
+    run_idl('stack_nres_calibrations', [calibration_type, site, camera, date_range_to_idl(date_range), target],
+            data_reduction_root_path, site, nres_instrument)
 
 
 @app.task
@@ -116,22 +123,20 @@ def collect_queue_length_metric(rabbit_api_root):
 
 @app.task
 def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_root):
-    os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
-    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-    run_idl('run_nres_trace0', [input_filename, site, camera])
+    run_idl('run_nres_trace0', [input_filename, site, camera], data_reduction_root, site, nres_instrument)
 
 
 @app.task
 def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_flat1, input_flat2=''):
-    os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
-    os.environ['NRESINST'] = os.path.join(nres_instrument, '')
+
     with tempfile.TemporaryDirectory() as tempdir:
         unpacked_path1 = funpack(input_flat1, tempdir)
         if input_flat2:
             unpacked_path2 = funpack(input_flat2, tempdir)
         else:
             unpacked_path2 = ''
-        run_idl('run_nres_trace_refine', [site, camera, unpacked_path1, unpacked_path2])
+        run_idl('run_nres_trace_refine', [site, camera, unpacked_path1, unpacked_path2], data_reduction_root, site,
+                nres_instrument)
 
 
 @app.task
