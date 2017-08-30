@@ -199,6 +199,6 @@ def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_inst
     """
     output_directory = os.path.join(data_reduction_root, site, nres_instrument, dayobs, 'specproc')
     if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
+        os.mkdirs(output_directory, exist_ok=True)
     shutil.move(file_to_upload, output_directory)
     return os.path.join(output_directory, os.path.basename(file_to_upload))
