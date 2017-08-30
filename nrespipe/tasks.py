@@ -42,16 +42,15 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
     if console_output.returncode > 0:
         logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
 
-    file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'tar', 'beammeup.txt')
+    file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'reduced', 'tar', 'beammeup.txt')
     if os.path.exists(file_upload_list):
         with open(file_upload_list) as f:
-            lines_to_upload = f.read().split('\n')
+            lines_to_upload = f.read().splitlines()
         for line_to_upload in lines_to_upload:
             file_to_upload, dayobs = line_to_upload.split()
             final_product = copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_instrument, dayobs)
             post_to_fits_exchange(settings.broker_url, final_product)
-        with open(file_upload_list, 'w') as f:
-            f.write('')
+        os.remove(file_upload_list)
     return console_output.returncode
 
 

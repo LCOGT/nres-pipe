@@ -1,10 +1,10 @@
 pro fpack_stacked_calibration,input_path, output_filename
   ; This routine causes a compressed fits to be written into the
   ; reduced/tar directory, containing the
-  ; file contained in /reduced/tar pointed to by filepath.
+  ; file contained in /reduced/tar pointed to by input_path.
   ; This facility is intended to be used by
   ; routines that make composite calibration files.
-  ; Procedure is to write filepath into /reduced/tar, make a gzipped tar file
+  ; Procedure is to write input_path into /reduced/tar, make a gzipped tar file
   ; of it in the same directory, append the name of the tarfile to beammeup.txt,
   ; and delete the /reduced/tar version of the original datafile.
 
@@ -12,10 +12,10 @@ pro fpack_stacked_calibration,input_path, output_filename
   nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
   tarpath=nresrooti+'reduced/tar/'
   fits_read, input_path, data, header
-  ; make the name of the copy, copy filepath into it
+  ; make the name of the copy, copy input_path into it
   ; also make the name of the tarfile
-  ix=strpos(filepath,'/',/reverse_search)
-  nc=strlen(filepath)
+  ix=strpos(input_path,'/',/reverse_search)
+  nc=strlen(input_path)
   copyname=output_filename + '.fits'
   cmd0='cp '+input_path+' '+tarpath+'/'+copyname
   spawn,cmd0

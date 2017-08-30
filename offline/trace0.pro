@@ -200,9 +200,9 @@ sxaddpar,hdr,'BLKUID', '000000000'
 sxaddpar,hdr,'OBSTYPE', 'TRACE'
 ; Calculate the standard date format for the output filename
 CALDAT, jd, month, day, year, hour, minute, second
-today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
+today = strtrim(year,2)+ strtrim(string(month, format='(I02)'),2) + strtrim(string(day, format='(I02)'),2)
 sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
-now =  strtrim(year,2)+'-'+strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='(F06.3)'), 2)
+now =  strtrim(string(year,format='(I04)'),2)+'-'+strtrim(string(month,format='(I02)'),2)+'-'+strtrim(string(day,format='(I02)'), 2) + 'T'+strtrim(string(hour,format='(I02)'),2) + ':' + strtrim(string(minute,format='(I02)'),2)+':'+strtrim(string(second, format='(F06.3)'), 2)
 sxaddpar,hdr,'DATE-OBS', now
 sxaddpar,hdr,'DAY-OBS', today
 sxaddpar,hdr,'L1PUBDAT', now
