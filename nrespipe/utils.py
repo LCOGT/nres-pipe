@@ -173,3 +173,32 @@ def funpack(input_path, directory):
         shutil.copy(input_path, directory)
 
     return output_path
+
+
+def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_instrument, dayobs):
+    """
+    Copy the product from the IDL pipeline in beammeup.txt to its final resting place (folder)
+
+    Parameters
+    ----------
+    file_to_upload : str
+                    Full path to file produced by IDL pipeline
+    data_reduction_root : str
+                         Top level directory for reduced data
+    site : str
+           Site ID (e.g. elp)
+    nres_instrument : str
+                      NRES instance (e.g. nres01)
+    dayobs : str
+             DAY-OBS value for the observation, format must follow YYYYMMDD (e.g. 20170825)
+
+    Returns
+    -------
+    output_path : str
+                Final (full) path to the reduced file
+    """
+    output_directory = os.path.join(data_reduction_root, site, nres_instrument, dayobs, 'specproc')
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+    shutil.move(file_to_upload, output_directory)
+    return os.path.join(output_directory, os.path.basename(file_to_upload))

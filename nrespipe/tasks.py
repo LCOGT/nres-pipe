@@ -12,8 +12,8 @@ from astropy.io import fits
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, post_to_fits_exchange
-from nrespipe.utils import filename_is_blacklisted
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5
+from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange
 from nrespipe import settings
 
 import tempfile
@@ -45,9 +45,11 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
     file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'tar', 'beammeup.txt')
     if os.path.exists(file_upload_list):
         with open(file_upload_list) as f:
-            files_to_upload = f.read().split('\n')
-        for file_to_upload in files_to_upload:
-            post_to_fits_exchange(settings.broker_url, file_to_upload)
+            lines_to_upload = f.read().split('\n')
+        for line_to_upload in lines_to_upload:
+            file_to_upload, dayobs = line_to_upload.split()
+            final_product = copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_instrument, dayobs)
+            post_to_fits_exchange(settings.broker_url, final_product)
         with open(file_upload_list, 'w') as f:
             f.write('')
     return console_output.returncode
@@ -80,7 +82,8 @@ def process_nres_file(path, data_reduction_root_path, db_address):
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_site, nres_instrument = which_nres(path)
-            return_code = run_idl('run_nres_pipeline', [path], data_reduction_root_path, nres_site, nres_instrument)
+            return_code = run_idl('run_nres_pipeline', [path, settings.do_radial_velocity],
+                                  data_reduction_root_path, nres_site, nres_instrument)
             if return_code == 0:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
 

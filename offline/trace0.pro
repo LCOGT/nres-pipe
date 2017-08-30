@@ -204,6 +204,7 @@ today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
 sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
 now =  strtrim(year,2)+'-'+strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='(F06.3)'), 2)
 sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'DAY-OBS', today
 sxaddpar,hdr,'L1PUBDAT', now
 sxaddpar,hdr,'RLEVEL', 91
 

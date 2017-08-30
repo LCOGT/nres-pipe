@@ -13,9 +13,16 @@ pro run_nres_pipeline
     endif
     restore, getenv('NRES_IDL_PRECOMPILE')
     args = command_line_args(count=nargs)
-    if nargs eq 0 then begin
-        print, 'Filename required to run NRES pipeline.'
+    if nargs lt 2 then begin
+        print, 'At least two arguments are required to run the NRES pipeline.'
+        print, 'Filename'
+        print, 'Do Radial Velocity calculation (0 or 1)'
     endif else begin
-        muncha, args[0]
+        if args[1] then begin
+          nostar = !NULL
+        endif else begin
+          nostar = 1
+        endelse
+        muncha, args[0], nostar=nostar
     endelse
 end

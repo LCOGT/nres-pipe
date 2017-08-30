@@ -11,7 +11,7 @@ pro fpack_stacked_calibration,input_path, output_filename
   nresroot=getenv('NRESROOT')
   nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
   tarpath=nresrooti+'reduced/tar/'
-
+  fits_read, input_path, data, header
   ; make the name of the copy, copy filepath into it
   ; also make the name of the tarfile
   ix=strpos(filepath,'/',/reverse_search)
@@ -33,7 +33,7 @@ pro fpack_stacked_calibration,input_path, output_filename
 
   ; write the tarfile name into beammeup.txt
   openw,iun,tarpath+'/beammeup.txt',/get_lun,/append
-  printf,iun,strtrim(copyname,2)+'.fz'
+  printf,iun,tarpath+strtrim(copyname,2)+'.fz ' + sxpar(header, 'DAY-OBS') 
   close,iun
   free_lun,iun
 

@@ -115,7 +115,7 @@ spawn,cmd3
 
 ; write out the tarball's name 
 openw,iun,'beammeup.txt',/get_lun,/append
-printf,iun,tarpath + reduced_name + '.tar.gz'
+printf,iun,tarpath + reduced_name + '.tar.gz' + ' ' + sxpar(hdr, 'DAY-OBS')
 close,iun
 free_lun,iun
 
