@@ -129,7 +129,7 @@ endcase
 
 
 sxaddpar,output_header,'NFRAVGD',nfile
-sxaddpar,output_header,'L1PUBDAT', now
+sxaddpar,output_header,'L1PUBDAT', sxpar(output_header, 'DATE-OBS')
 sxaddpar,output_header,'RLEVEL', 91
 
 set_output_calibration_name, output_header, type
