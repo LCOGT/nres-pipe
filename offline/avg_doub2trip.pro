@@ -207,7 +207,7 @@ fits_read,reddir+files[-1],data, hdrout
 update_data_size_in_header, hdrout, lamav
 sxaddpar,hdrout,'OBSTYPE', 'ARC'
 set_output_calibration_name, hdrout, 'arc'
-sxaddpar,hdrout,'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
+sxaddpar,hdrout, 'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
 sxaddpar,hdrout,'RLEVEL', 91
 
 save_combined_images_in_header, hdrout, combined_filenames

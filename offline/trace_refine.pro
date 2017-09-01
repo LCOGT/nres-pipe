@@ -461,7 +461,7 @@ fpack_stacked_calibration,filout, sxpar(hdr, 'OUTNAME')
 flags='0010'
 if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
-stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jdc 0.0001d,flags
+stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jdc + 0.0001d,flags
 
 fini:
 end
