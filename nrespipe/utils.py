@@ -204,6 +204,6 @@ def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_inst
     output_path = os.path.join(output_directory, os.path.basename(file_to_upload))
     if os.path.exists(output_path):
         os.remove(output_path)
-    
+
     shutil.move(file_to_upload, output_directory)
     return os.path.join(output_directory, os.path.basename(file_to_upload))

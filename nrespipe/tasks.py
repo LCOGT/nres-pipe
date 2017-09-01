@@ -178,5 +178,7 @@ def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
         flat1 = flats_2[(len(flats_2) + 1) //  2]
         flat2 = ''
     # run refine_trace on the main task queue
-    run_refine_trace.apply_async(kwargs={'site': site, 'camera': camera, 'input_flat1': flat1, 'input_flat2': flat2},
+    run_refine_trace.apply_async(kwargs={'site': site, 'camera': camera, 'nres_instrument': nres_instrument,
+                                         'data_reduction_root': settings.data_reduction_root,
+                                         'input_flat1': flat1, 'input_flat2': flat2},
                                  queue='celery')
