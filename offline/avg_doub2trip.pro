@@ -187,8 +187,8 @@ lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 ; different fibers
 
 ; make data date, output filename
-;jdc=systime(/julian)      ; file creation time, for sorting similar calib files
-;mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
+jdc=systime(/julian)      ; file creation time, for sorting similar calib files
+mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
 datereald=date_conv(jdd+.0001,'R')
 datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
