@@ -77,7 +77,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
           objects_arr = strsplit(object, '_', /extract)
           object = objects_arr[0]  
         endif
-        objectlist = [objects, object]
+        objectlist = [objectlist, object]
       endforeach
       files = files[where(objectlist eq objectt, nsg)]
       if n_elements(files) lt 3 then begin
