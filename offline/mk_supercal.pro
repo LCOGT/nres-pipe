@@ -67,7 +67,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
       and (jdates ge jdran(0)) and (jdates le jdran(1)) and (types eq 'BLAZE'),nsg)
     if(nsg ge 3) then begin    ; this is test for rules compliance for ZERO
       files=fnames(sg)
-      objects = []
+      objectlist = []
       foreach file, files do begin
         fits_read,nresrooti+file, dat, hdr
         objects_arr = strsplit(sxpar(hdr, 'OBJECTS'),'&',/extract)
@@ -77,9 +77,9 @@ pro mk_supercal,type,site,camera,dateran,object=object
           objects_arr = strsplit(object, '_', /extract)
           object = objects_arr[0]  
         endif
-        objects = [objects, object]
+        objectlist = [objects, object]
       endforeach
-      files = files[where(objects eq objectt, nsg)]
+      files = files[where(objectlist eq objectt, nsg)]
       if n_elements(files) lt 3 then begin
         print,'Not enough files with matching objects found to make ZERO file'
         goto,fini
@@ -113,9 +113,6 @@ pro mk_supercal,type,site,camera,dateran,object=object
   endif
 
   if type eq 'DOUBLE' then begin
-    @nres_comm
-    jdc=systime(/julian)     
-    tarlist=[]
     flags2 = strmid(flags[sg],2,1)
     ; All flag2 = 1
     if total(flags2 eq '1') eq n_elements(flags2) then begin

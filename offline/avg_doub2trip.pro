@@ -32,7 +32,8 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 @nres_comm
 @thar_comm
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
-
+jdc=systime(/julian)
+tarlist=[]
 ; constants
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
