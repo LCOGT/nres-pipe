@@ -10,7 +10,6 @@ from nrespipe import tasks
 import celery.bin.worker
 import celery.bin.beat
 import argparse
-import tempfile
 
 
 logger = logging.getLogger('nrespipe')

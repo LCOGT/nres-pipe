@@ -18,7 +18,7 @@ pro run_nres_pipeline
         print, 'Filename'
         print, 'Do Radial Velocity calculation (0 or 1)'
     endif else begin
-        if args[1] then begin
+        if long(args[1]) then begin
           nostar = !NULL
         endif else begin
           nostar = 1

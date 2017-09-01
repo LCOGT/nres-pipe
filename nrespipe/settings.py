@@ -29,7 +29,7 @@ FITS_BROKER = os.getenv('FITS_BROKER', 'memory://localhost')
 
 db_address = os.getenv('DB_URL', 'sqlite:///test.db')
 data_reduction_root = os.getenv('NRES_DATA_ROOT', './')
-do_radial_velocity = os.getenv('NRES_DO_RV', True)
+do_radial_velocity = os.getenv('NRES_DO_RV', 1)
 
 
 blacklisted_filenames = ['g00', 'x00']
