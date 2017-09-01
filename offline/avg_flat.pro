@@ -177,7 +177,7 @@ fits_read,root+files[-1],data, output_header
 mjdd=sxpar(hdr0,'MJD-OBS')
 jdd=mjdd+2400000.5d0
 sxaddpar,output_header,'NFRAVGD',nfile
-sxaddpar,output_header,'L1PUBDAT', now
+sxaddpar,output_header,'L1PUBDAT', sxpar(output_header, 'DATE-OBS')
 sxaddpar,output_header,'RLEVEL', 91
 
 set_output_calibration_name, output_header, 'FLAT'
