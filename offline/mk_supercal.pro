@@ -113,6 +113,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
   endif
 
   if type eq 'DOUBLE' then begin
+    @nres_comm
     jdc=systime(/julian)     
     tarlist=[]
     flags2 = strmid(flags[sg],2,1)
