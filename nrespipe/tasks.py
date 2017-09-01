@@ -168,14 +168,14 @@ def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
     # If there are observations from both telescopes
     if len(flats_1) > 0 and len(flats_2) > 0:
         # Get the middle of each
-        flat1 = flats_1[(len(flats_1)) + 1 //  2]
-        flat2 = flats_2[(len(flats_2)) + 1 //  2]
+        flat1 = flats_1[(len(flats_1) + 1) //  2]
+        flat2 = flats_2[(len(flats_2) + 1) //  2]
     elif len(flats_1) > 0:
     # Otherwise get the middle lamp flat
-        flat1 = flats_1[(len(flats_1)) + 1 //  2]
+        flat1 = flats_1[(len(flats_1) + 1) //  2]
         flat2 = ''
     else:
-        flat1 = flats_2[(len(flats_2)) + 1 //  2]
+        flat1 = flats_2[(len(flats_2) + 1) //  2]
         flat2 = ''
     # run refine_trace on the main task queue
     run_refine_trace.apply_async(kwargs={'site': site, 'camera': camera, 'input_flat1': flat1, 'input_flat2': flat2},
