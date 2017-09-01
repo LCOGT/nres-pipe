@@ -113,6 +113,8 @@ pro mk_supercal,type,site,camera,dateran,object=object
   endif
 
   if type eq 'DOUBLE' then begin
+    jdc=systime(/julian)     
+    tarlist=[]
     flags2 = strmid(flags[sg],2,1)
     ; All flag2 = 1
     if total(flags2 eq '1') eq n_elements(flags2) then begin

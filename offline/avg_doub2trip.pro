@@ -37,8 +37,7 @@ common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 reddir=nresrooti+'reduced/'
-radian=180.d0/!pi
-jdc=systime(/julian)      
+radian=180.d0/!pi 
 
 ; read flist if necessary, or copy to array 'files'
 if(keyword_set(array)) then begin
