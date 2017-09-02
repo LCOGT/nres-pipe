@@ -310,6 +310,22 @@ done:
 ;fib0=0
 ;fib1=1
 
+; subtract background from ebox1, ebox2
+nslice=16
+nsx=float(nx)/nslice
+for i=0,nord-1 do begin
+  for j=0,nfib-1 do begin
+    for k=0,nslice-1 do begin
+      slbot=k*nsx
+      sltop=slbot+nsx-1
+      dmin1=ptile(ebox1(slbot:sltop,*,i,j),2)
+      dmin2=ptile(ebox2(slbot:sltop,*,i,j),2)
+      ebox1(slbot:sltop,*,i,j)=ebox1(slbot:sltop,*,i,j)-dmin1
+      ebox2(slbot:sltop,*,i,j)=ebox2(slbot:sltop,*,i,j)-dmin2
+    endfor
+  endfor
+endfor
+
 ; interpolate and scrunch values in ebox1, ebox2 to yield estimates of
 ; cross-dispersion profiles, on a per-block basis.
 ordbot=round(ord_vectors-cowid/2.)
@@ -444,7 +460,7 @@ writefits,filout,tracprof,hdr
 flags='0010'
 if(nfib eq 2) then flags='0020'
 if(nfib eq 3) then flags='0030'
-stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jd,flags
+stds_addline,'TRACE','trace/'+fout,1,strtrim(site,2),strtrim(camera,2),jdc,flags
 
 fini:
 end
