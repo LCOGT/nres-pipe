@@ -13,6 +13,7 @@ pro run_nres_trace_refine
   endif
 
   restore, getenv('NRES_IDL_PRECOMPILE')
+  
   args = command_line_args(count=nargs)
   if nargs lt 4 then begin
     print, 'NRES Trace Refine requires at least 3 arguments'
