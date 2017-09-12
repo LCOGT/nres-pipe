@@ -8,7 +8,7 @@ if strpos(propid, 'engineer') ge 0 then begin
 endif else if (propid eq 'calibrate') or (propid eq 'standard') or (propid eq 'pointing') or (strpos(propid, 'epo') ge 0) then begin
   public_date = date_obs
 endif else begin
-  year = long(strmid(0, 4))
+  year = long(strmid(date_obs, 0, 4))
   public_date = strtrim(year + 1, 2) + strmid(date_obs, 4)
 endelse
 

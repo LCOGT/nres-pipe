@@ -465,7 +465,7 @@ CALDAT, jdc, month, day, year, hour, minute, second
 today = sxpar(hdr1, 'DAY-OBS')
 this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
 sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(strlowcase(site),2)+'_'+this_nres +'_'+strtrim(strlowcase(camera),2)+'_' +today
-now =  strtrim(string(year,format='(I04)'),2)+'-'+strtrim(string(month,format='(I02)'),2)+'-'+strtrim(string(day,format='(I02)'), 2) + 'T'+strtrim(string(hour,format='(I02)'),2) + ':' + strtrim(string(minute,format='(I02)'),2)+':'+strtrim(string(second, format='(F06.3)'), 2)
+now =  strtrim(string(year,format='(I04)'),2)+'-'+strtrim(string(month,format='(I02)'),2)+'-'+strtrim(string(day,format='(I02)'), 2) + 'T'+strtrim(string(hour,format='(I02)'),2) + ':' + strtrim(string(minute,format='(I02)'),2)+':'+strtrim(string(second, format='(F09.6)'), 2)
 sxaddpar,hdr,'DATE-OBS', sxpar(hdr1, 'DATE-OBS')
 sxaddpar,hdr,'L1PUBDAT', now
 sxaddpar,hdr,'RLEVEL', 91
