@@ -21,6 +21,7 @@ targra=dblarr(2)
 targdec=dblarr(2)
 zeronames=strarr(2)            ; names of ZERO files
 zerotypes=strarr(2)             ; type of selection for each ZERO file
+zerorrt=dblarr(2)           ; ZERO net (baryc + intrinsic) redshift - unity
 tlon=dblarr(2)              ; telescope longitudes
 tlat=dblarr(2)               ; telescope latitudes
 talt=dblarr(2)                ; telescope height
@@ -155,9 +156,10 @@ fake_target,targstrucs,targnames,targra,targdec
 ; choose one or two ZERO files for the fitting.
 obsmjd=sxpar(dathdr,'MJD-OBS')
 
-zstar=fltarr(nx,nord,2)
-zthar=fltarr(nx,nord,2)
-zlam=dblarr(nx,nord,2)
+zstar=fltarr(nx,nord,2)        ; ZERO file(s) star spectra
+zthar=fltarr(nx,nord,2)        ; ZERO file(s) thar spectra
+zlam=dblarr(nx,nord,2)         ; vac lambda corrected to zstar(s) frame of ref
+zlamt=dblarr(nx,nord,2)        ; vac lambda in NRES lab frame
 for i=0,1 do begin
   if(targnames(i) ne 'NULL') then begin
     select_std,'ZERO',obsmjd,'NULL','NULL',1,targstrucs(i),zeroname,zerotype,err
@@ -171,7 +173,7 @@ for i=0,1 do begin
 ; get the ZERO data.  If only one star fiber is lit, the other plane
 ; of each output array contains zeros.   
       zeropath=zeroroot+zeroname
-      rd_zero,zeropath,hdr,star,thar,lam
+      rd_zero,zeropath,hdr,star,thar,lam,lamt
       tarlist=[tarlist,zeropath]
 ;     fxbopen,unit,zeropath,1,hdr        ; get 1st extension of ZERO file
 ;     fxbread,unit,star,'Star',1         ; read 'Star' col, row 1
@@ -183,6 +185,8 @@ for i=0,1 do begin
       zstar(*,*,i)=star
       zthar(*,*,i)=thar
       zlam(*,*,i)=lam
+      zlamt(*,*,i)=lamt
+      zerorrt(i)=sxpar(hdr,'REDSHIFT')  ; ZERO net (baryc + intrinsic) redshift
     endif
   endif
 
@@ -192,7 +196,8 @@ endfor
 ; build output structure
 
   rvindat={targstrucs:targstrucs,zeronames:zeronames,zerotypes:zerotypes,$
-      baryshifts:baryshifts,zstar:zstar,zthar:zthar,zlam:zlam,coosrc:coosrc}
+      baryshifts:baryshifts,zstar:zstar,zthar:zthar,zlam:zlam,zlamt:zlamt,$
+      coosrc:coosrc,zerorrt:zerorrt}
 
 fini:
 

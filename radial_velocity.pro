@@ -28,6 +28,7 @@ targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec]
 obsmjd=sxpar(dathdr,'MJD-OBS')
 baryshifts=rvindat.baryshifts        ;  r = z-1 elements for fibers 0,2
+rrts=rvindat.zerorrt      ; ZERO net (baryc + intrinsic) redshift
 
 ; if(keyword_set(nostar)) then goto,skipall
 
@@ -75,13 +76,14 @@ if(nfib eq 3) then begin
 endif
 
 ; make output arrays to be written to csv file
-rcco=dblarr(2)
-widcco=fltarr(2)
-ampcco=fltarr(2)
-bjdo=dblarr(2)
-rroa=dblarr(2)
-rrom=dblarr(2)
-rroe=dblarr(2)
+rcco=dblarr(2)    ; cross-correl redshift, no barycorr or zero intrinsic v
+rvvo=fltarr(2)    ; same as rcco, but in km/s units
+widcco=fltarr(2)  ; cross-correl fwhm (km/s)
+ampcco=fltarr(2)  ; cross-correl height (max possible = 1)
+bjdo=dblarr(2)    ; exposure center barycen date
+rroa=dblarr(2)    ; avg blockfit redshift
+rrom=dblarr(2)    ; median blockfit redshift
+rroe=dblarr(2)    ; formal error in rroa
 
 ; make output arrays for RV results
 rro=dblarr(2,nord,nblock)  ; redshift vs fiber, order, block
@@ -93,9 +95,9 @@ ebbo=dblarr(2,nord,nblock) ; formal uncertainty in bbo
 pldpo=dblarr(2,nord,nblock)  ; photon-limited doppler precision (km/s)
     
 ; make output arrays for cross-correlation results
-ccmo=fltarr(2,801)
-delvo=fltarr(2,801)
-rvvo=fltarr(2)
+ccmo=fltarr(2,801)  ; cross-correl fn, vs velocity shift
+delvo=fltarr(2,801) ; indep var for ccmo, spans +/- 400 km/s
+rvvo=fltarr(2)      ; same as rcco, but in km/s units
 
 ; make rvred output structure, in case keyword nostar is set
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
@@ -134,11 +136,6 @@ for i=0,1 do begin
     for j=0,nord-1 do begin
 
 ; interpolate ZERO spectrum to grid appropriate to obsrvations
-;     slamj=slam(*,j,i)/(1.d0-rcco(i))  ; wavelength grid that puts lab
-;                       ; wavelengths onto observed target wavelengths  
-;     zdatnew(*,j)=interpol(zspec(*,j,i),zlam(*,j,i),slamj,/lsquadratic)
-
-;     zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
       zlamj=zlam(*,j,i)*(1.d0+rcc)      ; compensate for redshift estimated
                                         ; by mgbcc.
 ;     ZERO data interpolated from its rest frame to moving frame, star image
@@ -179,7 +176,8 @@ for i=0,1 do begin
       
 ; end blocks loop
       bail:
-      rro(i,j,k)=blockparms.rr/(1.d0+baryshifts(i))  ; correct for baryshift
+      rro(i,j,k)=blockparms.rr/(1.d0+baryshifts(i)-rrts(i))  ; correct 
+                                 ; for baryshift, zbaryshift, zero rv
       aao(i,j,k)=blockparms.aa
       bbo(i,j,k)=blockparms.bb
       erro(i,j,k)=sqrt(blockparms.cov(0,0))

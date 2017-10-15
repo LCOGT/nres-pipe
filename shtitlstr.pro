@@ -1,4 +1,4 @@
-function shtitlstr,object,site,mjd,bjdtdb,iord0,exptime,snr,version
+function shtitlstr,object,site,mjd,bjdtdb,iord0,exptime,snr,vmag,version
 ; This routine constructs a so-called short title from various data relating
 ; to an NRES image of type TARGET.
 
@@ -19,9 +19,10 @@ if(snr lt 1000.) then begin
 endif else begin
   snstr='S/N='+string(snr,format='(f5.0)')+', '
 endelse
+vmstr=string(vmag,format='(f5.2)')+', '
 verstr='Ver = '+version
 
-shtitle=obstr+sitstr+datestr+timestr+hjdstr+apstr+expstr+snstr+verstr
+shtitle=obstr+sitstr+datestr+timestr+hjdstr+apstr+expstr+snstr+vmstr+verstr
 
 return,shtitle
 

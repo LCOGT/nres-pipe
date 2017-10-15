@@ -1,0 +1,144 @@
+How to Interpret NRES Diagnostic Plots  5 Sep 2017
+
+The NRES pipeline produces two diagnostic plots of 3 pp each.   These two
+plots are produced for every spectrum of type TARGET that is processed.
+TARGET files are made with fiber 1 illuminated with ThAr light, and fiber
+0 and/or 2 illuminated with some astronomical source (a star or the sky).
+These are postscript plots and live in the files named PLOTsssyyyyddd.nnnnn_f.ps
+and PLQCsssyyyyddd.nnnn_f.ps.  In these names
+  sss = the spectrograph site identifier, eg 'lsc' or 'elp'
+  yyyy = the UT year of the start 
+  ddd = the UT calendar day of year (DOY), in the range [001 to 366].
+  nnnnn = the fractional UT DOY of the start of the exposure.
+  f = 0 or 2, identifying the fiber displayed in the diagnostic plot.
+      When we are able to make them, spectra with both sky fibers illuminated 
+      by astronomical targets will generate two sets of diagnostic plots.
+
+PLOT*.ps
+The first (PLOT*.ps) plot is intended as a near-duplicate of the "quick" plots
+produced for Dave Latham's TRES spectrograph. It is intended to help the user
+evaluate the quality of incoming spectra, and to judge some astrophysical
+characteristics of the target object.
+
+p. 1, top panel:  This plot shows one order (order index=38, diffraction order
+= 89, containing the Mg b lines) of the observed spectrum (blue trace),
+superposed on the same order of the template spectrum (red trace) that is used
+for the RV analysis.  These spectra are shown in so-called BLAZ format, in
+which a scaled copy of the flat-field (tungsten halogen) spectrum is 
+*subtracted* from the observed spectrum.  This representation has simple noise
+properties, and lacks most of the low-spatial-frequency variation that
+one sees in raw extracted spectra (namely, those in EXTR-format spectra).
+The BLAZ spectra are the starting point for the NRES RV analysis.  Before
+they are plotted, both target and template spectra are smoothed with a kernel
+of about 2/3 the width of the projected fiber diameter, to filter out
+high-spatial-frequency noise.  The vertical scale is in ADU = detected
+photoelectrons in the extracted spectrum.  Note that this representation can
+appear noisier than one would expect in, eg, the case of hot stars with low-
+contrast lines, since almost all of the measured intensity is subtracted out
+before plotting.
+
+The title of this panel contains the target name, the spectrograph site (cut 
+to 2 characters), the UT date and JD of the exposure start, the order index
+of the plotted order, the target V magnitude, an estimate of the S/N ratio
+(computed in the continuum near order center), and the pipeline code version
+number.  The S/N estimate assumes shot noise plus detector read noise 
+appropriate to the extracted order width.  Near the bottom of the plot, one 
+finds various catalog information about the target (RA, Dec, Teff, log(g), 
+[m/H], V_rot (km/s)).  At the bottom left are slots, currently unpopulated, 
+for the number of spectra averaged to make the displayed spectrum (currently 
+always 1), and the name or ID number of the observing program that requested 
+the data.  
+
+p. 1, 2 leftmost panels:  These panels show the cross-correlation between the
+target and template spectra, plotted against redshift (km/s).  The amplitude
+is scaled to unity for exact equality between the two spectra.  The center
+panel shows the raw cross-correlation;  the leftmost panel will someday show
+the correlation with a template spectrum that has been smeared by convolution
+with a stellar rotation profile, but this is not yet done.  Sorry.
+
+The vertical blue line indicates zero redshift, the vertical black line shows
+the estimated cross-correlation peak position.  In the upper right area of the
+panel one finds the correlation peak height, BC = the calculated barycentric
+redshift of the target at the flux-weighted mean time of the exposure (km/s),
+and RV = the estimated redshift of the correlation peak (ie, the redshift
+of spectrum features relative to the same features in the template).  The
+estimated barycentric redshift of the target is therefore RV-BC.  No noise
+estimates yet.
+
+p. 1, rightmost panel:  This panel shows the raw extracted spectrum (EXTR
+format) for the same order as plotted above.  The vertical scale is kilo-ADU.
+
+p.2, all panels:  These panels show other spectrum orders, containing
+interesting stellar lines: Ca II H, H-alpha, Li6707, and Na D.  In each case,
+Extracted signal (k ADU) are plotted against Wavelength (AA).  Vertical blue
+lines show the wavelengths of the expected features, assuming zero redshift.
+(nm).
+
+p. 3:  This plot shows the Mb b order once again, this time divided by the
+normalized flat-field spectrum (SPEC format).  Often, this plot is most useful
+for revealing the failings of the flat-fielding process.
+
+PLQC*.ps
+The PLQC*.ps plots are intended to help in debugging the processes of spectrum
+extraction and wavelength solution.  Thus, they are more about hardware and
+software performance than about astronomy.
+
+p. 1, top panel:  This plot shows extracted intensity (k ADU) vs wavelength (nm)
+for a somewhat redder order than the Mg b order.  For stars with relatively
+few lines in this order, this spectrum is sensitive to the chirped string of
+discontinuities that one sees if the extraction box is significantly displaced
+relative to the actual position of orders on the detector.
+
+The title of this panel gives the target name, the trailing part of the filename
+for all of the reduced data files (EXTR, SPEC, BLAZ, THAR, RADV, PLOT, PLQC)
+that are derived from the same raw image, and the name of that image as it
+can be found in the LCO archive.
+
+p. 1, middle panel:  This plot shows the estimated displacement (pix) between 
+the center of gravity of the light incident on the chip, and the center of the
+extraction box used to estimate the summed-across-dispersion intensity.  If
+these displacements show systematic values of more than about 1 pixel in
+magnitude, then the extraction is probably compromised.  Occasional large
+values are tolerable.
+
+p. 1, bottom panels:  These three plots show (with various normalizations),
+the 0th, 2nd, and 1st moments of the cross-dispersion light distribution seen
+in the image, shown as functions of diffraction order index.  All moments 
+are measured in coordinates centered on the extraction box for the given order.
+Each pixel in the dispersion direction yields an estimate of these moments;
+plotted are the median values of the individual pixel estimates taken over
+the central 25 percent of each order.  Thus, from left to right, the plots are
+intended to show the summed brightness (k ADU), order width (pix) and order
+displacement (pix) of the measured light distribution, all shown as functions
+of order number (which is the same as wavelength, with red on the left and
+blue on the right).  At this writing, the width estimate is buggy and does
+not seem to say anything useful.
+
+p. 2, top panel:  This plot shows residuals about the fit of a wavelength
+solution to the positions of ThAr lines, plotted against catalog line
+wavelengths.  Units in both axes are nm.  Each plotted symbol represents one
+identified ThAr line.  This plot is useful for identifying failed fits (systematic residuals greater than a few x .001 nm, for visualizing failures of the
+fitted solution to match the true shape of the variations (particularly visible
+near the ends of the wavelength range), and possible mis-identified lines.
+The number of identified lines is printed in the bottom left corner.
+
+p. 2, bottom panel:  Besides the cross-correlation of the Mg b order, the
+pipeline estimates redshifts for each of nblock contiguous segments across
+each of the orders (for current testing nblock = 12).  The estimation fits
+a few-parameter (shift, scale, tilt) transformation of each block in the
+template spectrum to the corresponding observed block.  This panel shows the
+transformation redshift parameter (km/s) plotted as a function of block
+index number.  The block index changes fastest with order number, and slowest
+with along-dispersion position.  Thus, the plotted symbols span all orders
+(red to blue) within each of 12 blocks (which are in blue to red order along the
+dispersion).  Vertical dashed lines indicate block boundaries.  In low-noise
+cases, the distribution of redshifts within and across blocks is symptomatic
+of time-dependent changes in the wavelength solution.
+
+p. 3, all panels:  These are plots of the observed intensity (k ADU) vs
+wavelength (nm) for selected regions in the telluric O2 B- and A-bands.
+Vertical blue lines show the catalog wavelengths for selected molecular
+transitions.  These plots are intended as sanity checks on the wavelength
+solution;  at the plotted scale, the telluric lines have essentially 
+constant wavelengths.  Thus, if they are not well centered on the blue lines,
+then something is amiss with the wavelength solution.
