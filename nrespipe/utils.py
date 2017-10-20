@@ -5,6 +5,7 @@ import datetime
 
 import requests
 from astropy.io import fits
+from astropy.table import Table
 
 from nrespipe import dbs
 from nrespipe import settings
@@ -12,6 +13,10 @@ import logging
 
 from kombu import Connection, Exchange
 import shutil
+from glob import glob
+import numpy as np
+import sep
+
 
 logger = logging.getLogger('nrespipe')
 
@@ -207,3 +212,166 @@ def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_inst
 
     shutil.move(file_to_upload, output_directory)
     return os.path.join(output_directory, os.path.basename(file_to_upload))
+
+
+def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instrument):
+    """
+    Get a list of files matching a pattern from last night for a given NRES
+
+    Parameters
+    ----------
+    filename_pattern : str
+                     Glob pattern for file names of interest, e.g. *w00*.fits*
+    raw_data_root : str
+                    Root directory for the raw data, e.g. /archive/engineering
+    site : str
+           Site code, e.g. elp
+    nres_instrument : str
+                    NRES instance, e.g. nres01
+
+    Returns
+    -------
+    file_list : list
+              List of files matching the input criteria
+
+    Notes
+    -----
+    File names will be sorted in the output list.
+    """
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    last_night = yesterday.strftime('%Y%m%d')
+
+    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, last_night, 'raw')
+    file_names = glob(os.path.join(raw_data_path, filename_pattern))
+    file_names.sort()
+    return file_names
+
+
+def slice_from_region(pixel_section):
+    """
+    Split a region section keyword into an index slice for an array
+
+    Parameters
+    ----------
+    pixel_section : str
+                  Fits header region, e.g. 4000:4100
+
+    Returns
+    -------
+    pixel_slice : slice
+                  Array index slice corresponding to the input pixel set
+
+    Notes
+    -----
+    pixel_section follows the FITS convention as is therefore 1-indexed.
+    """
+
+    pixels = pixel_section.split(':')
+    if int(pixels[1]) > int(pixels[0]):
+        pixel_slice = slice(int(pixels[0]) - 1, int(pixels[1]), 1)
+    else:
+        if int(pixels[1]) == 1:
+            pixel_slice = slice(int(pixels[0]) - 1, None, -1)
+        else:
+            pixel_slice = slice(int(pixels[0]) - 1, int(pixels[1]) - 2, -1)
+    return pixel_slice
+
+
+def parse_region_keyword(keyword_value):
+    """
+    Convert a header keyword of the form [x1:x2],[y1:y2] into array index slices
+
+    Parameters
+    ----------
+    keyword_value : str
+                    Header keyword value
+    Returns
+    -------
+    pixel_slices : tuple of slices
+                   2-D slices of index corresponding to the region of interest
+    """
+    if not keyword_value:
+        pixel_slices = None
+    elif keyword_value.lower() == 'unknown':
+        pixel_slices = None
+    elif keyword_value.lower() == 'n/a':
+        pixel_slices = None
+    else:
+        # Strip off the brackets and split the coordinates
+        pixel_sections = keyword_value[1:-1].split(',')
+        x_slice = slice_from_region(pixel_sections[0])
+        y_slice = slice_from_region(pixel_sections[1])
+        pixel_slices = (y_slice, x_slice)
+    return pixel_slices
+
+
+
+def measure_sources_from_raw(filename, threshold=50):
+    """
+    Measure the photometry for an input raw image with a given SEP detection threshold
+
+    Parameters
+    ----------
+    filename : str
+               Full path to the file of interest
+    threshold : str
+               Threshold in N sigma to detect sources
+
+    Returns
+    -------
+    sources : astropy.table.Table
+              Catalog of sources with positions x and y and fluxes
+    """
+    # Read in the data
+    data, header = fits.getdata(filename, header=True)
+    data = data.astype(np.float)
+
+    # Subtract the bias
+    bias_region = parse_region_keyword(header['BIASSEC'])
+    data -= np.median(data[bias_region])
+
+
+    # Run sep to make the catalog
+    error = (np.abs(data) + float(header['RDNOISE'])) ** 0.5
+
+    try:
+        background = sep.Background(data, bw=64, fw=3, fh=3)
+    except ValueError:
+        data = data.byteswap(inplace=True).newbyteorder()
+        background = sep.Background(data, bw=64, fw=3, fh=3)
+
+    sources = sep.extract(data - background, threshold, err=error)
+
+    # calculate the kron flux of the sources. This roughly corresponds to flux_auto in the normal Source Extractor
+    kronrad, krflag = sep.kron_radius(data, sources['x'], sources['y'], sources['a'], sources['b'], sources['theta'], 6.0)
+    flux, fluxerr, flag = sep.sum_ellipse(data, sources['x'], sources['y'], sources['a'],
+                                          sources['b'], sources['theta'], 2.5 * kronrad, subpix=1)
+
+    # return the catalog of source positions and fluxes
+    return Table({'x': sources['x'], 'xerr2': (sources['errx2']) ** 0.5, 'y': sources['y'],
+                  'yerr2': (sources['erry2']) ** 0.5, 'covxy': sources['errxy'], 'flux': flux, 'fluxerr': fluxerr})
+
+def coordinate_variance(x, y, xerr2, yerr2):
+    return (x * x * xerr2 + y * y * yerr2) / (x * x + y * y)
+
+
+def warp_coordinates(x, y, params, polynomial_order):
+    x_coeffs = params[:len(params) // 2]
+    warped_x = evaluate_poly_coords(x, y, x_coeffs, polynomial_order)
+    y_coeffs = params[len(params) // 2:]
+    warped_y  = evaluate_poly_coords(x, y, y_coeffs, polynomial_order)
+    return warped_x, warped_y
+
+
+def evaluate_poly_coords(x, y, coeffs, order):
+    warped_x = 0.0
+    coeff_index = 0
+    for i in range(order + 1):
+        for j in range(order - i + 1):
+            warped_x += coeffs[coeff_index] * (x ** i) * (y ** j)
+            coeff_index += 1
+    return warped_x
+
+
+def square_offset(x1, y1, x2, y2):
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 -y2)

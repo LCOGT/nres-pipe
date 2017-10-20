@@ -55,6 +55,9 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
 RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
         && rm -rf ~/.cache/pip
 
+RUN conda install -y sep scipy -c openastronomy \
+        && conda clean -y --all
+
 # Switch to wget?
 RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09 \
