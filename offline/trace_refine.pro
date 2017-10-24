@@ -45,7 +45,7 @@ minamp=20.              ; min allowed amplitude of block-avgd cross-disp prof
 efthrsh=0.05            ; min eflat value for which shift weights are > 0. 
 
 ; how many images are input?
-ninfil=n_params()-1
+if keyword_set(flatin2) then ninfil = 2 else ninfil = 1
 
 ; set up needed directories, constants in common
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
