@@ -159,6 +159,7 @@ if(~keyword_set(flatk)) then begin
   long1=tel1dat.longitude
   ht1=tel1dat.height
   obj1=tel1dat.object
+
   lat2=tel2dat.latitude
   long2=tel2dat.longitude
   ht2=tel2dat.height

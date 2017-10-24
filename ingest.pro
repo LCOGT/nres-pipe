@@ -238,7 +238,10 @@ if (strtrim(long2) ne '') and (strtrim(long2) ne 'N/A') then begin
    object2=sxpar(tel2hdr,'OBJECT')
    tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
       ra:ra2,dec:dec2,ras:ra2s,decs:dec2s,object:object2}
-endif
+endif else begin
+  tel2dat = {telarr:tel2arr,longitude:0.0,latitude:0.0,height:0.0,$
+    ra:0.0,dec:0.0,ras:'',decs:'',object:''}
+endelse
 ; stick longitude, latitude, height into dathdr, for later use
 ;sxaddpar,dathdr,'LONGITUD',-70.8046889
 ;sxaddpar,dathdr,'LATITUDE',-30.16772
