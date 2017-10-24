@@ -15,7 +15,7 @@ pro run_nres_trace_refine
   restore, getenv('NRES_IDL_PRECOMPILE')
   
   args = command_line_args(count=nargs)
-  if nargs lt 4 then begin
+  if nargs lt 3 then begin
     print, 'NRES Trace Refine requires at least 3 arguments'
     print, 'Site code (e.g. LSC)'
     print, 'Instrument code (e.g. fl09)'
