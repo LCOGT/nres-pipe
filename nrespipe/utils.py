@@ -321,6 +321,10 @@ def measure_sources_from_raw(filename, threshold=50):
     -------
     sources : astropy.table.Table
               Catalog of sources with positions x and y and fluxes
+
+    Notes
+    -----
+    Positions are 1-indexed to match DS9 coordinates
     """
     # Read in the data
     data, header = fits.getdata(filename, header=True)
@@ -374,4 +378,9 @@ def evaluate_poly_coords(x, y, coeffs, order):
 
 
 def square_offset(x1, y1, x2, y2):
-    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 -y2)
+    # Calculate the pairwise distance between all of the points
+    xdiff = x1 - np.tile(x2, (len(x1), 1)).T
+    ydiff = y1 - np.tile(y2, (len(y1), 1)).T
+    offsets = xdiff * xdiff + ydiff * ydiff
+    # return the offset of the closest match
+    return offsets.min(axis=0)

@@ -211,14 +211,12 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
     match_threshold = 5
     def model_function(params):
         model_x, model_y = warp_coordinates(reference_catalog['x'], reference_catalog['y'], params, polynomial_order)
-        new_coord_variance = coordinate_variance(reference_catalog['x'], reference_catalog['y'], reference_catalog['xerr2'], reference_catalog['yerr2'])
         square_distances = square_offset(sources['x'], sources['y'], model_x, model_y)
-        distance_errors = new_coord_variance + coordinate_variance(sources['x'], sources['y'], sources['xerr2'], sources['yerr2'])
         matches = square_distances ** 0.5 <= match_threshold
         if matches.sum() == 0:
             metric = 1e10
         else:
-            metric = (square_distances[matches] / distance_errors[matches] / matches.sum()).sum()
+            metric = (square_distances[matches] / matches.sum()).sum()
         return metric
 
     # Run a grid of -25 to 25 pixels and find the best initial guess
