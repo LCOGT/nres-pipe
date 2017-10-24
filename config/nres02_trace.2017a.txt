@@ -1,4 +1,4 @@
-By-hand ord posns at x=500,1250,2000,2750,3750 for iord=0,66, ifib=0,1, 28 July 2017 bplnrs02-fl17-20170726-0005-w00.fits.fz
+By-hand ord posns at x=500,1250,2000,2750,3750 for iord=0,66, ifib=0,1, 28 July 2017 elpnrs02-fl17-20171020-0003-w00.fits.fz
 nfib 2 0 1
 iord  500    1250    2000    2750   3750
   0   132     74       55    73     147

@@ -42,17 +42,30 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                                'args': (rabbitmq_host,),
                                                'options': {'queue': 'periodic'}
                                                },
-                 'stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
+                 'lsc_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
                                                'schedule': crontab(minute=0, hour=16),
                                                'kwargs': {'site': 'lsc', 'camera': 'fl09', 'nres_instrument': 'nres01'},
                                                'options': {'queue': 'periodic'}
                                                },
-                 'refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                 'lsc_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
                                                 'schedule': crontab(minute=1, hour=16),
                                                 'kwargs': {'site': 'lsc', 'camera': 'fl09',
                                                            'nres_instrument': 'nres01',
                                                            'raw_data_root': '/archive/engineering'},
                                                 'options': {'queue': 'periodic'}
-                                                }
+                                                },
+                 'elp_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
+                                                    'schedule': crontab(minute=0, hour=18),
+                                                    'kwargs': {'site': 'elp', 'camera': 'fl17',
+                                                               'nres_instrument': 'nres02'},
+                                                    'options': {'queue': 'periodic'}
+                                                    },
+                 'elp_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                                              'schedule': crontab(minute=1, hour=18),
+                                              'kwargs': {'site': 'elp', 'camera': 'fl17',
+                                                         'nres_instrument': 'nres02',
+                                                         'raw_data_root': '/archive/engineering'},
+                                              'options': {'queue': 'periodic'}
+                                          }
                  }
 
