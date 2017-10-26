@@ -185,7 +185,6 @@ for i=0,1 do begin
         endif
 
 ; fit redshift and continuum normalization.
-        if(j eq 38) then stop
         blockfit,lamblock,zblock,dblock,blockparms
       
 ; end blocks loop
