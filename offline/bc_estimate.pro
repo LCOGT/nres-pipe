@@ -1,4 +1,4 @@
-pro bc_estimate,jplfile,bc
+pro bc_estimate,jplfile,bc,tt,tsv
 ; This routine estimates the barycentric correction for the jd
 ; and celestial coords rasex (eg 08:17:32) and decsex (eg -49:12:48)
 ; that are entered in response to a prompt.
@@ -32,13 +32,12 @@ yy=sin(ra)*cos(dec)
 zz=sin(dec)
 
 ; projected velocity away from target (time series)
-stop
-tsv=-(xx*vx + yy*vy - zz*vz)
+tsv=(xx*vx + yy*vy + zz*vz)
 
 ; find value for given JD by interpolation
 bc=interpol(tsv,tt,jd)
 print,'BC = ',bc
 
-stop
+;stop
 
 end

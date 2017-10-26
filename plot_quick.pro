@@ -31,9 +31,9 @@ titls=['Rotating template correlation','Non-rotating template correlation',$
       'NaD 5890 and 5896']
 ppr=[5.,3.5]                     ; pixels per resolution element for NRES, Sedg
 gai=[1.,2.5]                     ; gain e-/ADU for NRES, Sedg
-cs0=0.78                      ; big character size
-cs1=0.68                     ; small character size
-cs2=1.5                      ; very big character size
+cs0=0.75                      ; big character size
+cs1=0.65                     ; small character size
+cs2=1.4                      ; very big character size
 
 ; pull the data to be plotted or printed out of the common blocks
 exptime=echdat.exptime
@@ -50,7 +50,7 @@ targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
 targteff=[rvindat.targstrucs[0].teff,rvindat.targstrucs[1].teff] ; K
 targlogg=[rvindat.targstrucs[0].logg,rvindat.targstrucs[1].logg] ; log cm/s^2
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
-targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
+targvmag=[rvindat.targstrucs[0].vmag,rvindat.targstrucs[1].vmag] ; magnitudes
 coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
@@ -60,12 +60,13 @@ origname=strtrim(sxpar(dathdr,'ORIGNAME'),2)
 ; get the flat data
 flat=flatdat.flat
 
-; make string sexigesimal versions of target data, incl RA, Dec
+; make string sexigesimal versions of target data, incl RA, Dec, vmag
 rah=targra/15.        ; RA in hours
 rastr=strarr(2)       ; RA, Dec strings
 decstr=strarr(2)
 teffstr=strarr(2)
 loggstr=strarr(2)
+vmagstr=strarr(2)
 
 for i=0,1 do begin
   ras=sixty(rah(i))
@@ -79,6 +80,7 @@ for i=0,1 do begin
                 string(decs(2),format='(f4.1)')
   teffstr(i)=string(targteff(i),format='(f6.0)')
   loggstr(i)=string(targlogg(i),format='(f6.3)')
+  vmagstr(i)=string(targvmag(i),format='(f5.2)')
   if(coosrc(i) eq 0) then begin
     rastr(i)='['+rastr(i)+']'
     decstr(i)='['+decstr(i)+']'
@@ -173,7 +175,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
 ; make the title string
   version='1.1'      ; ###bogus###
   shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
-       snr,version) 
+       snr,targvmag(iplot),version) 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
   plotname=plotdir+'PLOT'+datestrd+fibstr+'.ps'
@@ -216,7 +218,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   xran=[-400.,400.]
   yran=[-0.4,1.0]
   xbot=50.
-  ybot=0.8+0.05*findgen(3)
+  ybot=0.75+0.05*findgen(4)
   
   plot,x1,plt1,tit=titls(0),xtit=xtits(1),ytit=ytits(1),/xsty,/ysty,$
     xran=xran,yran=yran,charsiz=cs2,/nodata
@@ -224,9 +226,12 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   oplot,[0.,0.],[yran],color=blue
   oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+  xyouts,xbot,ybot(1),'CCshft = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+  xyouts,xbot,ybot(2),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=cs1
+  rvvcorr=rvvo(ip2)+baryshifts(ip2)
+  xyouts,xbot,ybot(3),'RV = '+string(rvvcorr,format='(f8.3)')+' km/s',$
      charsiz=cs1
 
 ; do the 2nd correlation plot
@@ -236,9 +241,12 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   oplot,[0.,0.],yran,color=blue
   oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+  xyouts,xbot,ybot(1),'CCshft = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+  xyouts,xbot,ybot(2),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=cs1
+  rvvcorr=rvvo(ip2)+baryshifts(ip2)
+  xyouts,xbot,ybot(3),'RV = '+string(rvvcorr,format='(f8.3)')+' km/s',$
      charsiz=cs1
 
 ; get sizes of plot vectors

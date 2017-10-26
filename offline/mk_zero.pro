@@ -40,6 +40,7 @@ tarlist = []
  nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 c=299792.458d0               ; light speed in km/s
+tarlist=['']                 ; to avoid undefined var in thar_setup
 
 ; make creation jd
 jdc=systime(/julian)
@@ -124,10 +125,22 @@ zout=zout/navg
 mjdavg=mjdavg/navg
 ra=sxpar(hdr,'RA')
 dec=sxpar(hdr,'DEC')
-lat=sxpar(hdr,'LATITUDE')
-longi=sxpar(hdr,'LONGITUDE')
-height=sxpar(hdr,'HEIGHT') ; if this header keyword is missing, returned
-                           ; zero result implies at most 0.35 m error (Tibet)
+obj1=strupcase(strtrim(sxpar(hdr,'OBJ1'),2))
+obj2=strupcase(strtrim(sxpar(hdr,'OBJ2'),2))
+if(obj1 ne 'NONE' and obj2 ne 'NONE') then begin
+  print,'ERROR:  You may only have 1 non-none OBJECT to make a ZERO file'
+  stop
+endif
+if(obj1 ne 'NONE') then begin
+  lat=sxpar(hdr,'LAT1')           ; latitude, degrees
+  longi=sxpar(hdr,'LONG1')        ; E. longitude, degrees
+  height=sxpar(hdr,'HT1')         ; height above sea level, m
+endif
+if(obj2 ne 'NONE') then begin
+  lat=sxpar(hdr,'LAT2')           ; latitude, degrees
+  longi=sxpar(hdr,'LONG2')        ; E. longitude, degrees
+  height=sxpar(hdr,'HT2')         ; height above sea level, m
+endif
 
 ; smooth the output file to suppress noise
 for i=0,nord-1 do begin
@@ -155,7 +168,8 @@ specd.fibcoefs=fibcoefs_c
 xx=specdat.pixsiz*(dindgen(specdat.nx)-specdat.nx/2.d0)
 mm=dindgen(specdat.nord)+specdat.ord0
 fibno=s0(0)
-lambda3ofx,xx,mm,fibno,specd,lamz,y0m_o
+lambda3ofx,xx,mm,fibno,specd,lamz,y0m_o       ; star fiber
+lambda3ofx,xx,mm,1,specd,lamt,y0m_t           ; thar fiber
 
 ; find target star properties in targets list
 targs_rd,names,ras,decs,vmags,bmags,gmags,rmags,imags,jmags,kmags,$
@@ -183,12 +197,18 @@ if(jmag gt (-10) and kmag gt (-10)) then jmk=jmag-kmag else jmk=-99.9
 ; compute the net red shift (intrinsic plus barycentric) for the avg
 ; time of observation
 jdavg=mjdavg+2400000d0-0.5d0
-rrv=1.d0+rv/c                            ; target intrinsic red shift
+; The barycentric correction is defined so that ztrue=zmeas*zbary.
+; So to get lambda in the lab frame, ztrue=0 and zbary=-zmeas.
+; Combining the target star redshift with zbary then involves switching
+; the sign of the target redshift.
+rrv=1.d0-rv/c             ; target intrinsic red shift correction
 rrtarg=nresbarycorr(targname,jdavg,ra,dec,lat,longi,height)
-rrt=rrv*(rrtarg+1.d0)-1.d0                      ; net red shift - unity
+rrt=rrv*(rrtarg+1.d0)-1.d0                      ; net correction - unity
 
 ; convert wavelength scale to the nominal source rest frame.
-lamz=lamz/(1.d0+rrt(0))
+lamz=lamz*(1.d0+rrt(0))
+
+stop
 
 ; write out the output file
 dumm=fltarr(2)
@@ -225,7 +245,7 @@ fxaddpar,hdr,'BMAG',bmag(0),'B Mag'
 fxaddpar,hdr,'VMAG',vmag(0),'V Mag'
 fxaddpar,hdr,'JMAG',jmag(0),'J Mag'
 fxaddpar,hdr,'KMAG',kmag(0),'K Mag'
-fxaddpar,hdr,'REDSHIFT',rrt(0),'ZERO src redshift -1'
+fxaddpar,hdr,'REDSHIFT',-rrt(0),'ZERO src redshift -1'
 fxaddpar,hdr,'SINALP',sinalp_c,'Sin(alpha)'
 fxaddpar,hdr,'FL',fl_c,'Focal Length (mm)'
 fxaddpar,hdr,'Y0',y0_c,'Y0 (mm)'
@@ -254,6 +274,9 @@ fxaddpar,hdr,'F30',fibcoefs_c(3,0)
 fxaddpar,hdr,'F40',fibcoefs_c(4,0)
 fxaddpar,hdr,'F50',fibcoefs_c(5,0)
 fxaddpar,hdr,'F60',fibcoefs_c(6,0)
+fxaddpar,hdr,'F70',fibcoefs_c(7,0)
+fxaddpar,hdr,'F80',fibcoefs_c(8,0)
+fxaddpar,hdr,'F90',fibcoefs_c(9,0)
 fxaddpar,hdr,'F01',fibcoefs_c(0,1)
 fxaddpar,hdr,'F11',fibcoefs_c(1,1)
 fxaddpar,hdr,'F21',fibcoefs_c(2,1)
@@ -261,6 +284,9 @@ fxaddpar,hdr,'F31',fibcoefs_c(3,1)
 fxaddpar,hdr,'F41',fibcoefs_c(4,1)
 fxaddpar,hdr,'F51',fibcoefs_c(5,1)
 fxaddpar,hdr,'F61',fibcoefs_c(6,1)
+fxaddpar,hdr,'F71',fibcoefs_c(7,1)
+fxaddpar,hdr,'F81',fibcoefs_c(8,1)
+fxaddpar,hdr,'F91',fibcoefs_c(9,1)
 
 ; write out the data as a fits extension table.
 ; each column contains a single row, and each element is an array
@@ -278,9 +304,10 @@ z1=reform(zout(*,*,1))
 fxbaddcol,jn1,hdr,z0,'Star','ZERO Star Inten'
 fxbaddcol,jn2,hdr,z1,'ThAr','ZERO ThAr Inten'
 fxbaddcol,jn3,hdr,lamz,'Wavelength','Wavelength (nm)'
+fxbaddcol,jn4,hdr,lamt,'WavelenLab','Lab Wavelength (nm)'
 fxbcreate,unit,output_path,hdr,ext1
 
-fxbwritm,unit,['Star','Thar','Wavelength'],z0,z1,lamz
+fxbwritm,unit,['Star','Thar','WavelenStar','WavelenLab'],z0,z1,lamz,lamt
 fxbfinish,unit
 
 ; make a tarfile for archiving

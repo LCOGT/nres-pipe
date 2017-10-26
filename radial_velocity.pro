@@ -28,6 +28,7 @@ targra=[rvindat.targstrucs[0].ra,rvindat.targstrucs[1].ra]
 targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec]
 obsmjd=sxpar(dathdr,'MJD-OBS')
 baryshifts=rvindat.baryshifts        ;  r = z-1 elements for fibers 0,2
+rrts=rvindat.zerorrt      ; ZERO net (baryc + intrinsic) redshift
 
 ; if(keyword_set(nostar)) then goto,skipall
 
@@ -38,6 +39,13 @@ nextend=nblock-(nx mod nblock)   ; need to extend nx by this to be exact
                                  ; multiple of nblock
 nxe=nx+ nextend                  ; length of extended-in-x arrays
 nord=specdat.nord
+mlambot=min(matchlam_c)
+mlamtop=max(matchlam_c)
+mlamran=mlamtop-mlambot
+; set range of allowed wavelengths for block fits
+tharmatchmin=mlambot+0.05*mlamran
+tharmatchmax=mlamtop-0.05*mlamran
+
 if(strupcase(strtrim(site,2)) eq 'SQA') then mgbord=mgbordsedge $
           else mgbord=mgbordnres
 redshifts=dblarr(5,nord)     ; parameterized redshift fits to cross-corr
@@ -75,13 +83,14 @@ if(nfib eq 3) then begin
 endif
 
 ; make output arrays to be written to csv file
-rcco=dblarr(2)
-widcco=fltarr(2)
-ampcco=fltarr(2)
-bjdo=dblarr(2)
-rroa=dblarr(2)
-rrom=dblarr(2)
-rroe=dblarr(2)
+rcco=dblarr(2)    ; cross-correl redshift, no barycorr or zero intrinsic v
+rvvo=fltarr(2)    ; same as rcco, but in km/s units
+widcco=fltarr(2)  ; cross-correl fwhm (km/s)
+ampcco=fltarr(2)  ; cross-correl height (max possible = 1)
+bjdo=dblarr(2)    ; exposure center barycen date
+rroa=dblarr(2)    ; avg blockfit redshift
+rrom=dblarr(2)    ; median blockfit redshift
+rroe=dblarr(2)    ; formal error in rroa
 
 ; make output arrays for RV results
 rro=dblarr(2,nord,nblock)  ; redshift vs fiber, order, block
@@ -93,14 +102,14 @@ ebbo=dblarr(2,nord,nblock) ; formal uncertainty in bbo
 pldpo=dblarr(2,nord,nblock)  ; photon-limited doppler precision (km/s)
     
 ; make output arrays for cross-correlation results
-ccmo=fltarr(2,801)
-delvo=fltarr(2,801)
-rvvo=fltarr(2)
+ccmo=fltarr(2,801)  ; cross-correl fn, vs velocity shift
+delvo=fltarr(2,801) ; indep var for ccmo, spans +/- 400 km/s
+rvvo=fltarr(2)      ; same as rcco, but in km/s units
 
 ; make rvred output structure, in case keyword nostar is set
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
 centtimes=expmred.expfwt
 bjdtdb_c=expmred.expfwt              ; ***temporary hack***
 
@@ -134,11 +143,6 @@ for i=0,1 do begin
     for j=0,nord-1 do begin
 
 ; interpolate ZERO spectrum to grid appropriate to obsrvations
-;     slamj=slam(*,j,i)/(1.d0-rcco(i))  ; wavelength grid that puts lab
-;                       ; wavelengths onto observed target wavelengths  
-;     zdatnew(*,j)=interpol(zspec(*,j,i),zlam(*,j,i),slamj,/lsquadratic)
-
-;     zlamj=zlam(*,j,i)/(1.d0+rcc)      ; compensate for redshift estimated
       zlamj=zlam(*,j,i)*(1.d0+rcc)      ; compensate for redshift estimated
                                         ; by mgbcc.
 ;     ZERO data interpolated from its rest frame to moving frame, star image
@@ -162,24 +166,32 @@ for i=0,1 do begin
 
 ; check that dblock, zblock contain data that make sense.  
 ; If not, bail on this block
+; numbers relating to spectrum intensities
         dbmean=mean(dblock)
         dbstdv=stddev(dblock)
         quartile,dblock,dbmed,q,dq
         zbmean=mean(zblock)
+; numbers relating to wavelenfths.  do not bother with blocks that fall
+; outside the range of wavelengths for which there are matched ThAr lines.
+        blammin=min(lamblock)
+        blammax=max(lamblock)
 ; these tests give bogus answers for BLAZ data.
-        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0.) then begin 
+        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0. or $
+        blammin le tharmatchmin or blammax ge tharmatchmax) then begin 
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
-;         if(j eq 34) then stop
+;         if(j eq 38) then stop
           goto,bail
         endif
+
 ; fit redshift and continuum normalization.
+        if(j eq 38) then stop
         blockfit,lamblock,zblock,dblock,blockparms
-;       if(j eq 34 and (k eq 8 or k eq 9)) then stop
       
 ; end blocks loop
       bail:
-      rro(i,j,k)=blockparms.rr/(1.d0+baryshifts(i))  ; correct for baryshift
+      rro(i,j,k)=blockparms.rr/(1.d0+baryshifts(i)-rrts(i))  ; correct 
+                                 ; for baryshift, zbaryshift, zero rv
       aao(i,j,k)=blockparms.aa
       bbo(i,j,k)=blockparms.bb
       erro(i,j,k)=sqrt(blockparms.cov(0,0))
@@ -255,7 +267,7 @@ endfor
 
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
