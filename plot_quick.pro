@@ -181,7 +181,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   plotname=plotdir+'PLOT'+datestrd+fibstr+'.ps'
   !p.font=0
   psll,name=plotname,ys=20.
-  device,set_font='Courier'
+  device,set_font='Helvetica'
 
 ; 1st page plot
   !p.multi=[0,1,2]
@@ -218,7 +218,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   xran=[-400.,400.]
   yran=[-0.4,1.0]
   xbot=50.
-  ybot=0.8+0.05*findgen(3)
+  ybot=0.75+0.05*findgen(4)
   
   plot,x1,plt1,tit=titls(0),xtit=xtits(1),ytit=ytits(1),/xsty,/ysty,$
     xran=xran,yran=yran,charsiz=cs2,/nodata
@@ -226,9 +226,12 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   oplot,[0.,0.],[yran],color=blue
   oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+  xyouts,xbot,ybot(1),'CCshft = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+  xyouts,xbot,ybot(2),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=cs1
+  rvvcorr=rvvo(ip2)+baryshifts(ip2)
+  xyouts,xbot,ybot(3),'RV = '+string(rvvcorr,format='(f8.3)')+' km/s',$
      charsiz=cs1
 
 ; do the 2nd correlation plot
@@ -238,9 +241,12 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   oplot,[0.,0.],yran,color=blue
   oplot,[rvvo(ip2),rvvo(ip2)],yran,color=green
   xyouts,xbot,ybot(0),'Peak = '+string(ampcco(ip2),format='(f5.3)'),charsiz=cs1
-  xyouts,xbot,ybot(1),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+  xyouts,xbot,ybot(1),'CCshft = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
-  xyouts,xbot,ybot(2),'RV = '+string(rvvo(ip2),format='(f8.3)')+' km/s',$
+  xyouts,xbot,ybot(2),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
+     charsiz=cs1
+  rvvcorr=rvvo(ip2)+baryshifts(ip2)
+  xyouts,xbot,ybot(3),'RV = '+string(rvvcorr,format='(f8.3)')+' km/s',$
      charsiz=cs1
 
 ; get sizes of plot vectors

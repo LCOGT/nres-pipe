@@ -63,6 +63,7 @@ flag2=intarr(nfile)
 for i=0,nfile-1 do begin
   s=where(fnames eq files(i),ns)
   if(ns ne 1) then begin
+    stop
     print,'input DOUBLE file not found in standards.csv  ',files(i)
     print,'avg_doub2trip FAIL'
     goto,fini

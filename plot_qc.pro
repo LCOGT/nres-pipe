@@ -138,7 +138,7 @@ for i=0,nplot-1 do begin
 
 ; plot things vs order number
   ordindx=findgen(nord)
-  xtit='Order Index'
+  xtit='red <--  Order Index  -->blue'
   ytit0='Summed Inten (kADU)'
   ytit1='Curvature FWHM (pix)'
   ytit2='Profile dY (pix)'
@@ -181,13 +181,15 @@ for i=0,nplot-1 do begin
     xtit=xtit,ytit=ytit,tit=tit,charsiz=cs1,thick=2
   xyouts,390,-0.015,'nMatch='+strtrim(string(nmatch_c,format='(i4)'),2)
 
-  xtit='Block Index'
+  xtit='red<--                                     '+$
+       'Block Index    |R<------>B|'+$
+       '                              -->blue'
   ytit='Redshift (km/s)'
   xran=[-1,specdat.nblock*nord]
   plotdat=c*reform(rvred.rro(ifib,*,*))
   sg=where(plotdat ne 0.,nsg)
   yrmin=ptile(plotdat(sg),10) > (-5.)
-  yrmax=ptile(plotdat(sg),90) < 5.    ; biggest poss plot range is [-2,2] km/s
+  yrmax=ptile(plotdat(sg),90) < 5.    ; biggest poss plot range is [-5,5] km/s
   yran=[yrmin,yrmax]
   indx=findgen(specdat.nblock*nord)
   if(nsg gt 0) then begin

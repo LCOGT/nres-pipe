@@ -39,6 +39,13 @@ nextend=nblock-(nx mod nblock)   ; need to extend nx by this to be exact
                                  ; multiple of nblock
 nxe=nx+ nextend                  ; length of extended-in-x arrays
 nord=specdat.nord
+mlambot=min(matchlam_c)
+mlamtop=max(matchlam_c)
+mlamran=mlamtop-mlambot
+; set range of allowed wavelengths for block fits
+tharmatchmin=mlambot+0.05*mlamran
+tharmatchmax=mlamtop-0.05*mlamran
+
 if(strupcase(strtrim(site,2)) eq 'SQA') then mgbord=mgbordsedge $
           else mgbord=mgbordnres
 redshifts=dblarr(5,nord)     ; parameterized redshift fits to cross-corr
@@ -102,7 +109,7 @@ rvvo=fltarr(2)      ; same as rcco, but in km/s units
 ; make rvred output structure, in case keyword nostar is set
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
 centtimes=expmred.expfwt
 bjdtdb_c=expmred.expfwt              ; ***temporary hack***
 
@@ -159,20 +166,27 @@ for i=0,1 do begin
 
 ; check that dblock, zblock contain data that make sense.  
 ; If not, bail on this block
+; numbers relating to spectrum intensities
         dbmean=mean(dblock)
         dbstdv=stddev(dblock)
         quartile,dblock,dbmed,q,dq
         zbmean=mean(zblock)
+; numbers relating to wavelenfths.  do not bother with blocks that fall
+; outside the range of wavelengths for which there are matched ThAr lines.
+        blammin=min(lamblock)
+        blammax=max(lamblock)
 ; these tests give bogus answers for BLAZ data.
-        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0.) then begin 
+        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0. or $
+        blammin le tharmatchmin or blammax ge tharmatchmax) then begin 
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
-;         if(j eq 34) then stop
+;         if(j eq 38) then stop
           goto,bail
         endif
+
 ; fit redshift and continuum normalization.
+        if(j eq 38) then stop
         blockfit,lamblock,zblock,dblock,blockparms
-;       if(j eq 34 and (k eq 8 or k eq 9)) then stop
       
 ; end blocks loop
       bail:
@@ -253,7 +267,7 @@ endfor
 
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.

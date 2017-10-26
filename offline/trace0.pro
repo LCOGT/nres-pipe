@@ -95,8 +95,6 @@ for i=0,nord-1 do begin
   endfor
 endfor
 
-stop
-
 ; do 2nd-order (quadratic) Legendre polynomial fits to order positions
 xp=2.*(xx-nx/2.)/nx        ; x coords transformed to [-1,1]
 funs=fltarr(nw-1,3)
