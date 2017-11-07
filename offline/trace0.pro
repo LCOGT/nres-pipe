@@ -157,9 +157,22 @@ if(nfib eq 3) then begin
   endelse
 endif
 
+; RJS note 20171106: the tracprof array is actually the *concatenation* of two
+; different things that happen to have similar indexing properties. The two things:
+; * center-of-order Y-coordinates (aka, trace). This lives in tracprof[0, 0:3, 0:67, 0:npoly].
+; * brightness profile across the order. This lives in tracprof[1:, 0:3, 0:67, 0:cowid].
+;
+; Naming makes a little more sense with this knowledge. tracprof = trace + profile. 
+; 
+; The profile width is set by optics and measured in pixels. The number of trace
+; coefficients required depends on order shape. In general, these wouldn't be the
+; same. HOWEVER, in order to allow trace+profile concatenation, they must be made
+; the same. Below, 'nc' is set to be the larger of these two quantities when the
+; 4-dimensional array is created so that both trace and profile have sufficient space.
+
 ; make the combined trace + profile array
 npoly=3          ; by definition for trace0
-nc=cowid > npoly
+nc=cowid > npoly ; nc = max(cowid, npoly), ensures space and allows concatenation
 nblock=specdat.nblock
 tracprof=fltarr(nc,specdat.nord,nfib,nblock+1)
 tracprof(0:2,*,*,0)=trace0
