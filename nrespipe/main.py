@@ -5,12 +5,11 @@ from kombu import Exchange, Connection, Queue
 
 from nrespipe import settings
 from nrespipe.listener import NRESListener
-from nrespipe.utils import wait_for_task_rabbitmq, funpack
+from nrespipe.utils import wait_for_task_rabbitmq
 from nrespipe import tasks
 import celery.bin.worker
 import celery.bin.beat
 import argparse
-
 
 logger = logging.getLogger('nrespipe')
 logger.propagate = False
