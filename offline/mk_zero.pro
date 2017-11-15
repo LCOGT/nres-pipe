@@ -208,14 +208,7 @@ rrt=rrv*(rrtarg+1.d0)-1.d0                      ; net correction - unity
 ; convert wavelength scale to the nominal source rest frame.
 lamz=lamz*(1.d0+rrt(0))
 
-stop
-
 ; write out the output file
-dumm=fltarr(2)
-;mkhdr,hdr,dumm
-;mkhdr,hdr                                ; no data segment
-;fxhmake,hdr,dumm,/extend                 ; dummy primary data segment
-;fxhmake,hdr,/extend                      ; no primary data segment
 fits_read,nresrooti+flist[-1], data, hdr
 sxaddpar,hdr,'NAXIS', 0
 sxdelpar,hdr,'NAXIS1'
