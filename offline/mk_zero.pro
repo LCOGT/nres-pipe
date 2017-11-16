@@ -296,7 +296,7 @@ z0=reform(zout(*,*,0))
 z1=reform(zout(*,*,1))
 fxbaddcol,jn1,hdr,z0,'Star','ZERO Star Inten'
 fxbaddcol,jn2,hdr,z1,'ThAr','ZERO ThAr Inten'
-fxbaddcol,jn3,hdr,lamz,'Wavelength','Wavelength (nm)'
+fxbaddcol,jn3,hdr,lamz,'WavelenStar','Wavelength (nm)'
 fxbaddcol,jn4,hdr,lamt,'WavelenLab','Lab Wavelength (nm)'
 fxbcreate,unit,output_path,hdr,ext1
 
