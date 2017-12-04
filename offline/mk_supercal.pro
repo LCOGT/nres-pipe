@@ -65,7 +65,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
     objectt=strcompress(strupcase(object),/remove_all)
     sg=where((sites eq sitet) and (cameras eq camerat) $
       and (jdates ge jdran(0)) and (jdates le jdran(1)) and (types eq 'BLAZE'),nsg)
-    if(nsg ge 3) then begin    ; this is test for rules compliance for ZERO
+    if(nsg ge 2) then begin    ; this is test for rules compliance for ZERO
       files=fnames(sg)
       objectlist = []
       foreach file, files do begin
@@ -80,7 +80,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
         objectlist = [objectlist, object]
       endforeach
       files = files[where(objectlist eq objectt, nsg)]
-      if n_elements(files) lt 3 then begin
+      if n_elements(files) lt 2 then begin
         print,'Not enough files with matching objects found to make ZERO file'
         goto,fini
       endif
