@@ -1,4 +1,4 @@
-pro apply_flat2,flat
+pro apply_flat2,flat,ierr
 ; This routine fits the extracted spectrum with the current flatfield
 ; order by order, and subtracts a suitably scaled version of the flat
 ; from the data, provided that the fiber concerned is not of type 'thar'.
@@ -18,11 +18,21 @@ pro apply_flat2,flat
 flcutoff=0.1     ; set output to zero for pixels where value of flat is
                  ; plausibly smaller than this.
 ptcut=0         ; percentile to use to make blazspec
+ierr=0
 
 nx=specdat.nx
 nord=specdat.nord
 objs=get_words(objects,delim='&')
 objs=strtrim(strupcase(objs),2)
+
+; test for dimensions of flat
+sz=size(flat)
+if(sz(1) ne nx or sz(2) ne nord or sz(3) ne nfib) then begin
+  logo_nres2,'apply_flat2','CRITICAL',{'error':'flat_dims','nx':sz(1),'nord':sz(2),$
+      'nfib':sz(3)}
+  ierr=1
+  goto,fini
+endif
 
 ; make output arrays
 corspec=fltarr(nx,nord,mfib)
@@ -123,5 +133,7 @@ for i=0,mfib-1 do begin
     endif
   endelse
 endfor
+
+fini:
 
 end
