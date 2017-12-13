@@ -116,7 +116,7 @@ we have fewer observations at S/N~50.
 
 The pipeline combines the observed spectra to make a radial velocity standard. Internally, these files are called ZERO files.
 Each site has its own targets.csv file which is used to track physical information about a star (effective temperature, surface
-gravity, etc.). The targets.csv file is maintined in the Github repository. Any changes to this file should be deployed in the
+gravity, etc.). The targets.csv file is maintained in the Github repository. Any changes to this file should be deployed in the
 "reduced" directories for each of the sites.
 These currently have to be build by hand. The procedure to do so is below::
 
