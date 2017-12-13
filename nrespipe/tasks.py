@@ -16,7 +16,8 @@ import pkg_resources
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
-from nrespipe.utils import coordinate_variance, warp_coordinates, square_offset
+from nrespipe.utils import  warp_coordinates, square_offset
+from nrespipe.traces import get_pixel_scale_ratio
 from nrespipe import settings
 import numpy as np
 
@@ -204,6 +205,9 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
     # Using the catalog from the config directory that was used to derive the original by hand trace file
     reference_catalog_filename = pkg_resources.resource_filename(__name__, "data/trace_reference.cat")
     reference_catalog = ascii.read(reference_catalog_filename, format='fast_basic')
+
+    # Calculate the scale between the two images and hope the distortion is small
+    scale = get_pixel_scale_ratio(sources, reference_catalog)
 
     # Warp the coordinates using a polynomial to figure out what the shifts are
     polynomial_order = 3

@@ -1,22 +1,20 @@
-import hashlib
-import os
-import time
 import datetime
+import hashlib
+import logging
+import os
+import sep
+import shutil
+import time
+from glob import glob
 
+import numpy as np
 import requests
 from astropy.io import fits
 from astropy.table import Table
+from kombu import Connection, Exchange
 
 from nrespipe import dbs
 from nrespipe import settings
-import logging
-
-from kombu import Connection, Exchange
-import shutil
-from glob import glob
-import numpy as np
-import sep
-
 
 logger = logging.getLogger('nrespipe')
 
@@ -386,38 +384,11 @@ def square_offset(x1, y1, x2, y2):
     return offsets.min(axis=0)
 
 
-def overlay_traces(trace_file, fibers, output_region_filename, pixel_sampling=20):
-    # TODO: Good metrics could be total flux in extraction region for the flat after subtracting the bias.
-    # TODO: Average S/N per x-pixel (summing over the profile doing an optimal extraction)
+def offset(source, catalog):
+    return np.sqrt((source['x'] - catalog['x']) ** 2.0 + (source['y'] - catalog['y']) ** 2.0)
 
-    # read in the trace file
-    trace = fits.open(trace_file)
-
-    n_polynomial_coefficients = int(trace[0].header['NPOLY'])
-
-    # Choose pixel spacing of 20 for now
-    x = np.arange(0, int(trace[0].header['NX']), pixel_sampling)
-
-    # Apparently the Lengendre polynomials need to be evaluated -1 to 1
-    normalized_x = (0.5 + x) / int(trace[0].header['NX']) - 0.5
-    normalized_x *= 2.0
-
-    # Make ds9 region file with the traces
-    # Don't forget the ds9 is one indexed for pixel positions
-    ds9_lines = ""
-    for fiber in fibers:
-        for order in range(int(trace[0].header['NORD'])):
-            coefficients = trace[0].data[0, fiber, order, :n_polynomial_coefficients]
-            polynomial = np.polynomial.legendre.Legendre(coefficients)
-            trace_center_positions = polynomial(normalized_x)
-            # Make ds9 lines between each pair of points
-            for i in range(1, len(x)):
-                ds9_lines += 'line({x1} {y1} {x2} {y2})\n'.format(x1=x[i - 1] + 1, y1=trace_center_positions[i - 1] + 1,
-                                                                  x2=x[i], y2=trace_center_positions[i] + 1)
-
-    with open(output_region_filename, 'w') as output_region_file:
-        output_region_file.write(ds9_lines)
-
+def choose_k(n, k):
+    return np.math.factorial(n) / np.math.factorial(k) / np.math.factorial(n - k)
 
 
 
