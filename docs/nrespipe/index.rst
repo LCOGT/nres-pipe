@@ -108,6 +108,21 @@ Procedure to Start Reduction for a New Site
 
 Making New Radial Velocity Standards (ZERO Files)
 =================================================
+To calculate a radial velocity, the pipeline cross correlates the observed spectrum with template spectra. Currently,
+these template spectra are built from previously observed stars with a previously measured radial velocity, effective
+temperature and surface gravity. We may move to synthetic stellar models eventually, but currently we used observed spectra.
+Ideally, we would want 5 high signal-to-noise (S/N ~ 200) that are taken consecutively on a single telescope. More often
+we have fewer observations at S/N~50.
+
+The pipeline combines the observed spectra to make a radial velocity standard. Internally, these files are called ZERO files.
+Each site has its own targets.csv file which is used to track physical information about a star (effective temperature, surface
+gravity, etc.). The targets.csv file is maintined in the Github repository. Any changes to this file should be deployed in the
+"reduced" directories for each of the sites.
+These currently have to be build by hand. The procedure to do so is below::
+
+1. Add the target information to the targets.csv file. Typically this is done in the code repository on Github and then
+is deployed to individual sites.
+
 
 Considerations for Reprocessing Data
 ====================================
