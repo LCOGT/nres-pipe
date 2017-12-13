@@ -5,13 +5,13 @@
 #
 # Rob Siverd
 # Created:       2015-02-05
-# Last modified: 2017-02-21
+# Last modified: 2017-06-27
 #--------------------------------------------------------------------------
 #**************************************************************************
 #--------------------------------------------------------------------------
 
 ## Current version:
-__version__ = "1.0.6"
+__version__ = "1.1.3"
 
 ## Modules:
 import getopt
@@ -370,10 +370,29 @@ add_divider(hdr_keys)
 try:
     camid = hdr_keys.get('INSTRUME')
 except:
-    camid = 'flxx'
+    camid = 'UNKNOWN'
 
 ## Note day-obs:
 dayobs = int(hdr_keys['origname'].split('-')[2])
+
+## Abort in case of non-Sinistro camera:
+if not camid.startswith('fl'):
+    sys.stderr.write("Unsupported camera ID: %s\n" % camid)
+    sys.exit(1)
+
+##--------------------------------------------------------------------------##
+## Check for new-style Sinistro data format:
+if all_vals.size == 0:
+    hdu_list = pf.open(data_file)
+    quads = [(x.data, x.header) for x in hdu_list[1:] if x.is_image]
+    hdu_list.close()
+
+    if len(quads) != 4:
+        sys.stderr.write("Unrecognized file format ... \n")
+        sys.stderr.write("len(quads): %d\n" % len(quads))
+        sys.exit(1)
+
+    all_vals = np.array([x[0] for x in quads])
 
 ##--------------------------------------------------------------------------##
 ## By default, no trimming within quadrants:
@@ -389,7 +408,8 @@ if all_vals.shape == (4, 2054, 2096):
     bot_yrange = slice(None, -6)
     #top_yrange = slice(5, None)
     top_yrange = slice(None, -5)
-    col_spec = (0, 30)
+    #col_spec = (0, 30)
+    col_spec = (18, 30)
 
 ### Identify old libccd images (missing row):
 #if all_vals.shape == (4, 2048, 2080):
@@ -425,7 +445,7 @@ if (nquads == 4) and (ncols == 2080) and (nrows >= 2049):
 
 ##--------------------------------------------------------------------------##
 ## Subtract quadrant-specific overscan:
-q1, q2, q3, q4 = all_vals
+q1, q2, q3, q4 = all_vals.copy()
 qlist = [q1, q2, q3, q4]
 for i in range(len(qlist)):
     qlist[i] = sub_oscan(qlist[i], i+1, col_spec, hdr_keys)
@@ -459,6 +479,30 @@ ctc3 = np.array([0.00100, 0.00100, 0.00000, 0.00100])
 ctc4 = np.array([0.00100, 0.00100, 0.00100, 0.00000])
 if camid == 'fl08':
     clist = [ctc1, ctc2, ctc3, ctc4]
+
+## fl17 cross-talk coefficients:
+ctc1 = np.array([0.00000, 0.00100, 0.00100, 0.00100])
+ctc2 = np.array([0.00100, 0.00000, 0.00100, 0.00100])
+ctc3 = np.array([0.00075, 0.00130, 0.00000, 0.00075])
+ctc4 = np.array([0.00137, 0.00087, 0.00100, 0.00000])
+if camid == 'fl17':
+    clist = [ctc1, ctc2, ctc3, ctc4]
+
+## fl13 cross-talk coefficients:
+ctc1 = np.array([0.00000, 0.00100, 0.00000, 0.00000])
+ctc2 = np.array([0.00087, 0.00000, 0.00100, 0.00100])
+ctc3 = np.array([0.00090, 0.00155, 0.00000, 0.00100])
+ctc4 = np.array([0.00150, 0.00100, 0.00100, 0.00000])
+if camid == 'fl13':
+    clist = [ctc1, ctc2, ctc3, ctc4]
+
+### fl13 cross-talk coefficients:
+#ctc1 = np.array([0.00000, 0.00000, 0.00000, 0.00000])
+#ctc2 = np.array([0.00000, 0.00000, 0.00000, 0.00000])
+#ctc3 = np.array([0.00090, 0.00150, 0.00000, 0.00000])
+#ctc4 = np.array([0.00150, 0.00100, 0.00000, 0.00000])
+#if camid == 'fl13':
+#    clist = [ctc1, ctc2, ctc3, ctc4]
 
 ##--------------------------------------------------------------------------##
 ## fl09 cross-talk coefficients (OLD):
@@ -605,6 +649,24 @@ if debug == False:
 ######################################################################
 # CHANGELOG (nres-labstitch.py):
 #---------------------------------------------------------------------
+#
+#  2017-06-27:
+#     -- Increased __version__ to 1.1.3.
+#     -- Added explicit copy() when splitting all_vals into qlist.
+#     -- Added decent crosstalk coefficients for fl13.
+#
+#  2017-06-26:
+#     -- Increased __version__ to 1.1.2.
+#     -- Added decent crosstalk coefficients for fl17.
+#
+#  2017-05-28:
+#     -- Increased __version__ to 1.1.1.
+#     -- Fixed missing prescan in col_spec for pysinistro 4-amp images.
+#
+#  2017-03-22:
+#     -- Increased __version__ to 1.1.0.
+#     -- Now support loading of quadrants from separate HDUs.
+#     -- camid now defaults to UNKNOWN if INSTRUME keyword is not present.
 #
 #  2017-02-21:
 #     -- Increased __version__ to 1.0.6.

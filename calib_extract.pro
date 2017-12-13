@@ -144,7 +144,8 @@ if(keyword_set(flatk)) then begin
   rmsspec=echdat.specrms
   logo_nres2,rutname,'INFO','flatk set, so no flat applied'
 endif else begin
-  apply_flat2,flat
+  apply_flat2,flat,ierr
+  if(ierr ne 0) then goto,fini
   logo_nres2,rutname,'INFO','flatk=0, so apply_flat2 run'
 endelse 
   
