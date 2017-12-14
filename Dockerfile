@@ -55,7 +55,7 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
 RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
         && rm -rf ~/.cache/pip
 
-RUN conda install -y sep scipy -c openastronomy \
+RUN conda install -y sep scipy sphinx -c openastronomy  \
         && conda clean -y --all
 
 # Switch to wget?
