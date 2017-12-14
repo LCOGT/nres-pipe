@@ -122,6 +122,10 @@ These currently have to be build by hand. The procedure to do so is below::
 
 1. Add the target information to the targets.csv file. Typically this is done in the code repository on Github and then
 is deployed to individual sites.
+The rows have the following format:
+Name,RA(deg),Dec(deg),Vmag,Bmag,gmag,rmag,imag,Jmag,Kmag,ProperMotionRA,ProperMotionDE,Parallax,RV,Teff,Logg,ZERO
+ZERO is currently always set to "NULL". Missing magnitudes should be set to -99.9. Proper motions are in mas/yr. Parallax is
+in mas. RV is in km/s.
 
 
 Considerations for Reprocessing Data
