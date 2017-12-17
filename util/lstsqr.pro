@@ -1,4 +1,4 @@
-function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov
+function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss
 ; This routine does a weighted linear least-squares fit of the nfun functions
 ; contained in array funs to the data in array dat.  The weights are given
 ; in array wt.  Fit coefficients are returned.  If arguments outp and type
@@ -13,6 +13,11 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov
 ; where sigma is the uncertainty of each data point, then cov is the square
 ; of the covariance matrix of the coefficients.
 ; The technique used is to construct and solve the normal equations.
+; By default the equations are solved by LU decomposition.  But since the
+; LUDCMP routine fails with a STOP if it finds a singular matrix, if there
+; one requires the routine run to completion always, then set keyword
+; /gauss.  This will use a gaussian elimination routine that returns with
+; all output = 0 and ierr=1 if a singularity is found.
 ; Note that this technique will give garbage for ill-conditioned systems.
 
 ; get dimensions of things, make extended arrays for generating normal eqn
@@ -50,9 +55,15 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov
 ; print,'cov='
 ; print,cov
 
-; solve equations by lu decomposition
-  ludcmp,a,index,d
-  lubksb,a,index,rhs
+; solve equations by gauss elim or lu decomposition, depending on /gauss keyword 
+  ierr=0
+  if(keyword_set(gauss)) then begin
+    gaus_elim3,a,rhs,vv,ierr
+    if(ierr eq 0) then rhs=vv else rhs=fltarr(nfun)
+  endif else begin
+    ludcmp,a,index,d
+    lubksb,a,index,rhs
+  endelse
 
 ; Make fit function, rms
   outpt=reform(rhs,1,nfun)
