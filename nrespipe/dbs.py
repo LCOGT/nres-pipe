@@ -5,9 +5,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import pool
 from sqlalchemy.sql.expression import true
 
-import os
-from nrespipe import utils
-
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
