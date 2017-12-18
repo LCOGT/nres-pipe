@@ -24,11 +24,11 @@ angle=fltarr(nfiles)
 flux=fltarr(nfiles)
 
 ; read dark array
-dark=float(readfits(dark,dhdr))
+dark=float(readfits(dark,dhdr),/silent)
 
 ; do the work
 for i=0,nfiles-1 do begin
-  dd=readfits(files(i),hdr)
+  dd=readfits(files(i),hdr,/silent)
   angle(i)=sxpar(hdr,'NDANGLE')
   dif=float(dd)-dark
   flux(i)=total(dif(500:3500,200:1000))

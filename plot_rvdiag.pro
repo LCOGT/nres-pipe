@@ -121,7 +121,7 @@ tv,bbb(*,*,1),6*(nblock+1),0
 tv,bbb(*,*,2),12*(nblock+1),0
 xyouts,20,6*nord+5,'1st        Mid        End',charsiz=1.4,/dev
 
-stop
+;stop
 
 read,ss
 

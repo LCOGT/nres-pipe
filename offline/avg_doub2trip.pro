@@ -32,12 +32,13 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 @nres_comm
 @thar_comm
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
-
+jdc=systime(/julian)
+tarlist=[]
 ; constants
 nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 reddir=nresrooti+'reduced/'
-radian=180.d0/!pi
+radian=180.d0/!pi 
 
 ; read flist if necessary, or copy to array 'files'
 if(keyword_set(array)) then begin
@@ -85,7 +86,7 @@ endfor
 
 ; read first input file, move useful data from header into nres_comm
 pathname=reddir+s0name
-dd=readfits(pathname,dblehdr0)
+dd=readfits(pathname,dblehdr0,/silent)
 mjdd=sxpar(dblehdr0,'MJD-OBS')
 
 ; use site name to find nfib value for these data from spectrographs.csv
@@ -188,17 +189,31 @@ lambda3ofx,xx,mm_c,fibno,specstruc,lamav,y0m,air=0
 ; different fibers
 
 ; make data date, output filename
-;jdc=systime(/julian)      ; file creation time, for sorting similar calib files
-;mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
+jdc=systime(/julian)      ; file creation time, for sorting similar calib files
+mjdc=jdc-2400000.5d0      ; mjdc for mjd_current
 datereald=date_conv(jdd+.0001,'R')
-datestrd=string(daterealc,format='(f13.5)')
+datestrd=string(datereald,format='(f13.5)')
 datestrd=strlowcase(site)+datestrd
 fout='TRIP'+datestrd+'.fits'
 filout=tripdir+fout
 branch='trip/'
 
+combined_filenames = []
+for i=0,nfile-1 do begin
+  fits_read,reddir+files[i],data, this_header
+  combined_filenames = [combined_filenames, get_output_name(this_header)]
+endfor
+
 ; make output header = 1st input header with mods, write out the data
-mkhdr,hdrout,lamav
+fits_read,reddir+files[-1],data, hdrout
+update_data_size_in_header, hdrout, lamav
+sxaddpar,hdrout,'OBSTYPE', 'ARC'
+set_output_calibration_name, hdrout, 'arc'
+sxaddpar,hdrout, 'L1PUBDAT', sxpar(hdrout,'DATE-OBS')
+sxaddpar,hdrout,'RLEVEL', 91
+
+save_combined_images_in_header, hdrout, combined_filenames
+
 sxaddpar,hdrout,'MJD',mjdd+.0001
 sxaddpar,hdrout,'NFRAVGD',nfile
 for i=0,nfilinp-1 do begin
@@ -258,6 +273,10 @@ for i=0,1 do begin
 endfor
 
 writefits,filout,lamav,hdrout
+
+; put the output file into a tarfile for archiving
+fpack_stacked_calibration,filout, sxpar(hdrout, 'OUTNAME')
+
 print,'TRIPLE file written to ',filout
 
 ; write line into standards.csv
@@ -268,7 +287,9 @@ case opt of
   3: flg='0030'
   4: flg='0030'
 endcase
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jdc,flg
+
+
+stds_addline,'TRIPLE',branch+fout,2,site,camera,sxpar(hdrout,'MJD-OBS') + 0.001d + 2400000.5d,flg
 
 ; write out log information.
 print,'*** avg_doub2trip ***'

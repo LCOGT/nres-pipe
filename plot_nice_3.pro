@@ -8,8 +8,8 @@ nresroot=getenv('NRESROOT')
 nresrooti=nresroot+strtrim(getenv('NRESINST'),2)
 dname=nresrooti+'reduced/spec/SPEC2016280.88409.fits'
 lname=nresrooti+'reduced/thar/THAR2016280.88409.fits'
-dd=readfits(dname,hdrd)
-lam=readfits(lname,hdrl)
+dd=readfits(dname,hdrd,/silent)
+lam=readfits(lname,hdrl,/silent)
 
 xr=[[392,395],[482,489],[857,871]]
 xtit='Vacuum Wavelength (nm)'

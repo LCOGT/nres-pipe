@@ -102,7 +102,7 @@ dat=dat-backg
 s=where(~finite(dat),ns)
 if(ns gt 0) then begin
   print,'Non-finite results in backsub.  Fatal error.'
-  stop
+  ;stop
 endif
 
 end

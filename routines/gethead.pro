@@ -11,7 +11,7 @@ nn=0
 val=strtrim(strlowcase(value),2)
 if(nf gt 0) then begin
   for i=0,nf-1 do begin
-    dd=readfits(u(i),hdr)
+    dd=readfits(u(i),hdr,/silent)
     v=sxpar(hdr,keyword)
     print,v
     if(strtrim(strlowcase(v),2) eq val) then begin

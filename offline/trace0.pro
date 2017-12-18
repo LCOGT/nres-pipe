@@ -157,9 +157,22 @@ if(nfib eq 3) then begin
   endelse
 endif
 
+; RJS note 20171106: the tracprof array is actually the *concatenation* of two
+; different things that happen to have similar indexing properties. The two things:
+; * center-of-order Y-coordinates (aka, trace). This lives in tracprof[0, 0:3, 0:67, 0:npoly].
+; * brightness profile across the order. This lives in tracprof[1:, 0:3, 0:67, 0:cowid].
+;
+; Naming makes a little more sense with this knowledge. tracprof = trace + profile. 
+; 
+; The profile width is set by optics and measured in pixels. The number of trace
+; coefficients required depends on order shape. In general, these wouldn't be the
+; same. HOWEVER, in order to allow trace+profile concatenation, they must be made
+; the same. Below, 'nc' is set to be the larger of these two quantities when the
+; 4-dimensional array is created so that both trace and profile have sufficient space.
+
 ; make the combined trace + profile array
 npoly=3          ; by definition for trace0
-nc=cowid > npoly
+nc=cowid > npoly ; nc = max(cowid, npoly), ensures space and allows concatenation
 nblock=specdat.nblock
 tracprof=fltarr(nc,specdat.nord,nfib,nblock+1)
 tracprof(0:2,*,*,0)=trace0
@@ -171,7 +184,7 @@ mjd=jd-2400000.5d0
 daterealc=date_conv(jd,'R')
 datestrc=string(daterealc,format='(f13.5)')
 strput,datestrc,'00',0
-fout='trace/TRAC'+datestrc+'.fits'
+fout='trace/TRAC'+strtrim(sitec,2)+datestrc+'.fits'
 filout=nresrooti+'reduced/'+fout
 
 mkhdr,hdr,tracprof
@@ -189,8 +202,29 @@ sxaddpar,hdr,'FILE_IN',strtrim(filin,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
 sxaddpar,hdr,'SITEID',sitec
 sxaddpar,hdr,'INSTRUME',camerac
+; strip off the / from the nresinstance 
+this_nres = strmid(strtrim(instance,2), 0, strlen(strtrim(instance,2)) - 1)
+sxaddpar,hdr,'TELESCOP', this_nres
+sxaddpar,hdr,'TELID', 'igla'
+sxaddpar,hdr,'PROPID', 'calibrate'
+sxaddpar,hdr,'BLKUID', '000000000'
+sxaddpar,hdr,'OBSTYPE', 'TRACE'
+; Calculate the standard date format for the output filename
+CALDAT, jd, month, day, year, hour, minute, second
+today = strtrim(year,2)+ strtrim(string(month, format='(I02)'),2) + strtrim(string(day, format='(I02)'),2)
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
+now =  strtrim(string(year,format='(I04)'),2)+'-'+strtrim(string(month,format='(I02)'),2)+'-'+strtrim(string(day,format='(I02)'), 2) + 'T'+strtrim(string(hour,format='(I02)'),2) + ':' + strtrim(string(minute,format='(I02)'),2)+':'+strtrim(string(second, format='(F06.3)'), 2)
+sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'DAY-OBS', today
+sxaddpar,hdr,'L1PUBDAT', now
+sxaddpar,hdr,'RLEVEL', 91
+
+
 writefits,filout,tracprof,hdr
 
 stds_addline,'TRACE',fout,1,site,camera,jd,'0000'
+
+; put the output file into a tarfile for archiving
+fpack_stacked_calibration,filout, sxpar(hdr, 'OUTNAME')
 
 end

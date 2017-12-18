@@ -27,6 +27,6 @@ rat=resid/stdv
 
 svdc,rat,w,u,v
 
-stop
+;stop
 
 end

@@ -18,7 +18,7 @@ extrdir='reduced/extr/'
 blazdir='reduced/blaz/'
 
 ; read the SPEC file, store what is immediately useful
-corspec=readfits(specname,thdr)
+corspec=readfits(specname,thdr,/silent)
 nblock=sxpar(thdr,'NBLOCK')
 nx=sxspar(thdr,'NX')
 nord=sxpar(thdr,'NORD')
@@ -47,11 +47,11 @@ extrpath=nresrooti+extrdir+'EXTR'+datestrd+'.fits'
 blazpath=nresrooti+blazdir+'BLAZ'+datestrd+'.fits'
 
 ; read the BLAZ and EXTR files, and save their contents
-blazspec=readfits('blazpath',blazhdr)
-extrspec=readfits('extrpath',extrhdr)
+blazspec=readfits('blazpath',blazhdr,/silent)
+extrspec=readfits('extrpath',extrhdr,/silent)
 
 ; read the THAR file
-lam=readfits(tharpath,tharhdr)
+lam=readfits(tharpath,tharhdr,/silent)
 
 
 

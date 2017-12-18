@@ -160,6 +160,7 @@ if(~keyword_set(flatk)) then begin
   long1=tel1dat.longitude
   ht1=tel1dat.height
   obj1=tel1dat.object
+
   lat2=tel2dat.latitude
   long2=tel2dat.longitude
   ht2=tel2dat.height
@@ -168,12 +169,21 @@ if(~keyword_set(flatk)) then begin
 ; latitude=sxpar(dathdr,'LATITUDE')
 ; longitud=sxpar(dathdr,'LONGITUD')
 ; height=sxpar(dathdr,'HEIGHT')
-  mkhdr,hdr,corspec
+;  mkhdr,hdr,corspec
+
+  hdr = copy_header(dathdr)
+  update_data_size_in_header, hdr, corspec
+  sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
+  sxaddpar, hdr, 'L1IDDARK', get_output_name(darkhdr) , 'ID of bias frame used'
   sxaddpar,hdr,'MJD',mjdc,'Creation date'
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
-  sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
-  sxaddpar,hdr,'FLATFILE',flatfile,'extracted flat filename'
+  sxaddpar,hdr,'ORIGNAME', strip_fits_extension(filname), 'Orignal raw filename'
+  sxaddpar,hdr,'RLEVEL', 91, 'Reduction level'
+  sxaddpar,hdr,'L1PUBDAT', get_public_release_date(hdr), '[UTC] Date the frame becomes public'
+  if not keyword_set(flatk) then begin
+      sxaddpar,hdr,'L1IDFLAT', get_output_name(flathdr), 'ID of flat frame used'
+  endif
   sxaddpar,hdr,'SITEID',site 
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
@@ -243,7 +253,7 @@ if(~keyword_set(flatk)) then begin
 
   writefits,specout,corspec,hdr
   logo_nres2,rutname,'INFO','WRITE '+specout
-
+  tarlist=[tarlist,specout]
 ; write extr = raw spectrum with low-signal ends trimmed
   if(not keyword_set(dble)) then begin
     writefits,extrout,extrspec,hdr        ; same hdr as specout
@@ -264,6 +274,16 @@ if(~keyword_set(flatk)) then begin
     endfor
     writefits,blazout,blazspec,hdrb
     logo_nres2,rutname,'INFO','WRITE '+blazout
+    objects=sxpar(hdrb,'OBJECTS')
+    words=get_words(objects,nwd,delim='&')
+    words=strtrim(strupcase(words),2)
+    if(nwd eq 3) then begin
+      if(words(0) eq 'NONE' and words(1) eq 'THAR' and words(2) ne 'NONE') then $
+        flag='0020'
+      if(words(0) ne 'NONE' and words(1) eq 'THAR' and words(2) eq 'NONE') then $
+        flag='0010'
+    endif
+    stds_addline,'BLAZE',blazdir+blazo,1,strtrim(site,2),strtrim(camera,2),jdd,flag
     tarlist=[tarlist,blazout]
   endif
 endif

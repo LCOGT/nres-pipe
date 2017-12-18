@@ -117,7 +117,7 @@ for i=0,nline-1 do begin
   endif
 endfor
   
-stop
+;stop
 
 ; print some diagnostics
 print,'Center lambda = ',lam(1024,11)*10.

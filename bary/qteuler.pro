@@ -116,7 +116,7 @@ pro qteuler_extract, ax, i, ei, angi, $
   ei = [0D, 0D, 0D]
 
   if execute('ei = e'+ax(i)+' & angi = ang'+strtrim(i,2)) NE 1 then begin
-      stop
+      ;stop
       errmsg = 'Invalid axis specification'
       return
   endif

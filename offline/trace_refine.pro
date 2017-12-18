@@ -32,6 +32,12 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely,eflat=eflat
 ; This shift is independent of x, order number, and fiber.
 
 @nres_comm
+nresroot=getenv('NRESROOT')
+nres_instance=getenv('NRESINST')
+nresrooti=nresroot+strtrim(nres_instance,2)
+
+jdc=systime(/julian)
+mjdc=jdc-2400000.5d0
 
 itermax=10
 sig0=10.                ; guess at read noise in e- per pixel.
@@ -39,7 +45,7 @@ minamp=20.              ; min allowed amplitude of block-avgd cross-disp prof
 efthrsh=0.05            ; min eflat value for which shift weights are > 0. 
 
 ; how many images are input?
-ninfil=n_params()-1
+if keyword_set(flatin2) then ninfil = 2 else ninfil = 1
 
 ; set up needed directories, constants in common
 verbose=1                         ; 0=print nothing; 1=dataflow tracking
@@ -58,7 +64,7 @@ filin0=tracein
 
 ; read the input trace file, unpack it, stick needed stuff into common
 tracefil=nresrooti+tracedir+tracein
-tracea=readfits(tracefil,tracehdr)
+tracea=readfits(tracefil,tracehdr,/silent)
 nx=sxpar(tracehdr,'NX')
 ; set nx for size of arrays with overscan trimmed off
 if(nx eq 2080L) then nx=2048
@@ -109,7 +115,7 @@ endelse
 
 ; read the input image file(s) main data segment
 imagein1=getenv('NRESRAWDAT')+flatin1
-dat1=readfits(imagein1,hdr1)
+dat1=readfits(imagein1,hdr1,/silent)
 
 ; trim data array if necessary
 sz=size(dat1)
@@ -158,7 +164,7 @@ if(medboxsz eq 0) then medboxsz=23
 ; if there are 2 input files, read and process the 2nd one
 if(ninfil eq 2) then begin
   imagein2=getenv('NRESRAWDAT')+flatin2
-  dat2=readfits(imagein2,hdr2)
+  dat2=readfits(imagein2,hdr2,/silent)
 
 ; trim dat2 if necessary
   sz=size(dat2)
@@ -432,14 +438,14 @@ tracprof(0:cowid-1,*,*,1:*)=prof1
 ; write out the new trace array
 jdc=systime(/julian)      ; file creation time, for sorting similar trace files
 mjdc=jdc-2400000.5d0
-datereald=date_conv(jdd,'R')
+datereald=date_conv(jdc,'R')
 datestrd=string(datereald,format='(f13.5)')
 strput,datestrd,'00',0
 datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
 fout='TRAC'+datestrd+'.fits'
 filout=nresrooti+tracedir+fout
 
-mkhdr,hdr,tracprof
+hdr = copy_header(tracehdr)
 sxaddpar,hdr,'NX',nx
 sxaddpar,hdr,'NFIB',nfib
 sxaddpar,hdr,'NPOLY',nleg
@@ -447,7 +453,6 @@ sxaddpar,hdr,'NORD',nord
 sxaddpar,hdr,'FIB0',fib0
 sxaddpar,hdr,'FIB1',fib1
 sxaddpar,hdr,'ORDWIDTH',ord_wid
-sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'MJDC',mjdc,'Creation date'
 sxaddpar,hdr,'FILE_IN',strtrim(flatin1,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
@@ -455,7 +460,19 @@ sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'COWID',cowid
 sxaddpar,hdr,'NBLOCK',nblock
+; Calculate the standard date format for the output filename
+CALDAT, jdc, month, day, year, hour, minute, second
+today = sxpar(hdr1, 'DAY-OBS')
+this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
+sxaddpar,hdr, 'OUTNAME', 'trace_'+strtrim(strlowcase(site),2)+'_'+this_nres +'_'+strtrim(strlowcase(camera),2)+'_' +today
+now =  strtrim(string(year,format='(I04)'),2)+'-'+strtrim(string(month,format='(I02)'),2)+'-'+strtrim(string(day,format='(I02)'), 2) + 'T'+strtrim(string(hour,format='(I02)'),2) + ':' + strtrim(string(minute,format='(I02)'),2)+':'+strtrim(string(second, format='(F09.6)'), 2)
+sxaddpar,hdr,'DATE-OBS', sxpar(hdr1, 'DATE-OBS')
+sxaddpar,hdr,'L1PUBDAT', now
+sxaddpar,hdr,'RLEVEL', 91
+
+
 writefits,filout,tracprof,hdr
+fpack_stacked_calibration,filout, sxpar(hdr, 'OUTNAME')
 
 flags='0010'
 if(nfib eq 2) then flags='0020'

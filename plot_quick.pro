@@ -185,7 +185,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
 
 ; 1st page plot
   !p.multi=[0,1,2]
-  loadct,coltab
+  loadct,coltab,/silent
   minx=min(lam0)
   maxx=max(lam0)
   ny=n_elements(plt0)

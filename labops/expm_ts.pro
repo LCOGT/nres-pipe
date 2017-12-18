@@ -33,7 +33,7 @@ close,iun
 free_lun,iun
 
 ; read the first file, get size
-dd=readfits(names(0),hdr)
+dd=readfits(names(0),hdr,/silent)
 sz=size(dd)
 nx=sz(1)
 ny=sz(2)
@@ -41,7 +41,7 @@ ny=sz(2)
 date=strarr(nt)
 dat=fltarr(nx,ny,nt)
 for i=0,nt-1 do begin
-  dat(*,*,i)=float(readfits(names(i),hdr))
+  dat(*,*,i)=float(readfits(names(i),hdr,/silent))
   date(i)=sxpar(hdr,'DATE-OBS')
 endfor
 
@@ -73,7 +73,7 @@ free_lun,iun
 
 ; get the dark file, presumed to be a simple fits file
 dark=root+strtrim(dark,2)
-ddark=readfits(dark,hdr)       ; should really be a bias and a dark.
+ddark=readfits(dark,hdr,/silent)       ; should really be a bias and a dark.
                                ; for now, assume it is really a bias.
 ; make array of differences, data - dark
 ddarkb=rebin(ddark,nx,ny,nt)

@@ -242,7 +242,8 @@ sgcoefs=coefs_all
 
 ; write the wavelength file to thardir as a FITS file
 ; make the header and fill it out
-mkhdr,hdr,lam_all
+hdr = copy_header(dathdr)
+update_data_size_in_header, hdr, lam_all
 fxhmake,hdr,lam_all,/extend
 fxaddpar,hdr,'MJD',mjdc,'Creation date'
 fxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
@@ -250,7 +251,7 @@ fxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
 fxaddpar,hdr,'ORIGNAME',filname,'1st filename'
 fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera
-fxaddpar,hdr,'OBSTYPE','THAR' 
+fxaddpar,hdr,'OBSTYPE','WAVE' 
 fxaddpar,hdr,'EXPTIME',exptime
 
 tharo='THAR'+datestrd+'.fits' 

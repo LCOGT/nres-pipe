@@ -109,7 +109,7 @@ nord=sz(2)
 if(nx ne nx_c or nord ne nord_c) then begin
   logo_nres2,rutname,'ERROR','detector sizes config vs data do not match.'
   ierr_c=1
-  stop
+  ;stop
   goto,fini
 endif
 

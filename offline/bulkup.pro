@@ -7,7 +7,7 @@ pro bulkup,filin,objects
 
 ; open the input FITS file, read the main data segment and header
 filename=strtrim(filin,2)
-dat=readfits(filename,dathdr)
+dat=readfits(filename,dathdr,/silent)
 type=strtrim(sxpar(dathdr,'OBSTYPE'),2) 
     
 ; if array is 4095 x 4072, replicate in x and y to make 4096 x 4096
