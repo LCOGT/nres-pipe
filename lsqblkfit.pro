@@ -16,6 +16,7 @@ function lsqblkfit,lamblock,zblock,dblock,wts,cov
 c=2.99792458d5               ; speed of light, km/s
 delmin=3.d-10                ; 10 cm/s
 itermax=10                   ; max allowed number of iterations
+rutname='lsqblkfit'
 
 aa0=double(total(dblock*wts)/total(zblock*wts))     ; first guess at aa
 bb0=0.d0                                    ; first guess at bb
@@ -37,7 +38,8 @@ for i=0,itermax-1 do begin
   funs(*,0)=zbt
   funs(*,1)=zbt*xx
   funs(*,2)=dzdx
-  cc=lstsqr(resid,funs,wts,3,rms,chisq,outp,1,cov)
+  cc=lstsqr(resid,funs,wts,3,rms,chisq,outp,1,cov,ierr,/gauss)
+  if(ierr ne 0) then logo_nres2,rutname,'WARNING','singular matrix found in lsqblkfit'
 
 ; modify model parameters
   aa0=aa0+cc(0)

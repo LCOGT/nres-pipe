@@ -58,6 +58,7 @@ endelse
 ; run lsqblkfit
 ;vals=mpfit('rv_mpfit',p0,parinfo=parinfo,covar=cov,/quiet)
 vals=lsqblkfit(lamblock,zblock,dblock,wts,cov)
+; use gaus_elim3,a,b,x,ierr,eps=eps
 
 ; compute pldp
 dlamdx=(max(lamblock)-min(lamblock))/(npt-1)

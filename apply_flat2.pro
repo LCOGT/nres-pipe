@@ -28,7 +28,8 @@ objs=strtrim(strupcase(objs),2)
 ; test for dimensions of flat
 sz=size(flat)
 if(sz(1) ne nx or sz(2) ne nord or sz(3) ne nfib) then begin
-  logo_nres2,'apply_flat2','CRITICAL',{error:'flat_dims', nx:sz(1), nord:sz(2),nfib:sz(3)}
+  logo_nres2,'apply_flat2','CRITICAL',{error:'flat_dims',nx:sz(1),nord:sz(2),$
+      nfib:sz(3)}
   ierr=1
   goto,fini
 endif

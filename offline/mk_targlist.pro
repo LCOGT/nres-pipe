@@ -4,6 +4,7 @@ pro mk_targlist,filin,filout
 ; If a name match is found, then a line of target data is written to the
 ; output file filout, in the correct format for inclusion in the targets.csv
 ; file.
+; Blank lines and lines with 1st character = '#' are ignored.
 
 ; open input, output files
 openr,iun,filin,/get_lun
@@ -14,6 +15,7 @@ ss=''
 while(not eof(iun)) do begin
   readf,iun,ss
   targname=strtrim(ss,2)
+  if(targname eq '' or strmid(targname,0,1) eq '#') then goto, skip
   querysimbad2,targname,ra,dec,id,found=found,vmag=vmag,jmag=jmag,kmag=kmag,$
     parallax=parallax,bmag=bmag,rv=rv,pm=pm,imag=imag,sptype=sptype
 
@@ -52,6 +54,7 @@ while(not eof(iun)) do begin
 
   printf,iuno,strout
   endif
+  skip:
 endwhile
 
 close,iun
