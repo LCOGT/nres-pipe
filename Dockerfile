@@ -2,7 +2,7 @@ FROM docker.lcogt.net/miniconda3:4.3.21
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
-RUN yum -y install epel-release \
+RUN yum -y install epel-release mariadb-devel \
         && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
@@ -52,7 +52,10 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     NRESROOT="/nres/" \
     ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary"
 
-RUN pip install lcogt-logging && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
+RUN yum -y install gcc \
+        && yum -y clean all
+
+RUN pip install lcogt-logging mysqlclient && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
         && rm -rf ~/.cache/pip
 
 RUN conda install -y sep scipy sphinx -c openastronomy  \
