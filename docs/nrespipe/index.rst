@@ -106,6 +106,29 @@ Trace Files
 Procedure to Start Reduction for a New Site
 ===========================================
 
+1. Login as the "archive" user (again please use caution as mistyped commands can very significant consequences).
+2. cd to the nres?? instance directory, e.g. /archive/engineering/cpt/nres03
+3. Make a new directory called "reduced"
+4. cd into the newly created reduced directory.
+5. Make the following directories::
+
+bias blaz ccor class config csv dark dble diag expm extr flat plot rv spec tar temp thar trace trip zero
+
+6. Copy the contents of the config directory in the Github repository into the newly created config directory.
+7. Copy the csv files from the csv directory in the Github repository. You do not need to copy the code out of this directory.
+Only the .csv files. I recommend not copying the files from another site. This will have all of the master calibrations, etc.
+from this other site and will at least slow down performance. Copying csv files from other sites may have also have other
+unknown side effects.
+8. Add a new line to ccds.csv for the corresponding camera. This can typically be done by copying a previous row and
+changing the camera name, (e.g. "fl17").
+9. Add a new line to the spectrographs.csv file for the new site. This is also done by copying a previous line from another
+site and changing the site code (e.g. "CPT"). This only serves as a first guess for the code, but should be roughly accurate.
+It may be useful to update these coefficients automatically after getting a successful trace and wavelength solution, but
+the infrastructure to do so does not exist yet.
+10. Make a starting trace file.
+
+
+
 Making New Radial Velocity Standards (ZERO Files)
 =================================================
 To calculate a radial velocity, the pipeline cross correlates the observed spectrum with template spectra. Currently,
