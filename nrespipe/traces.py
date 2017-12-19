@@ -1,6 +1,8 @@
 import numpy as np
 from astropy.io import fits
 from nrespipe import utils
+from nrespipe.utils import warp_coordinates, square_offset, n_poly_coefficients
+from scipy import optimize
 
 
 def overlay_traces(trace_file, fibers, output_region_filename, pixel_sampling=20):
@@ -45,7 +47,8 @@ def get_pixel_scale_ratio(sources, reference_catalog):
 
     Notes
     -----
-    This roughly follows what scamp does which follows Kaiser+ 1999 https://arxiv.org/abs/astro-ph/9907229
+    This roughly follows what scamp does which follows Kaiser+ 1999 https://arxiv.org/abs/astro-ph/9907229.
+    This calculates the scale to convert the reference to input.
     """
     # Calculate the log distance between every pair of sources
     input_log_distances = get_log_distances(sources)
@@ -57,24 +60,65 @@ def get_pixel_scale_ratio(sources, reference_catalog):
     bins = np.arange(0.0, np.log(np.sqrt(2.0) * 4096) + 0.0002, 0.0002)
     # Make a histogram of the values
 
-    input_histogram = np.histogram(input_log_distances, bins)
-    reference_histogram = np.histogram(reference_log_distances, bins)
+    input_histogram = np.histogram(input_log_distances, bins)[0]
+    reference_histogram = np.histogram(reference_log_distances, bins)[0]
 
     # Cross correlate the two histograms
     correlation = np.correlate(input_histogram, reference_histogram, mode='full')
 
-    bin_centers = np.arange(bins[0] + 0.0001, max(bins), 0.0002)
-    return np.exp(bin_centers[np.argmax(correlation)])
+    scale_offsets = np.arange(-max(bins) + 0.0002, max(bins) , 0.0002)
+    return np.exp(scale_offsets[np.argmax(correlation)])
 
 
 def get_log_distances(sources):
     n_sources =len(sources)
-    log_distances = np.zeros(utils.choose_k(n_sources, 2))
+    log_distances = np.zeros(utils.choose_2(n_sources))
     # Go through every pair of sources, not double counting
     start_index = 0
-    stop_index = n_sources
-    for i, source in sources[:-1]:
+    stop_index = n_sources - 1
+    for i, source in enumerate(sources[:-1]):
         log_distances[start_index:stop_index] = np.log(utils.offset(source, sources[i+1:]))
         start_index = stop_index
-        stop_index += n_sources - i - 1
+        stop_index += n_sources - i - 2
     return log_distances
+
+
+def fit_warping_polynomial(input_sources, reference_sources, scale_guess, polynomial_order=3, matching_threshold=5):
+    # Warp the coordinates using a polynomial to figure out what the shifts are
+
+    def model_function(params):
+        model_x, model_y = warp_coordinates(reference_sources['x'], reference_sources['y'], params, polynomial_order)
+        square_distances = square_offset(input_sources['x'], input_sources['y'], model_x, model_y, [0,1])
+        matches = square_distances[0] ** 0.5 <= matching_threshold
+        if matches.sum() == 0:
+            metric = 1e10
+        else:
+           # Take the ratio of sum of squared distances between the best and second best match
+           metric = square_distances[0].sum() / square_distances[1].sum()
+        return metric
+
+    # Run a grid of -25 to 25 pixels and find the best initial guess
+    X, Y = np.meshgrid(np.arange(-25, 26), np.arange(-25, 26))
+    X = X.ravel()
+    Y = Y.ravel()
+    fit_metrics = np.zeros(51 * 51)
+    n_coefficients = n_poly_coefficients(polynomial_order)
+    for i, (x, y) in enumerate(zip(X, Y)):
+        # Start with just the linear component
+        params = np.zeros(2 * n_coefficients)
+        params[0] = x
+        params[n_coefficients] = y
+        params[1] = scale_guess
+        params[n_coefficients + polynomial_order + 1] = scale_guess
+        fit_metrics[i] = model_function(params)
+
+    initial_x, initial_y = X[np.argmin(fit_metrics)], Y[np.argmin(fit_metrics)]
+
+    params = np.zeros(2 * n_poly_coefficients(polynomial_order))
+    params[0] = initial_x
+    params[n_coefficients] = initial_y
+    params[1] = scale_guess
+    params[n_coefficients + polynomial_order + 1] = scale_guess
+
+    # Run Nelder-Mead to find the initial shifts between the input catalog and the new files
+    return optimize.minimize(model_function, params, method='Nelder-Mead')['x']

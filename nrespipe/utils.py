@@ -343,6 +343,11 @@ def measure_sources_from_raw(filename, threshold=50):
         background = sep.Background(data, bw=64, fw=3, fh=3)
 
     sources = sep.extract(data - background, threshold, err=error)
+    sources = Table(sources)
+
+    # Fix floating point overflows in theta
+    sources['theta'][sources['theta'] > (np.pi / 2.0)] -= 1e-6
+    sources['theta'][sources['theta'] < (-np.pi / 2.0)] += 1e-6
 
     # calculate the kron flux of the sources. This roughly corresponds to flux_auto in the normal Source Extractor
     kronrad, krflag = sep.kron_radius(data, sources['x'], sources['y'], sources['a'], sources['b'], sources['theta'], 6.0)
@@ -368,29 +373,37 @@ def warp_coordinates(x, y, params, polynomial_order):
 def evaluate_poly_coords(x, y, coeffs, order):
     warped_x = 0.0
     coeff_index = 0
-    for i in range(order + 1):
-        for j in range(order - i + 1):
+    for j in range(order + 1):
+        for i in range(order - j + 1):
             warped_x += coeffs[coeff_index] * (x ** i) * (y ** j)
             coeff_index += 1
     return warped_x
 
 
-def square_offset(x1, y1, x2, y2):
+def square_offset(x1, y1, x2, y2, ranks=0):
     # Calculate the pairwise distance between all of the points
     xdiff = x1 - np.tile(x2, (len(x1), 1)).T
     ydiff = y1 - np.tile(y2, (len(y1), 1)).T
     offsets = xdiff * xdiff + ydiff * ydiff
+
+    # Offsets now has the distance
+    # offsets[n_star2, n_star1]
+    # Sort by distance
+    offsets.sort(axis=0)
+
     # return the offset of the closest match
-    return offsets.min(axis=0)
+    return offsets[ranks]
 
 
 def offset(source, catalog):
     return np.sqrt((source['x'] - catalog['x']) ** 2.0 + (source['y'] - catalog['y']) ** 2.0)
 
-def choose_k(n, k):
-    return np.math.factorial(n) / np.math.factorial(k) / np.math.factorial(n - k)
+def choose_2(n):
+    # np.math.factorial(n) / np.math.factorial(k) / np.math.factorial(n - k)
+    return n * (n - 1) // 2
 
-
-
-
-
+def n_poly_coefficients(order):
+    # Thank you mathematica. Turns out the number of coefficients for a 2-D polynomial follow:
+    # Sum[Sum[1, {j, 0, n - i}], {i, 0, n}]
+    # Which simplifies to (1/2) (1 + n) (2 + n)
+    return (1 + order) * (2 + order) // 2

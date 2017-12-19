@@ -16,7 +16,7 @@ import pkg_resources
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
-from nrespipe.utils import  warp_coordinates, square_offset
+from nrespipe.utils import  warp_coordinates
 from nrespipe.traces import get_pixel_scale_ratio
 from nrespipe import settings
 import numpy as np
@@ -207,46 +207,9 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
     reference_catalog = ascii.read(reference_catalog_filename, format='fast_basic')
 
     # Calculate the scale between the two images and hope the distortion is small
-    scale = get_pixel_scale_ratio(sources, reference_catalog)
+    scale_guess = get_pixel_scale_ratio(sources, reference_catalog)
 
-    # Warp the coordinates using a polynomial to figure out what the shifts are
-    polynomial_order = 3
-    reference_catalog['x'], reference_catalog['y']
-    match_threshold = 5
-    def model_function(params):
-        model_x, model_y = warp_coordinates(reference_catalog['x'], reference_catalog['y'], params, polynomial_order)
-        square_distances = square_offset(sources['x'], sources['y'], model_x, model_y)
-        matches = square_distances ** 0.5 <= match_threshold
-        if matches.sum() == 0:
-            metric = 1e10
-        else:
-            metric = (square_distances[matches] / matches.sum()).sum()
-        return metric
-
-    # Run a grid of -25 to 25 pixels and find the best initial guess
-    X, Y = np.meshgrid(np.arange(-25, 26), np.arange(-25, 26))
-    X = X.ravel()
-    Y = Y.ravel()
-    fit_metrics = np.zeros(51 * 51)
-    for i, (x, y) in enumerate(zip(X, Y)):
-        # Start with just the linear component
-        params = np.zeros(20)
-        params[0] = x
-        params[10] = y
-        params[4] = 1.0
-        params[11] = 1.0
-        fit_metrics[i] = model_function(params)
-
-
-    initial_x, initial_y = X[np.argmin(fit_metrics)], Y[np.argmin(fit_metrics)]
-
-    params = np.zeros(20)
-    params[0] = initial_x
-    params[10] = initial_y
-    params[4] = 1.0
-    params[11] = 1.0
-    # Run Nelder-Mead to find the initial shifts between the input catalog and the new files
-    best_fit_coeffs = optimize.minimize(model_function, params, method='Nelder-Mead')['x']
+    best_fit_coeffs = fit_warping_polynomial(scale_guess)
 
     # Use the best fit transformation to transform the input positions measured by hand to make a trace0 file for the IDL pipeline
     # Read in the original trace0 text file
