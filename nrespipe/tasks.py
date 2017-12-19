@@ -208,7 +208,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
     # Calculate the scale between the two images and hope the distortion is small
     scale_guess = get_pixel_scale_ratio(sources, reference_catalog)
 
-    best_fit_coeffs = fit_warping_polynomial(scale_guess)
+    best_fit_coeffs = fit_warping_polynomial(sources, reference_catalog, scale_guess)
 
     # Use the best fit transformation to transform the input positions measured by hand to make a trace0 file for the IDL pipeline
     # Read in the original trace0 text file
