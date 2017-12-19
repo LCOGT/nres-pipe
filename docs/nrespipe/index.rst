@@ -125,7 +125,15 @@ changing the camera name, (e.g. "fl17").
 site and changing the site code (e.g. "CPT"). This only serves as a first guess for the code, but should be roughly accurate.
 It may be useful to update these coefficients automatically after getting a successful trace and wavelength solution, but
 the infrastructure to do so does not exist yet.
-10. Make a starting trace file.
+10. Reduce a batch of bias files
+    10a. For each of the individual bias frames, run the pipeline, e.g.::
+
+from glob import glob
+import os
+from nrespipe import utils
+files_to_process = glob('/archive/engineering/cpt/nres03/raw/
+
+12. Make a starting trace file.
 
 
 
