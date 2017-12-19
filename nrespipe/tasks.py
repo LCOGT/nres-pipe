@@ -6,8 +6,7 @@ import datetime
 from celery import Celery
 import os
 from requests.auth import HTTPBasicAuth
-from astropy.io import fits, ascii
-from scipy import optimize
+from astropy.io import fits
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 from astropy.io import ascii
 
@@ -17,7 +16,7 @@ from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
 from nrespipe.utils import  warp_coordinates
-from nrespipe.traces import get_pixel_scale_ratio
+from nrespipe.traces import get_pixel_scale_ratio, fit_warping_polynomial
 from nrespipe import settings
 import numpy as np
 
