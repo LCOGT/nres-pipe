@@ -83,7 +83,7 @@ def get_log_distances(sources):
     return log_distances
 
 
-def fit_warping_polynomial(input_sources, reference_sources, scale_guess, polynomial_order=3, matching_threshold=5):
+def fit_warping_polynomial(input_sources, reference_sources, scale_guess, polynomial_order=3, matching_threshold=25):
     # Warp the coordinates using a polynomial to figure out what the shifts are
 
     def model_function(params):
@@ -94,7 +94,7 @@ def fit_warping_polynomial(input_sources, reference_sources, scale_guess, polyno
             metric = 1e10
         else:
            # Take the ratio of sum of squared distances between the best and second best match
-           metric = square_distances[0].sum() / square_distances[1].sum()
+           metric = square_distances[0][matches].sum() / square_distances[1][matches].sum()
         return metric
 
     # Run a grid of -25 to 25 pixels and find the best initial guess

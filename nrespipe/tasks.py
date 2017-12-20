@@ -199,7 +199,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
         arc_file = arc_files[(len(arc_files) + 1) // 2]
 
     # Run sep on the input raw double frame after subtracting the bias frame
-    sources = measure_sources_from_raw(arc_file, threshold=50)
+    sources = measure_sources_from_raw(arc_file, threshold=10)
 
     # Using the catalog from the config directory that was used to derive the original by hand trace file
     reference_catalog_filename = pkg_resources.resource_filename(__name__, "data/trace_reference.cat")
