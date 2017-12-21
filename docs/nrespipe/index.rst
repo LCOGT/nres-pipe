@@ -107,35 +107,175 @@ Procedure to Start Reduction for a New Site
 ===========================================
 
 1. Login as the "archive" user (again please use caution as mistyped commands can very significant consequences).
+
 2. cd to the nres?? instance directory, e.g. /archive/engineering/cpt/nres03
+
 3. Make a new directory called "reduced"
+
 4. cd into the newly created reduced directory.
+
 5. Make the following directories::
 
-bias blaz ccor class config csv dark dble diag expm extr flat plot rv spec tar temp thar trace trip zero
+    bias blaz ccor class config csv dark dble diag expm extr flat plot rv spec tar temp thar trace trip zero
 
 6. Copy the contents of the config directory in the Github repository into the newly created config directory.
+
 7. Copy the csv files from the csv directory in the Github repository. You do not need to copy the code out of this directory.
 Only the .csv files. I recommend not copying the files from another site. This will have all of the master calibrations, etc.
 from this other site and will at least slow down performance. Copying csv files from other sites may have also have other
 unknown side effects.
+
 8. Add a new line to ccds.csv for the corresponding camera. This can typically be done by copying a previous row and
 changing the camera name, (e.g. "fl17").
+
 9. Add a new line to the spectrographs.csv file for the new site. This is also done by copying a previous line from another
 site and changing the site code (e.g. "CPT"). This only serves as a first guess for the code, but should be roughly accurate.
 It may be useful to update these coefficients automatically after getting a successful trace and wavelength solution, but
 the infrastructure to do so does not exist yet.
-10. Reduce a batch of bias files
-    10a. For each of the individual bias frames, run the pipeline, e.g.::
 
-from glob import glob
-import os
-from nrespipe import utils
-files_to_process = glob('/archive/engineering/cpt/nres03/raw/
+10. Reduce a batch of bias files. For each of the individual bias frames, run the pipeline. Typically it is always easiest to run the pipeline from an
+IPython session through a terminal in Rancher inside the Docker container::
 
-12. Make a starting trace file.
+    from glob import glob
+    import os
+    from nrespipe import utils
+    fs = glob('/archive/engineering/cpt/nres03/201712??/raw/*b00*')
+    for f in fs:
+        utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+11. Stack the bias frames::
+
+    import os
+    import datetime
+    # Choose a start date
+    d0 = datetime.datetime(2017, 12, 3, 8)
+    # Reduce all of the data over 18 days
+    for i in range(18):
+        start_date = d0 + datetime.timedelta(days=i)
+        end_date = start_date + datetime.timedelta(days=1)
+        os.system("nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type BIAS --start {start} --end {end}".format(start=start_date.strftime("%Y-%m-%dT%H:%M:%S"), end=end_date.strftime("%Y-%m-%dT%H:%M:%S")))
+
+12. Reduce a batch of dark frames::
+
+    from glob import glob
+    import os
+    from nrespipe import utils
+    fs = glob('/archive/engineering/cpt/nres03/201712??/raw/*d00*')
+    for f in fs:
+        utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+13. Stack the dark frames::
+
+    import os
+    import datetime
+    # Choose a start date
+    d0 = datetime.datetime(2017, 12, 3, 8)
+    # Reduce all of the data over 18 days
+    for i in range(18):
+        start_date = d0 + datetime.timedelta(days=i)
+        end_date = start_date + datetime.timedelta(days=1)
+        os.system("nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type DARK --start {start} --end {end}".format(start=start_date.strftime("%Y-%m-%dT%H:%M:%S"), end=end_date.strftime("%Y-%m-%dT%H:%M:%S")))
 
 
+14. Make a starting trace file. Right now this requires us to hand trace a file (see config/ref_trace.txt for format).
+There has been development to do this automatically but is not robust yet.
+After you make the hand traced text file run::
+
+    run_nres_trace0 --site cpt --camera fl13 --nres-instrument nres03 --filename /archive/engineering/cpt/nres03/reduced/config/cpt_nres03_trace.2017a.txt
+
+Then refine the trace on two good S/N flat field files, one with fibers 0 and 1 illuminated, the other with fibers 1 and 2
+illuminated::
+
+    run_nres_trace_refine --flat_filename1 /archive/engineering/cpt/nres03/20171215/raw/cptnrs03-fl13-20171215-0007-w00.fits.fz --flat_filename2 /archive/engineering/cpt/nres03/20171215/raw/cptnrs03-fl13-20171215-0003-w00.fits.fz --site cpt --camera fl13 --nres-instrument nres03
+
+15. Reduce a batch of flat frames::
+
+    from glob import glob
+    import os
+    from nrespipe import utils
+    fs = glob('/archive/engineering/cpt/nres03/201712??/raw/*w00*')
+    for f in fs:
+        utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+
+16. Stack the flat frames::
+
+    import os
+    import datetime
+    # Choose a start date
+    d0 = datetime.datetime(2017, 12, 3, 8)
+    # Reduce all of the data over 18 days
+    for i in range(18):
+        start_date = d0 + datetime.timedelta(days=i)
+        end_date = start_date + datetime.timedelta(days=1)
+        os.system("nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type FLAT --start {start} --end {end}".format(start=start_date.strftime("%Y-%m-%dT%H:%M:%S"), end=end_date.strftime("%Y-%m-%dT%H:%M:%S")))
+
+17. Reduce a batch of arc lamp exposures (i.e. DOUBLE frames)::
+
+    from glob import glob
+    import os
+    from nrespipe import utils
+    fs = glob('/archive/engineering/cpt/nres03/201712??/raw/*w00*')
+    for f in fs:
+        utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+18. Stack the arc frames. This will also create a "TRIPLE" file::
+
+    import os
+    import datetime
+    # Choose a start date
+    d0 = datetime.datetime(2017, 12, 3, 8)
+    # Reduce all of the data over 18 days
+    for i in range(18):
+        start_date = d0 + datetime.timedelta(days=i)
+        end_date = start_date + datetime.timedelta(days=1)
+        os.system("nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type ARC --start {start} --end {end}".format(start=start_date.strftime("%Y-%m-%dT%H:%M:%S"), end=end_date.strftime("%Y-%m-%dT%H:%M:%S")))
+
+
+19. Copy a "ZERO" radial velocity template file from another site and add it to zeros.csv. Make sure you set the flags to
+"0100".
+
+20. Then reduce the science spectra from a standard star::
+
+    import os
+    from nrespipe import utils
+    f = '/archive/engineering/cpt/nres03/20171216/cptnrs03-fl13-20171216-0016-e00.fits.fz'
+    utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+    f = '/archive/engineering/cpt/nres03/20171216/cptnrs03-fl13-20171216-0017-e00.fits.fz
+    utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+21. Stack the standard stars. To do this, run the following from the command line::
+
+    nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type TEMPLATE --start 2017-08-31T03:40:00 --end 2017-08-31T05:00:00 --target HD49933_templ
+
+Then update the flags to 0100 again in the zeros.csv.
+
+22. Reduce all of the science frames taken previously::
+
+    from glob import glob
+    import os
+    from nrespipe import utils
+    fs = glob('/archive/engineering/cpt/nres03/201712??/raw/*e00*')
+    for f in fs:
+        utils.post_to_fits_exchange(os.environ['FITS_BROKER'], f)
+
+At this point you should be able to reduce new data as it arrives.
+
+To schedule nightly stacking of calibration files add the following to settings.py::
+
+    'cpt_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
+                                    'schedule': crontab(minute=0, hour=11),
+                                    'kwargs': {'site': 'cpt', 'camera': 'fl13',
+                                               'nres_instrument': 'nres03'},
+                                    'options': {'queue': 'periodic'}
+                                    },
+    'cpt_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                              'schedule': crontab(minute=1, hour=11),
+                              'kwargs': {'site': 'cpt', 'camera': 'fl13',
+                                         'nres_instrument': 'nres03',
+                                         'raw_data_root': '/archive/engineering'},
+                              'options': {'queue': 'periodic'}
+                              }
 
 Making New Radial Velocity Standards (ZERO Files)
 =================================================
