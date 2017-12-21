@@ -55,7 +55,7 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
 RUN yum -y install gcc \
         && yum -y clean all
 
-RUN pip install lcogt-logging mysqlclient && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
+RUN pip install lcogt-logging mysqlclient sphinx-automodapi && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
         && rm -rf ~/.cache/pip
 
 RUN conda install -y sep scipy sphinx -c openastronomy  \
