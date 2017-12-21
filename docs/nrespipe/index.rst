@@ -246,7 +246,7 @@ illuminated::
 
 21. Stack the standard stars. To do this, run the following from the command line::
 
-    nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type TEMPLATE --start 2017-08-31T03:40:00 --end 2017-08-31T05:00:00 --target HD49933_templ
+    nres_stack_calibrations --site cpt --camera fl13 --nres-instrument nres03 --calibration-type TEMPLATE --start 2017-12-16T22:40:00 --end 2017-12-16T23:00:00 --target HD49933_templ
 
 Then update the flags to 0100 again in the zeros.csv.
 
