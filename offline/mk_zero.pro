@@ -174,11 +174,12 @@ targs_rd,names,ras,decs,vmags,bmags,gmags,rmags,imags,jmags,kmags,$
       pmras,pmdecs,plaxs,rvs,teffs,loggs,zeros,targhdr
 names=strupcase(strcompress(names,/remove_all))
 s=where(names eq target,ns)
-if(ns ne 1) then begin
-  print,'In mk_zero, target name ',target,' is not found or not unique.'
+if(ns le 0) then begin
+  print,'In mk_zero, target name ',target,' is not found.'
   stop
   goto,fini
 endif
+if(ns gt 1) then s=s(ns-1)
 targname=names(s)
 ra=ras(s)
 dec=decs(s)
