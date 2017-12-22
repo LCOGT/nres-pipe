@@ -52,12 +52,12 @@ tripdir=nresrooti+'reduced/trip/'
 ; read input files, decide if we have 2 fibers or 3
 fnam01=reddir+strtrim(fil01,2)
 fnam12=reddir+strtrim(fil12,2)
-dd01=readfits(fnam01,hdr01)
-dd12=readfits(fnam12,hdr12)
+dd01=readfits(fnam01,hdr01,/silent)
+dd12=readfits(fnam12,hdr12,/silent)
 site=strtrim(strupcase(sxpar(hdr01,'SITEID')),2)
 camera=strtrim(sxpar(hdr01,'INSTRUME'),2)
 mjdd=sxpar(hdr01,'MJD-OBS')
-jdd=mjd+2400000.5d0
+jdd=mjdd+2400000.5d0
 objects=strupcase(sxpar(hdr01,'OBJECTS'))
 words=get_words(objects,nwords,delim='&')
 nfib=nwords

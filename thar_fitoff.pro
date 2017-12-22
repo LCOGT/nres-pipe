@@ -21,7 +21,7 @@ ierr_c=0                             ; clear errors in common before starting
 rutname='thar_fitoff'
 
 ; read the input file
-corspec=readfits(infile,hdr)
+corspec=readfits(infile,hdr,/silent)
 sz=size(corspec)
 nx_c=sz(1)
 nord_c=sz(2)

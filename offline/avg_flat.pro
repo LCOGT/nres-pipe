@@ -49,7 +49,7 @@ nfile=n_elements(files)
 ; read the data files and their headers
 ; get the first one, check each successive one for size, type, site, camera
 fn=root+files(0)
-dd=float(readfits(fn,hdr0))
+dd=float(readfits(fn,hdr0,/silent))
 nx=sxpar(hdr0,'NAXIS1')
 nord=sxpar(hdr0,'NAXIS2')
 nfib=sxpar(hdr0,'NAXIS3')
@@ -62,6 +62,7 @@ if(~((obty eq 'FLAT') or (obty eq 'LAMPFLAT'))) then begin
 endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
+combined_filenames = [sxpar(hdr0, 'ORIGNAME')]
 
 ; make data array, fill it up
 datin=fltarr(nx,nord,nfib,nfile)
@@ -72,7 +73,7 @@ datin(*,*,*,0)=dd
 fib0a(0)=fib0
 for i=1,nfile-1 do begin
   fn=root+files(i)
-  dd=float(readfits(fn,hdr))
+  dd=float(readfits(fn,hdr,/silent))
   nxt=sxpar(hdr,'NAXIS1')
   nordt=sxpar(hdr,'NAXIS2')
   nfibt=sxpar(hdr,'NAXIS3')
@@ -88,6 +89,7 @@ for i=1,nfile-1 do begin
   end
   datin(*,*,*,i)=dd
   fib0a(i)=fib0t
+  combined_filenames = [combined_filenames, sxpar(hdr, 'ORIGNAME')]
 endfor
 
 ; exclude data for which (navgd ne 1)
@@ -170,15 +172,22 @@ fout='FLAT'+datestrd+'.fits'
 filout=flatdir+fout
 branch='flat/'
 
-; make output header = 1st input header with mods, write out the data
-sxaddpar,hdr0,'MJD-OBS',mjdd
-sxaddpar,hdr0,'NFRAVGD',nfile
-sxaddpar,hdr0,'ORIGNAME',files(0)
+; make output header = Last input header with mods, write out the data
+fits_read,root+files[-1],data, output_header
+mjdd=sxpar(hdr0,'MJD-OBS')
+jdd=mjdd+2400000.5d0
+sxaddpar,output_header,'NFRAVGD',nfile
+sxaddpar,output_header,'L1PUBDAT', sxpar(output_header, 'DATE-OBS')
+sxaddpar,output_header,'RLEVEL', 91
+
+set_output_calibration_name, output_header, 'FLAT'
+
+save_combined_images_in_header, output_header, combined_filenames
 ; ##### make modified 'OBJECTS' keyword to cover all 3 fibers #####
-writefits,filout,datout,hdr0
+writefits,filout,datout,output_header
 
 ; make tar file of output, for archiving
-tarzit,filout
+fpack_stacked_calibration,filout, sxpar(output_header, 'OUTNAME')
 
 ; add line to standards.csv
 if(nfib eq 2) then cflg='0010' else cflg='0030' 

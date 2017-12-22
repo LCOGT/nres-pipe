@@ -21,11 +21,11 @@ pspec=fltarr(4096,3)     ; 3 stars
 lam=dblarr(4096,3)
 for i=0,2 do begin
   namin=spec+'SPEC'+fnames(i)
-  dd=readfits(namin,hdr)
+  dd=readfits(namin,hdr,/silent)
   exptimes(i)=sxpar(hdr,'EXPTIME')
   pspec(*,i)=dd(*,jord,ifib(i))
   lamin=thar+'THAR'+fnames(i)
-  ll=readfits(lamin,hdrl)
+  ll=readfits(lamin,hdrl,/silent)
   lam(*,i)=ll(*,jord,ifib(i))
 
 ; smooth the spectrum

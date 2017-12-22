@@ -72,11 +72,11 @@ lamdif=dblarr(nt,npair)
 
 ; loop over the input files
 for i=0,nt-1 do begin
-  thar=readfits(files(i),hdr)
+  thar=readfits(files(i),hdr,/silent)
   thars=thar(*,*,1)                  ; take only fiber 1 wavelengths
   orig=sxpar(hdr,'ORIGNAME')
   origfile=leaf+strtrim(orig,2)
-  dat=readfits(origfile,hdro)
+  dat=readfits(origfile,hdro,/silent)
   tt(i)=sxpar(hdro,'MJD-OBS')
     
 ; get the data

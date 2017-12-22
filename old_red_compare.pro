@@ -108,6 +108,6 @@ if(nst gt 0) then begin
   free_lun,iun
 endif
   
-stop
+;stop
 
 end

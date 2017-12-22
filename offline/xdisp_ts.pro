@@ -31,7 +31,7 @@ nthar=n_elements(thx)
 ythrsh=15.      ; y-coincidence threshold for order peaks
 
 ; read trace file, extract nominal order positions
-dd=readfits(tracepath,trhdr)
+dd=readfits(tracepath,trhdr,/silent)
 y0=reform(dd(0,*,0,0))             ; fiber1 y-coords at x=2048.
 nord=n_elements(y0)
 iord=lindgen(nord)
@@ -61,7 +61,7 @@ thary=fltarr(nt,nthar)
 ; loop over files
 for i=0,nt-1 do begin
   datin=datpath+fname(i)
-  dat=readfits(datin,hdr)
+  dat=readfits(datin,hdr,/silent)
   mjd(i)=sxpar(hdr,'MJD-OBS')
   exptime(i)=sxpar(hdr,'EXPTIME')
   objects(i)=sxpar(hdr,'OBJECTS')

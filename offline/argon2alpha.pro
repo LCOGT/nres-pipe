@@ -25,7 +25,7 @@ radian=180.d0/!pi
 cosgam=.999
 nsatstd=10.4                 ; desired number of saturated pix per s.
 
-dd=readfits(image,hdr)
+dd=readfits(image,hdr, /silent)
 exptime=sxpar(hdr,'EXPTIME')
 
 print,'Enter 4 line x-coords'

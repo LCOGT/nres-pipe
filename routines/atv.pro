@@ -3338,7 +3338,7 @@ common atv_images
 main_image = 0
 
 if (numext LE 1) then begin
-   main_image = readfits(fitsfile, head)
+   main_image = readfits(fitsfile, head, /silent)
 endif else begin
    numlist = ''
    for i = 1, numext do begin
@@ -3376,7 +3376,7 @@ endif else begin
       state.title_extras = 'Primary Image'
    endelse
    
-   main_image = readfits(fitsfile, head, exten_no = extension)
+   main_image = readfits(fitsfile, head, exten_no = extension, /silent)
 
 endelse
 
@@ -10334,7 +10334,7 @@ if (ptr_valid(state.head_ptr)) then begin
    writefits, filename, spectrum, outheader
 endif else begin
    writefits, filename, spectrum
-   spectrum = readfits(filename, outheader)
+   spectrum = readfits(filename, outheader, /silent)
    sxaddpar, outheader, 'CRVAL1', crval
    sxaddpar, outheader, 'CD1_1', cd
    writefits, filename, spectrum, outheader

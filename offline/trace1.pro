@@ -24,7 +24,7 @@ rawdat=getenv('NRESRAWDAT')
 trace0i=trace0
 rerun:
 trace0in=nresrooti+'reduced/trace/'+trace0i
-tra0=readfits(trace0in,trhdr)
+tra0=readfits(trace0in,trhdr,/silent)
 sz=size(tra0)
 nc=sz(1)            ; number of coeffs (sort of)
 nord=sz(2)          ; number of orders
@@ -34,7 +34,7 @@ trcoefs=reform(tra0(0:4,9,*,0),5,3)  ; leg coeffs of trace order 9, all fibers
 
 ; get image data, extract useful keywords
 imgin=rawdat+image0
-img=readfits(imgin,hdri)
+img=readfits(imgin,hdri,/silent)
 sz=size(img)
 nx=sz(1)
 ny=sz(2)
@@ -55,6 +55,17 @@ sxaddpar,trhdrm,'SITEID',sitei
 sxaddpar,trhdrm,'INSTRUME',camerai
 sxaddpar,trhdrm,'FILE_IN',file_ini
 sxaddpar,trhdrm,'FIB0',fib0
+
+; strip off the / from the nresinstance
+this_nres = strmid(strtrim(getenv('NRESINST'),2), 0, strlen(strtrim(getenv('NRESINST'),2)) - 1)
+jd = systime(/julian)
+; Calculate the standard date format for the output filename
+CALDAT, jd, month, day, year, hour, minute, second
+today = strtrim(year,2)+ strtrim(month,2) + strtrim(day,2)
+sxaddpar,trhdrm, 'OUTNAME', 'trace_'+strtrim(sitec,2)+'_'+this_nres +'_'+camerac+'_' +today
+now =  strtrim(year,2)+'-'strtrim(month,2)+'-'+strtrim(day, 2) + 'T'+strtrim(hour,2) + ':' + strtrim(minute,2)+':'+strtrim(string(second, format='%0.3f'), 2)
+sxaddpar,hdr,'DATE-OBS', now
+sxaddpar,hdr,'L1PUBDAT', now
 
 ; scrunch data array in x, for easier plotting.  Make final x, y coord vectors
 scr=nx/nxc

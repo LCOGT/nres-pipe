@@ -66,6 +66,6 @@ for i=0,nt-1 do begin
   nhitt(i)=nsh
 endfor
 
-stop
+;stop
 
 end

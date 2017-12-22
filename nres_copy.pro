@@ -30,7 +30,7 @@ end
 
 ; copy contents
 cmd='cp '+nresroot+'*.txt '+tdn
-stop
+;stop
 spawn,cmd
 cmd='cp -r '+nresroot+'code/* '+tdn+'/code'
 spawn,cmd

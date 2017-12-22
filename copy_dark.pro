@@ -22,11 +22,15 @@ dark=dark/exptime                     ; normalize to 1s exposure time
 exptime=1.0
 
 ; make the header and fill it out
-mkhdr,hdr,dark
+;mkhdr,hdr,dark
+hdr = copy_header(dathdr)
+update_data_size_in_header, hdr, dark
+sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
+
 sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
-sxaddpar,hdr,'ORIGNAME',filname,'1st filename'
+sxaddpar,hdr,'ORIGNAME',strip_fits_extension(filname),'Original raw filename'
 sxaddpar,hdr,'SITEID',site
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','DARK'

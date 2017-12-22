@@ -185,8 +185,7 @@ for i=0,1 do begin
         endif
 
 ; fit redshift and continuum normalization.
-;       if(j eq 38) then stop
-        blockfit2,lamblock,zblock,dblock,blockparms
+       blockfit2,lamblock,zblock,dblock,blockparms
       
 ; end blocks loop
       bail:
@@ -275,7 +274,11 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
 rvname='RADV'+datestrd+'.fits'
 rvout=nresrooti+rvdir+rvname
 
-fxhmake,hdr,/extend                        ; no primary data segment
+hdr = copy_header(dathdr)
+sxdelpar, hdr, 'NAXIS1'
+sxdelpar, hdr, 'NAXIS2'
+sxaddpar, hdr, 'NAXIS', 0
+
 fxaddpar,hdr,'OBJECTS',targnames(0)+'&'+targnames(1)
 fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera

@@ -1,5 +1,5 @@
-pro muncha,filin,flatk=flatk,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
-  oskip=oskip,nostar=nostar,literal=literal
+pro muncha,filin,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
+  oskip=oskip,nostar=nostar, literal=literal
 ; This is the main routine organizing the processing pipeline for NRES
 ; spectroscopic data.
 ; On input:
@@ -89,7 +89,7 @@ flatdir='reduced/flat/'
 tracedir='reduced/trace/'
 tripdir='reduced/trip/'
 zerodir='reduced/zero/'
-tardir='reduced/tar'
+tardir='reduced/tar/'
 filin0=filin
 
 ; open the input file, read data segments and headers into common
@@ -118,6 +118,9 @@ case 1 of
   calib_extract,flatk=0
   autoguider
   expmeter
+  if not keyword_set(tharlist) then begin
+    tharlist = 'mtchThAr.txt'
+  endif
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
   if(not keyword_set(nostar)) then begin
     radial_velocity,ierr,nostar=nostar
@@ -148,10 +151,8 @@ case 1 of
   (type eq 'FLAT' or type eq 'LAMPFLAT'): begin
   logo_nres2,rutname,'INFO','###FLAT block'
   if(verbose) then print,'###FLAT block'
-  calib_extract,flatk=flatk
-  if(keyword_set(flatk)) then begin
-    mk_flat1         ; makes single flat extracted spec, not an average
-  endif
+  calib_extract,flatk=1
+  mk_flat1         ; makes single flat extracted spec, not an average
   end
 
 ; a DOUBLE image

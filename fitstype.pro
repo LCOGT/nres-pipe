@@ -20,7 +20,7 @@ objs=strarr(nfiles)
 exptime=fltarr(nfiles)
 
 for i=0,nfiles-1 do begin
-  dd=readfits(files(i),hdr)
+  dd=readfits(files(i),hdr,/silent)
   type(i)=strtrim(sxpar(hdr,'OBSTYPE'),2)
   objs(i)=strtrim(sxpar(hdr,'OBJECTS'),2)
   exptime(i)=sxpar(hdr,'EXPTIME')

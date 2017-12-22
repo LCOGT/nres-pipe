@@ -38,7 +38,7 @@ apod=yyx*yyy
 ; make transforms of 1st image subimages
 readf,iun,ss
 fname=strtrim(ss,2)
-dd0=readfits(fname,hdr)
+dd0=readfits(fname,hdr,/silent)
 jd0=long(sxpar(hdr,'MJD-OBS')-0.5)
 zz=make_array(1024,1024,4,4,/complex)
 ; loop over x,y subimages
@@ -57,7 +57,7 @@ for it=0,nt-1 do begin
 ; read image
   readf,iun,ss
   gname=strtrim(ss,2)
-  dd=readfits(gname,ghdr)
+  dd=readfits(gname,ghdr,/silent)
   jd(it)=sxpar(ghdr,'MJD-OBS')-jd0
 
   print,'image = ',gname

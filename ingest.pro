@@ -33,12 +33,16 @@ endif
 ; open the input FITS file, read the main data segment and header
 logo_nres2,rutname,'INFO',' Reading main data segment'
 nresrawdat=getenv('NRESRAWDAT')
+
 if(keyword_set(literal)) then begin
   filename=strtrim(filin,2)
 endif else begin
   filename=nresrawdat+strtrim(filin,2)
 endelse
-dat=readfits(filename,dathdr)
+dat=readfits(filename,dathdr,/silent)
+; Fix the origname in the header just in case
+sxaddpar, dathdr, 'ORIGNAME', file_basename(filename)
+
 type=strupcase(strtrim(sxpar(dathdr,'OBSTYPE'),2))
 extn=sxpar(dathdr,'EXTEND')
 dat0=dat
@@ -118,13 +122,12 @@ if((extn ne 1) or (type eq 'BIAS') or (type eq 'DARK')) then begin
   goto,skipit
 endif
 
+if ((type ne 'BIAS') and (type ne 'DARK')) then begin
 ; read the remaining data segments and their headers
 fxbopen,iun,filename,1,expmhdr        ; exposure meter
 nt_expm=sxpar(expmhdr,'NAXIS2')
-fxbread,iun,jd_expm,'MJD_START'
-; temp hack for data before 10 Aug 2017
-;fxbread,iun,jd_expm,'JD_START'
-;
+
+jd_expm = get_jd_from_bin_header(expmhdr, iun)
 fxbread,iun,exp_time,'EXP_TIME'
 fxbread,iun,fib0c,'FIB0COUNTS'
 fxbread,iun,fib1c,'FIB1COUNTS'
@@ -140,10 +143,8 @@ nt_agu1=sxpar(agu1hdr,'NAXIS2')
 filter_agu1=sxpar(agu1hdr,'FILTER')
 if(nt_agu1 gt 0) then begin
   fxbread,iun,fname_agu1,'FILENAME'
-   fxbread,iun,jd_agu1,'MJD_START'
-; temp hack for data before 10 Aug 2017
-; fxbread,iun,jd_agu1,'JD_UTC'
-;
+  jd_agu1 =get_jd_from_bin_header(agu1hdr, iun)
+
   fxbread,iun,nsrc_agu1,'N_SRCS'
   fxbread,iun,skyv_agu1,'SKYVAL'
   fxbread,iun,crval1_agu1,'CRVAL1'
@@ -176,10 +177,8 @@ nt_agu2=sxpar(agu2hdr,'NAXIS2')
 filter_agu2=sxpar(agu2hdr,'FILTER')
 if(nt_agu2 gt 0) then begin
   fxbread,iun,fname_agu2,'FILENAME'
-  fxbread,iun,jd_agu2,'MJD_START'
-; temp hack for data before 10 Aug 2017
-; fxbread,iun,jd_agu2,'JD_UTC'
-;
+  jd_agu2 = get_jd_from_bin_header(agu2hdr, iun)
+
   fxbread,iun,nsrc_agu2,'N_SRCS'
   fxbread,iun,skyv_agu2,'SKYVAL'
   fxbread,iun,crval1_agu2,'CRVAL1'
@@ -207,40 +206,48 @@ agu2dat={nt_agu:nt_agu2,fname_agu:fname_agu2,jd_agu:jd_agu2,$
       cd2_1_agu:cd2_1_agu2,cd2_2_agu:cd2_2_agu2,filter:filter_agu2}
 
 if(verbose) then print,'reading telescope1'
-tel1arr=readfits(filename,tel1hdr,exten=4)                ; telescope 1
+tel1arr=readfits(filename,tel1hdr,exten=4,/silent)                ; telescope 1
 long1=sxpar(tel1hdr,'LONGITUD')
-lat1=sxpar(tel1hdr,'LATITUDE')
-height1=sxpar(tel1hdr,'HEIGHT')
-ra1s=sxpar(tel1hdr,'RA')             ; string version
-dec1s=sxpar(tel1hdr,'DEC')           ; string version
-rawd=get_words(ra1s,delim=':')
-ra1=15.*ten(float(rawd))             ; decimal degrees
-decwd=get_words(dec1s,delim=':')
-dec1=ten(float(decwd))
-object1=sxpar(tel1hdr,'OBJECT')
-tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
+if (strtrim(long1) ne '') and (strtrim(long1) ne 'N/A') then begin 
+   lat1=sxpar(tel1hdr,'LATITUDE')
+   height1=sxpar(tel1hdr,'HEIGHT')
+   ra1s=sxpar(tel1hdr,'RA')             ; string version
+   dec1s=sxpar(tel1hdr,'DEC')           ; string version
+   rawd=get_words(ra1s,delim=':')
+   ra1=15.*ten(float(rawd))             ; decimal degrees
+   decwd=get_words(dec1s,delim=':')
+   dec1=ten(float(decwd))
+   object1=sxpar(tel1hdr,'OBJECT')
+   tel1dat={telarr:tel1arr,longitude:long1,latitude:lat1,height:height1,$
       ra:ra1,dec:dec1,ras:ra1s,decs:dec1s,object:object1}
+endif
+
 
 if(verbose) then print,'reading telescope2'
-tel2arr=readfits(filename,tel2hdr,exten=5)                ; telescope 2
+tel2arr=readfits(filename,tel2hdr,exten=5,/silent)                ; telescope 2
 long2=sxpar(tel2hdr,'LONGITUD')
-lat2=sxpar(tel2hdr,'LATITUDE')
-height2=sxpar(tel2hdr,'HEIGHT')
-ra2s=sxpar(tel2hdr,'RA')             ; string version
-dec2s=sxpar(tel2hdr,'DEC')           ; string version
-rawd=get_words(ra2s,delim=':')
-ra2=15.*ten(float(rawd))             ; decimal degrees
-decwd=get_words(dec2s,delim=':')
-dec2=ten(float(decwd))
-object2=sxpar(tel2hdr,'OBJECT')
-tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
+if (strtrim(long2) ne '') and (strtrim(long2) ne 'N/A') then begin 
+   lat2=sxpar(tel2hdr,'LATITUDE')
+   height2=sxpar(tel2hdr,'HEIGHT')
+   ra2s=sxpar(tel2hdr,'RA')             ; string version
+   dec2s=sxpar(tel2hdr,'DEC')           ; string version
+   rawd=get_words(ra2s,delim=':')
+   ra2=15.*ten(float(rawd))             ; decimal degrees
+   decwd=get_words(dec2s,delim=':')
+   dec2=ten(float(decwd)) 
+   object2=sxpar(tel2hdr,'OBJECT')
+   tel2dat={telarr:tel2arr,longitude:long2,latitude:lat2,height:height2,$
       ra:ra2,dec:dec2,ras:ra2s,decs:dec2s,object:object2}
-
+endif else begin
+  tel2dat = {telarr:tel2arr,longitude:0.0,latitude:0.0,height:0.0,$
+    ra:0.0,dec:0.0,ras:'',decs:'',object:''}
+endelse
 ; stick longitude, latitude, height into dathdr, for later use
 ;sxaddpar,dathdr,'LONGITUD',-70.8046889
 ;sxaddpar,dathdr,'LATITUDE',-30.16772
 ;sxaddpar,dathdr,'HEIGHT',2201.0
 
+endif
 skipit:
 
 ; should put some error trapping in here

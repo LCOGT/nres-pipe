@@ -18,7 +18,7 @@ siteo=strtrim(strlowcase(site))
 ;mjdc=jdc-2450000.5d0
 
 ; read the data
-dd=readfits(trippath,hdr)
+dd=readfits(trippath,hdr,/silent)
 
 ; extract the needed info
 mjdd=sxpar(hdr,'MJD-OBS')

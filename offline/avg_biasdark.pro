@@ -46,8 +46,9 @@ nfile=n_elements(files)
 
 ; read the data files and their headers
 ; get the first one, check each successive one for size, type, site, camera
-fn=root+files(0)
-dd=float(readfits(fn,hdr0))
+fn=root+files[0]
+
+dd=float(readfits(fn,hdr0,/silent))
 nx=sxpar(hdr0,'NAXIS1')
 ny=sxpar(hdr0,'NAXIS2')
 navgd=sxpar(hdr0,'NFRAVGD')
@@ -59,6 +60,8 @@ endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
 mjdd=sxpar(hdr0,'MJD-OBS')
+; Make the list of images that we are combining
+combined_filenames = [sxpar(hdr0, 'ORIGNAME')]
 
 ; make data array, fill it up
 datin=fltarr(nx,ny,nfile)
@@ -66,14 +69,15 @@ datin(*,*,0)=dd
 gooddat=lonarr(nfile)
 if(navgd eq 1) then gooddat(0)=1 else goodat(0)=0
 for i=1,nfile-1 do begin
-  fn=root+files(i)
-  dd=float(readfits(fn,hdr))
+  fn=root+files[i]
+  dd=float(readfits(fn,hdr,/silent))
   nxt=sxpar(hdr,'NAXIS1')
   nyt=sxpar(hdr,'NAXIS2')
   sitet=strtrim(sxpar(hdr,'SITEID'),2)
   camerat=strtrim(sxpar(hdr,'INSTRUME'),2)
   obtyt=strtrim(sxpar(hdr,'OBSTYPE'),2)
   navgd=sxpar(hdr,'NFRAVGD')
+  combined_filenames = [combined_filenames, sxpar(hdr, 'ORIGNAME')]
   if((nxt ne nx) or (nyt ne ny) or (sitet ne site) or (camerat ne camera) $
        or (obtyt ne obty) or (navgd ne 1)) then begin
     print,'Input file '+fn+' does not match 1st input file parameters'
@@ -99,6 +103,11 @@ endelse
 ; median average over the input data arrays
 datout=median(datin,dimension=3)
 
+
+; make output header = 1st input header with mods, write out the data
+fits_read,root+files[-1],data, output_header
+;sxaddpar,hdr0,'MJD',mjd
+mjdd=sxpar(output_header,'MJD-OBS')
 ; make date of 1st input file, output filename
 ;jd=systime(/julian)      ; file creation time, for sorting similar calib files
 ;mjd=jd-2400000.5d0
@@ -111,27 +120,26 @@ case type of
   'BIAS': begin
     filout=biasdir+fout
     branch='bias/'
-    end
+  end
   'DARK': begin
     filout=darkdir+fout
     branch='dark/'
-    end
+  end
 endcase
 
-; make output header = 1st input header with mods, write out the data
-;sxaddpar,hdr0,'MJD',mjd
-sxaddpar,hdr0,'MJD-OBS',mjdd
-sxaddpar,hdr0,'NFRAVGD',nfile
-sxaddpar,hdr0,'ORIGNAME',files(0)
-for i=0,nfile-1 do begin
-  ssi=string(i,format='(i02)')
-  kwd='INPFIL'+ssi
-  sxaddpar,hdr0,kwd,inst+files(i)
-endfor
-writefits,filout,datout,hdr0
+
+sxaddpar,output_header,'NFRAVGD',nfile
+sxaddpar,output_header,'L1PUBDAT', sxpar(output_header, 'DATE-OBS')
+sxaddpar,output_header,'RLEVEL', 91
+
+set_output_calibration_name, output_header, type
+;sxaddpar,hdr0,'ORIGNAME',files(0)
+
+save_combined_images_in_header, output_header, combined_filenames
+writefits,filout,datout,output_header
 
 ; put the output file into a tarfile for archiving
-tarzit,filout
+fpack_stacked_calibration,filout, sxpar(output_header, 'OUTNAME')
 
 ; add line to standards.csv
 cflg='0000'
