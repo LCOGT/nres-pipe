@@ -71,7 +71,6 @@ coefs_c=specdat.coefs
 ncoefs_c=specdat.ncoefs
 fibcoefs_c=specdat.fibcoefs
 
-
 ; make parinfo structure array for use with mpfit
 ; parameters are fixed if corresponding dparameter is set to zero
 pritempl={value:0.d0,fixed:1,parname:'NULL',tied:''}
@@ -183,11 +182,11 @@ if(gsw eq 0) then begin
 ; sg=where((wid_c ge 3.5+xpos_c/4096.) and (wid_c le 4.5+xpos_c/4096.),nsg)
 
 ;  if(nsg le 0) then stop
-;endif else begin
+endif else begin
   sg=where(widg gt 3.5 and widg le 6.0 and widrat ge 0.6 and widrat le 1.4 $
      and lchi2 le 1.8 and lchi2 gt (-2.999) and siga gt thrshamp,nsg)
  ; if(nsg le 0) then stop
-;endelse
+endelse
 iord_c=iord_c(sg)
 xpos_c=xpos_c(sg)
 amp_c=amp_c(sg)
