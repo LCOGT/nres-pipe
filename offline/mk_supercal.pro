@@ -143,7 +143,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
   print,nsg,' files of type ',type,' found in mk_supercal'
 
   openw,iun,flist,/get_lun
-  for i=0,nsg-1 do begin
+  for i=0,n_elements(files)-1 do begin
     printf,iun,files(i)
   endfor
   close,iun
