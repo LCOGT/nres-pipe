@@ -47,7 +47,7 @@ case type of
     end
   else: begin
     print,'illegal glass type'
-    stop
+    ;stop
     end
 endcase
 

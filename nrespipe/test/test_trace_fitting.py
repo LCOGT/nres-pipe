@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-from nrespipe.traces import get_log_distances, get_pixel_scale_ratio, fit_warping_polynomial
+from nrespipe.traces import get_log_distances, get_pixel_scale_ratio, fit_warping_polynomial, find_best_offset
 from nrespipe.utils import warp_coordinates
 from astropy.table import Table
 np.random.seed(1289341)
@@ -89,3 +89,32 @@ def test_warping_polynomial_fitting():
     # The parameters are good to ~10% (or sometimes better) And this is with only 30 sources and
     # and 12 parameters, so hopefully that's ok.
     np.testing.assert_allclose(actual, expected, atol=1e-4, rtol=0.1)
+
+
+def test_find_best_offset():
+    x = np.random.uniform(-100.0, 100.0, size=30)
+    y = np.random.uniform(-100.0, 100.0, size=30)
+    reference_catalog = Table({'x':x, 'y': y})
+
+    scale = 1.05
+    x_shift = 3.3
+    x_xscale = scale
+    x_yscale = 0.05
+    x_crossterm = 2e-4
+    x_y2coeff = 3e-4
+    x_x2coeff = 1e-4
+    y_shift = 4.3
+    y_xscale = 0.03
+    y_yscale = scale
+    y_crossterm = 5e-4
+    y_y2coeff = 5e-5
+    y_x2coeff = 6e-4
+
+    input_params = [x_shift, x_xscale, x_x2coeff, x_yscale, x_crossterm, x_y2coeff,
+                    y_shift, y_xscale, y_x2coeff, y_yscale, y_crossterm, y_y2coeff]
+    shifted_x, shifted_y = warp_coordinates(x, y, input_params, 2)
+
+    expected = [x_shift, y_shift]
+
+    actual = find_best_offset(Table({'x': shifted_x, 'y': shifted_y}), reference_catalog, scale)
+    np.testing.assert_allclose([actual['x'], actual['y']], expected, atol=1e-4, rtol=0.0)

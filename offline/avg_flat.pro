@@ -58,7 +58,7 @@ navgd=sxpar(hdr0,'NFRAVGD')
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
 if(~((obty eq 'FLAT') or (obty eq 'LAMPFLAT'))) then begin
   print,'OBSTYPE of '+files(0)+' is not FLAT in avg_flat'
-  stop
+  ;stop
 endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)
@@ -85,7 +85,7 @@ for i=1,nfile-1 do begin
   if((nxt ne nx) or (nordt ne nord) or (sitet ne site) or (camerat ne camera) $
        or (obtyt ne obty) or (nfibt ne nfib)) then begin
     print,'Input file '+fn+' does not match 1st input file parameters'
-    stop
+    ;stop
   end
   datin(*,*,*,i)=dd
   fib0a(i)=fib0t
@@ -100,7 +100,7 @@ if(ns1 gt 0) then begin
   fib0a=fib0a(s1)
 endif else begin
   print,'No unaveraged input files'
-  stop
+  ;stop
 endelse
 
 ; average the input data arrays

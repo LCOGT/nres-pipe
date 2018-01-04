@@ -229,7 +229,7 @@ dlam2_c=total(matchdif_c^2)/(nmatch_c > 1)
 chi2=total((matchdif_c/matcherr_c)^2)/(nmatch_c > 1)
 
 print,'nmatch_c, dlam = ',nmatch_c,sqrt(dlam2_c),dlam2_c
-if(nmatch_c le 0) then stop
+;if(nmatch_c le 0) then stop
 
 fini:
 if(ierr_c eq 0) then begin

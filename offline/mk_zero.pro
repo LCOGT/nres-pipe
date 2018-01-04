@@ -129,7 +129,7 @@ obj1=strupcase(strtrim(sxpar(hdr,'OBJ1'),2))
 obj2=strupcase(strtrim(sxpar(hdr,'OBJ2'),2))
 if(obj1 ne 'NONE' and obj2 ne 'NONE') then begin
   print,'ERROR:  You may only have 1 non-none OBJECT to make a ZERO file'
-  stop
+  ;stop
 endif
 if(obj1 ne 'NONE') then begin
   lat=sxpar(hdr,'LAT1')           ; latitude, degrees
@@ -178,7 +178,7 @@ names=strupcase(strcompress(names,/remove_all))
 s=where(names eq target,ns)
 if(ns le 0) then begin
   print,'In mk_zero, target name ',target,' is not found.'
-  stop
+  ;stop
   goto,fini
 endif
 if(ns gt 1) then s=s(ns-1)

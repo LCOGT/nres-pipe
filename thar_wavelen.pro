@@ -125,7 +125,7 @@ endfor
     ytit='Fit Err (nm)'
     tit='Fiber '+strtrim(string(fibindx),2)
     plot,matchline_c,dellam,psym=3,tit=tit,xtit=xtit,ytit=ytit,charsiz=1.5
-    stop
+    ;stop
 ;   plot,inmatch(0:niter_c-1),tit='inmatch',xtit='iter',ytit='matches',$
 ;       charsiz=1.5,/ynoz
 ;   stop

@@ -23,7 +23,7 @@ inst=getenv('NRESINST')+'reduced/'
 ; check that type is okay
 if(type ne 'BIAS' and type ne 'DARK') then begin
   print,'Input parameter type must be BIAS or DARK'
-  stop
+  ;stop
 endif
 
 ; check 'array' keyword
@@ -55,7 +55,7 @@ navgd=sxpar(hdr0,'NFRAVGD')
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
 if(obty ne strtrim(type,2)) then begin
   print,'OBSTYPE of '+files(0)+' does not match requested type '+type
-  stop
+  ;stop
 endif
 site=strtrim(sxpar(hdr0,'SITEID'),2)
 camera=strtrim(sxpar(hdr0,'INSTRUME'),2)

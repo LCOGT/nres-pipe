@@ -51,7 +51,7 @@ if(nsg gt 0) then begin
 endif
 
 fini:
-stop
+;stop
 write_csv,temppath,outdat.field1,outdat.field2,outdat.field3,outdat.field4,$
     outdat.field5,outdat.field6,outdat.field7,header=outhdr
 
