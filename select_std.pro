@@ -49,7 +49,7 @@ if(stdtype eq 'BIAS' or stdtype eq 'DARK' or stdtype eq 'FLAT' or $
 
 ; select on stdtype, site, camera, navg, flag ne bad
   s=where(types eq stdtype and sites eq site and cameras eq camera and $
-          navgs ge navg and strmid(flags0,1) eq '0',ns)
+          navgs ge navg and strmid(flags,0,1) eq '0',ns)
   if(ns gt 0) then begin
     fnames=fnames(s)
     navgs=navgs(s)
@@ -97,7 +97,6 @@ endif else begin
       name_out='NULL'
       sel_type='NULL'
       err=3
-    stop
       logo_nres2,rutname,'ERROR','Null target structure!'
       logo_nres2,rutname,'ERROR','likely you observed a star not in target list'
       goto,fini

@@ -193,9 +193,9 @@ for i=0,1 do begin
                                  ; for baryshift, zbaryshift, zero rv
       aao(i,j,k)=blockparms.aa
       bbo(i,j,k)=blockparms.bb
-      erro(i,j,k)=sqrt(blockparms.cov(0,0))
-      eaao(i,j,k)=sqrt(blockparms.cov(1,1))
-      ebbo(i,j,k)=sqrt(blockparms.cov(2,2))
+      erro(i,j,k)=sqrt(blockparms.cov(0,0) > 0.)
+      eaao(i,j,k)=sqrt(blockparms.cov(1,1) > 0.)
+      ebbo(i,j,k)=sqrt(blockparms.cov(2,2) > 0.)
       pldpo(i,j,k)=blockparms.pldp
 
       endfor

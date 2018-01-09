@@ -60,6 +60,7 @@ for i=0,nf-1 do begin
   filename = file_basename(curfile)
   if strpos(filename, 'ZERO') ge 0 then begin
     rv_template_filename = curfile
+    goto,skip
   endif else if strpos(filename, 'SPEC') ge 0 then begin
     output_filename=reduced_name +'.fits'
   endif else if strpos(filename, 'EXTR') ge 0 then begin
@@ -86,6 +87,7 @@ for i=0,nf-1 do begin
   endelse
   cmd2='cp '+curfile+' '+dirpath+output_filename
   spawn,cmd2
+  skip:
 endfor
 
 remove, where(tarlist eq rv_template_filename), tarlist
