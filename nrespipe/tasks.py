@@ -16,7 +16,7 @@ from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
 from nrespipe.utils import  warp_coordinates
-from nrespipe.traces import get_pixel_scale_ratio, fit_warping_polynomial
+from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 import numpy as np
 
@@ -206,9 +206,13 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
     reference_catalog = ascii.read(reference_catalog_filename, format='fast_basic')
 
     # Calculate the scale between the two images and hope the distortion is small
-    scale_guess = get_pixel_scale_ratio(sources, reference_catalog)
+    scale_guess = get_pixel_scale_ratio_and_rotation(sources, reference_catalog)
+    logger.info('Initial guess for scale = {scale}'.format(scale=scale_guess))
 
-    best_fit_coeffs = fit_warping_polynomial(sources, reference_catalog, scale_guess)
+    offset_guess = find_best_offset(sources, reference_catalog, scale_guess)
+    logger.info('Initial guess for offset = ({x}, {y})'.format(x=offset_guess['x'], y=offset_guess['y']))
+
+    best_fit_coeffs = fit_warping_polynomial(sources, reference_catalog, scale_guess, offset_guess, polynomial_order=3)
 
     # Use the best fit transformation to transform the input positions measured by hand to make a trace0 file for the IDL pipeline
     # Read in the original trace0 text file
@@ -232,7 +236,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
             new_trace_x.append(new_x)
             new_trace_y.append(new_y)
 
-        # Fit a a low order polynomial to the values in the elp frame
+        # Fit a a low order polynomial to the values in the new frame frame
         fitted_coeffs.append(np.polyfit(new_trace_x, new_trace_y, 3))
 
     # resample the low order polynomial onto the original x values to pass to the pipeline

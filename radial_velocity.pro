@@ -217,7 +217,7 @@ for i=0,1 do begin
         rroa(i)=total(rrotg(sg)/(errotg(sg)^2))/total(1./(errotg(sg)^2))
         rrom(i)=median(rrotg(sg))
         rroe(i)=1./sqrt(total(1./errotg(sg)^2))
-        if(~finite(rroa(i))) then stop
+;        if(~finite(rroa(i))) then stop
       endif else begin
         rroa(i)=0.d0
         rrom(i)=0.d0

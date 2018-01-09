@@ -370,6 +370,13 @@ def warp_coordinates(x, y, params, polynomial_order):
     return warped_x, warped_y
 
 
+def position_angle(source0, sources):
+    # law of cosines u dot v / mag(u) (mag v) = cos theta
+    length = lambda x: (x['x'] ** 2.0  + x['y'] * 2.0) ** 0.5
+    cos_theta =  (source0['x'] * sources['x'] + source0['y'] * sources['y']) / (length(source0) * length(sources))
+    return np.arccos(cos_theta)
+
+
 def evaluate_poly_coords(x, y, coeffs, order):
     warped_x = 0.0
     coeff_index = 0
@@ -378,6 +385,13 @@ def evaluate_poly_coords(x, y, coeffs, order):
             warped_x += coeffs[coeff_index] * (x ** i) * (y ** j)
             coeff_index += 1
     return warped_x
+
+
+def calculate_offsets(x1, y1, x2, y2):
+    offset_all_pairs = lambda x1, x2:  x1 - np.tile(x2, (len(x1), 1)).T
+    xdiff = offset_all_pairs(x1, x2)
+    ydiff = offset_all_pairs(y1, y2)
+    return {'x': xdiff, 'y': ydiff}
 
 
 def square_offset(x1, y1, x2, y2, ranks=0):

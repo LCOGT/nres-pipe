@@ -128,7 +128,7 @@ d1=a22*(a00*y1-y0*a01) - a20*(a02*y1-y2*a01) + a21*(a02*y0-y2*a00)
 d2=y2*(a00*a11-a10*a01) - y0*(a02*a11-a12*a01) + y1*(a02*a10-a12*a00)
 sn=where(det ne 0.,nsn)
 sb=where(det eq 0.,nsb)
-if(nsb gt 0) then stop
+;if(nsb gt 0) then stop
 ;fitc(*,*,ifun(0))=d0/det
 ;fitc(*,*,ifun(1))=d1/det
 ;fitc(*,*,ifun(2))=d2/det

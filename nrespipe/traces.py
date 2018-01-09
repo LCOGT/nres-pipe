@@ -38,7 +38,7 @@ def overlay_traces(trace_file, fibers, output_region_filename, pixel_sampling=20
         output_region_file.write(ds9_lines)
 
 
-def get_pixel_scale_ratio(sources, reference_catalog):
+def get_pixel_scale_ratio_and_rotation(sources, reference_catalog):
     """
 
     :param sources:
@@ -49,38 +49,70 @@ def get_pixel_scale_ratio(sources, reference_catalog):
     -----
     This roughly follows what scamp does which follows Kaiser+ 1999 https://arxiv.org/abs/astro-ph/9907229.
     This calculates the scale to convert the reference to input.
+
+    In principle, one could use the ransac algorithm here to get the homography and
+    kd trees here to speed up the distance calculations.
     """
     # Calculate the log distance between every pair of sources
     input_log_distances = get_log_distances(sources)
+    input_position_angles = get_position_angles(sources)
+
     reference_log_distances = get_log_distances(reference_catalog)
+    reference_position_angles = get_position_angles(reference_catalog)
 
     # The maximum offset in the catalog is sqrt(2) * 4096
     # Use a single pixel as the minimum offset bin
     # Use bins of 1 / 4096 ~ 0.0002 so that we can account for scales down to a pixel
-    bins = np.arange(0.0, np.log(np.sqrt(2.0) * 4096) + 0.0002, 0.0002)
-    # Make a histogram of the values
+    scale_bins = np.arange(0.0, np.log(np.sqrt(2.0) * 4096) + 0.0002, 0.0002)
+    position_angle_bins = np.arange(0, np.pi + 0.1, 0.005)
 
-    input_histogram = np.histogram(input_log_distances, bins)[0]
-    reference_histogram = np.histogram(reference_log_distances, bins)[0]
+    # Make a histogram of the values
+    input_histogram = np.histogram2d(input_log_distances, input_position_angles, [scale_bins, position_angle_bins])[0]
+    reference_histogram = np.histogram2d(reference_log_distances, reference_position_angles, [scale_bins, position_angle_bins])[0]
 
     # Cross correlate the two histograms
     correlation = np.correlate(input_histogram, reference_histogram, mode='full')
 
-    scale_offsets = np.arange(-max(bins) + 0.0002, max(bins) , 0.0002)
-    return np.exp(scale_offsets[np.argmax(correlation)])
+    scale_offsets = np.arange(-max(scale_bins) + 0.0002, max(scale_bins) , 0.0002)
+    return np.exp(scale_offsets[np.argmax(correlation)]),
 
 
-def get_log_distances(sources):
-    n_sources =len(sources)
-    log_distances = np.zeros(utils.choose_2(n_sources))
+def calculated_pairwise(func, sources):
+    n_sources = len(sources)
+    results = np.zeros(utils.choose_2(n_sources))
     # Go through every pair of sources, not double counting
     start_index = 0
     stop_index = n_sources - 1
     for i, source in enumerate(sources[:-1]):
-        log_distances[start_index:stop_index] = np.log(utils.offset(source, sources[i+1:]))
+        results[start_index:stop_index] = func(source, sources[i + 1:])
         start_index = stop_index
         stop_index += n_sources - i - 2
-    return log_distances
+    return results
+
+
+def get_position_angles(sources):
+    return calculated_pairwise(utils.position_angle, sources)
+
+
+def get_log_distances(sources):
+    distances =calculated_pairwise(utils.offset, sources)
+    return np.log(distances)
+
+
+def find_best_offset(input_sources, reference_sources, scale_guess):
+    # calculate the x and y offsets for each pair of sources
+    all_pairwise_offsets = utils.calculate_offsets(scale_guess * reference_sources['x'],
+                                                   scale_guess * reference_sources['y'],
+                                                   input_sources['x'], input_sources['y'])
+    # make a 2D histogram of the results
+    # Make bins with centers from -25 to 25 in steps of 0.1
+    bins = np.arange(-25.05, 25.1, 0.1)
+    offset_histogram, xedges, yedges = np.histogram2d(all_pairwise_offsets['x'].flatten(),
+                                                      all_pairwise_offsets['y'].flatten(), bins=(bins, bins))
+    # The peak in the histogram is the initial guess
+    peak_index = np.argmax(offset_histogram)
+    # Get the location of the bin, add 0.05 to get the center instead of the edge
+    return {'x': xedges[peak_index] + 0.05, 'y': yedges[peak_index] + 0.05}
 
 
 def fit_warping_polynomial(input_sources, reference_sources, scale_guess, polynomial_order=3, matching_threshold=25):
