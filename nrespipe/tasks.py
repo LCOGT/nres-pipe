@@ -15,7 +15,7 @@ import pkg_resources
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
-from nrespipe.utils import  warp_coordinates
+from nrespipe.utils import  warp_coordinates, send_email, make_summary_pdf, get_missing_files
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 import numpy as np
@@ -265,3 +265,43 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
 
     # Run trace refine on a set of flats
     refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root)
+
+
+@app.task
+def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_password, recipient_emails, raw_data_root):
+    # Get the current time utc
+    now = datetime.datetime.utcnow()
+    # The dayobs of interest is one day before (I think this does not work correctly for COJ)
+    last_night = now - datetime.timedelta(days=1)
+    dayobs = last_night.strftime('%Y%m%d')
+
+    # For each site, make an end of night pdf
+    attachments = []
+    email_body = "<p>NRES Nighly Summary for {dayobs}</p>\n".format(dayobs=dayobs)
+    for site, instrument in zip(sites, instruments):
+        pdf_filename = '{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}.pdf'
+        pdf_filename = pdf_filename.format(raw_data_root=raw_data_root, site=site,instrument=instrument, dayobs=dayobs)
+        specproc_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'
+        specproc_directory = specproc_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
+
+        make_summary_pdf(specproc_directory, pdf_filename)
+        if os.path.exists(pdf_filename):
+            attachments.append(pdf_filename)
+
+        raw_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/raw'
+        raw_directory = raw_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
+        raw_files, processed_files, missing_files = get_missing_files(raw_directory, specproc_directory)
+        email_body += "<p>{site}/{instrument}/{dayobs}:</p>\n".format(site=site, instrument=instrument,dayobs=dayobs)
+        email_body += "<p>Raw Science Exposures: {num_raw}; Processed Science Exposures: {num_proc}</p>\n".format(num_raw=len(raw_files),
+                                                                                                                  num_proc=len(processed_files))
+        if len(missing_files) > 0:
+            email_body += "<p>Data not processed by the pipeline for {site}/{instrument}/{dayobs}:</p>\n<p>".format(site=site,
+                                                                                                                instrument=instrument,
+                                                                                                                dayobs=dayobs)
+            for missing_file in missing_files:
+                email_body += "{filename}<br>\n".format(filename=missing_file)
+
+        email_body +="</p>"
+    # Send an email with the end of night plots
+    send_email('NRES Nightly Summary {dayobs}'.format(dayobs=dayobs), recipient_emails, sender_email, sender_password,
+               email_body, attachments)

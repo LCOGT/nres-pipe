@@ -4,8 +4,15 @@ import logging
 import os
 import sep
 import shutil
+import smtplib
 import time
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from glob import glob
+from pdfrw import PdfReader, PdfWriter
+import tarfile
+import tempfile
 
 import numpy as np
 import requests
@@ -421,3 +428,63 @@ def n_poly_coefficients(order):
     # Sum[Sum[1, {j, 0, n - i}], {i, 0, n}]
     # Which simplifies to (1/2) (1 + n) (2 + n)
     return (1 + order) * (2 + order) // 2
+
+
+def send_email(subject, recipient_emails, sender_email, sender_password, email_body, attachment_filenames, smtp_url='smtp.gmail.com:587'):
+    """
+    Send the email via command line
+    :param subject: str Subject line of the email
+    :param recipient_emails: List of email addresses of the recipients
+    :param sender_email: str Email address of the sender (must be a Google account)
+    :param sender_password: str Password for the sender email account
+    :param email_body: str Body of the email
+    :param attachment_filenames: List of files to attach
+    """
+    # Create the container (outer) email message.
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(recipient_emails)
+
+    msg.attach(MIMEText(email_body, 'html'))
+
+    for filename in attachment_filenames:
+        with open(filename, 'rb') as f:
+            attachment = MIMEApplication(f.read(), 'pdf')
+
+        attachment.add_header('Content-Disposition', 'attachment', filename=filename)
+        msg.attach(attachment)
+
+    # Send the email via our the localhost SMTP server.
+    server = smtplib.SMTP(smtp_url)
+    server.ehlo()
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, recipient_emails, msg.as_string())
+    server.quit()
+
+
+def make_summary_pdf(input_directory, output_pdf_filename):
+    pdf_writer = PdfWriter()
+    # Get all of the tar files in the input_directory
+    tar_files = glob(os.path.join(input_directory, '*.tar.gz'))
+    for tar_filename in tar_files:
+        basename = os.path.basename(tar_filename).replace('.tar.gz', '')
+
+        with tarfile.open(tar_filename) as open_tar_file:
+            # Extract the pdf file from the tar directory into a temporary directory
+            with tempfile.TemporaryDirectory() as temp_dir:
+                open_tar_file.extract('{basename}/{basename}.pdf'.format(basename=basename), path=temp_dir)
+                tmp_pdf_filename = os.path.join(temp_dir, basename, '{basename}.pdf'.format(basename=basename))
+                pdf_writer.addpages(PdfReader(tmp_pdf_filename).pages)
+
+    # Open the pdf and save all of the contents into a new pdf
+    pdf_writer.write(output_pdf_filename)
+
+
+def get_missing_files(raw_directory, specproc_directory):
+    get_files_without_extensions_and_e00 = lambda filenames, extension: [os.path.basename(filename).replace(extension, "")[:-4]
+                                                                         for filename in filenames]
+    raw_files = get_files_without_extensions_and_e00(glob(os.path.join(raw_directory, '*e00.fits*')), '.fits.fz')
+    processed_files = get_files_without_extensions_and_e00(glob(os.path.join(specproc_directory, '*.tar.gz')), '.tar.gz')
+    return raw_files, processed_files, list(set(raw_files) - set(processed_files))
