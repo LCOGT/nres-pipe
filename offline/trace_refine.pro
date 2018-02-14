@@ -456,7 +456,7 @@ sxaddpar,hdr,'ORDWIDTH',ord_wid
 sxaddpar,hdr,'MJDC',mjdc,'Creation date'
 sxaddpar,hdr,'FILE_IN',strtrim(flatin1,2)
 sxaddpar,hdr,'MEDBOXSZ',medboxsz
-sxaddpar,hdr,'SITEID',site
+sxaddpar,hdr,'SITEID',strlowcase(site)
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'COWID',cowid
 sxaddpar,hdr,'NBLOCK',nblock
