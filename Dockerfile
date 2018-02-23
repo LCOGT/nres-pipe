@@ -74,6 +74,15 @@ RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
 RUN pip install pdfrw \
         && rm -rf ~/.cache/pip
 
+RUN conda install -y -c astropy astroquery matplotlib\
+        && conda clean -y --all
+
+RUN git clone https://github.com/mstamy2/PyPDF2 /usr/src/pypdf2
+
+WORKDIR /usr/src/pypdf2
+
+RUN python setup.py install
+
 COPY . /nres/code/
 
 WORKDIR /nres/code
