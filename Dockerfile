@@ -6,7 +6,7 @@ RUN yum -y install epel-release mariadb-devel \
         && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
-RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest mock requests ipython celery \
+RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy=1.1.4 pytest mock requests ipython celery \
         && conda clean -y --all
 
 RUN mkdir /home/archive \
