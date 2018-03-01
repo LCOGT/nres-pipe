@@ -71,9 +71,6 @@ RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
 
-RUN pip install pdfrw \
-        && rm -rf ~/.cache/pip
-
 RUN conda install -y -c astropy astroquery matplotlib\
         && conda clean -y --all
 

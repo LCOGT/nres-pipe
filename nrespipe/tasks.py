@@ -309,7 +309,7 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                          for site, instrument in zip(sites, instruments)]
     output_text_filenames = ['{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}_sn.txt'.format(raw_data_root=raw_data_root, site=site,
                                                                                                               instrument=instrument, dayobs=dayobs)
-                         for site, instrument in zip(sites, instruments)]
+                             for site, instrument in zip(sites, instruments)]
 
     output_pdf_filename = '{raw_data_root}/nres/plots/nres_sn_{dayobs}.pdf'.format(raw_data_root=raw_data_root, dayobs=dayobs)
     make_signal_to_noise_pdf(input_directories, sites, [dayobs] * len(sites), output_text_filenames, output_pdf_filename)

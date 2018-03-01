@@ -35,6 +35,8 @@ def plot_signal_to_noise(output_filename, signal_to_noise_table, sites, daysobs)
     # hence S/N (Texp=60, V=12) = 10 * sqrt (6.3) / sqrt (20) = 5.6,
     # Trickier, worst case: S/N=100 to reach 3m/s for V=12 mag in 60 minutes
     # S/N (t=60 sec) = 100 /sqrt (60) = 12.9
+    # Apparently this is a long running figure so make sure you are starting with a fresh clear figure.
+    pyplot.clf()
     models = [{'color': 'gray', 'label': 'lsc nres01 pre-fl10', 'reference_flux': 500000, 'read_noise': 1e-9},
               {'color': 'blue', 'label': 'lsc nres01', 'reference_flux': 180000, 'read_noise': 1e-9},
               {'color': 'red', 'label': 'elp nres02', 'reference_flux': 900000, 'read_noise': 1e-9},
