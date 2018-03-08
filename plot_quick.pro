@@ -53,6 +53,7 @@ targdec=[rvindat.targstrucs[0].dec,rvindat.targstrucs[1].dec] ; decimal degree
 targvmag=[rvindat.targstrucs[0].vmag,rvindat.targstrucs[1].vmag] ; magnitudes
 coosrc=rvindat.coosrc  ; 0=target.csv or 1=telhdr
 rvvo=rvred.rvvo   ;cross-correl RV, 2 elements, one per fiber ; km/s
+rvcco=rvred.rvcco ; cross-correl RV km/s corr for target and ZERO baryshfts
 ampcco=rvred.ampcco  ; cross-correl amplitude, one element per fiber ; max=1
 propid=sxpar(dathdr,'PROPID')
 origname=strtrim(sxpar(dathdr,'ORIGNAME'),2)
@@ -232,7 +233,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
   xyouts,xbot,ybot(2),'BC = '+string(baryshifts(ip2),format='(f7.3)')+' km/s',$
      charsiz=cs1
   rvvcorr=rvvo(ip2)+baryshifts(ip2)
-  xyouts,xbot,ybot(3),'RV = '+string(rvvcorr,format='(f8.3)')+' km/s',$
+  xyouts,xbot,ybot(3),'RVCC = '+string(rvcco(ip2),format='(f8.3)')+' km/s',$
      charsiz=cs1
 
 ; do the 2nd correlation plot

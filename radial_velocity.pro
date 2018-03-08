@@ -57,6 +57,7 @@ rvresid=fltarr(specdat.nblock,nord,nfib-1)
 zspec=rvindat.zstar
 thspec=rvindat.zthar             ; use this only for line-shape estimates
 zlam=rvindat.zlam                ; wavelength scale for star zero spectra
+zeronames=rvindat.zeronames      ; names of ZERO files used
 sspec=fltarr(nx,nord,nfib-1)
 slam=dblarr(nx,nord,nfib-1)
 if(nfib eq 2) then begin
@@ -85,6 +86,8 @@ endif
 ; make output arrays to be written to csv file
 rcco=dblarr(2)    ; cross-correl redshift, no barycorr or zero intrinsic v
 rvvo=fltarr(2)    ; same as rcco, but in km/s units
+rvcco=dblarr(2)   ; cross-correl redshift in km/s, corrected for baryshifts
+                  ; and for ZERO bary- and intrinsic shifts
 widcco=fltarr(2)  ; cross-correl fwhm (km/s)
 ampcco=fltarr(2)  ; cross-correl height (max possible = 1)
 bjdo=dblarr(2)    ; exposure center barycen date
@@ -109,7 +112,8 @@ rvvo=fltarr(2)      ; same as rcco, but in km/s units
 ; make rvred output structure, in case keyword nostar is set
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts,$
+       rvcco:rvcco}
 centtimes=expmred.expfwt
 bjdtdb_c=expmred.expfwt              ; ***temporary hack***
 
@@ -137,6 +141,8 @@ for i=0,1 do begin
     ccmo(i,*)=ccm
     delvo(i,*)=delv         ; x-coord vector for ccmo, in km/s
     rvvo(i)=rvv             ; shift of cross-correl peak, in km/s (no BC corr)
+; rv in km/s, corrected for everything
+    rvcco(i)=c*((1.d0+rcc)*(1.d0+baryshifts(i))-1.d0)
 
     zdatnew=fltarr(nx,nord)
 
@@ -163,6 +169,9 @@ for i=0,1 do begin
         zblock=zdatnew(bbot(k):btop(k),j)
         dblock=sdat(bbot(k):btop(k))
         lamblock=slam(bbot(k):btop(k),j,i)    ; block nominal wavelength grid
+        nblko=n_elements(dblock)
+        modelo=dblarr(nblko)
+        resido=dblarr(nblko)
 
 ; check that dblock, zblock contain data that make sense.  
 ; If not, bail on this block
@@ -179,7 +188,8 @@ for i=0,1 do begin
         if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0. or $
         blammin le tharmatchmin or blammax ge tharmatchmax) then begin 
           cov0=dblarr(3,3)
-          blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0}
+          blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0,$
+            modelo:modelo,resido:resido}
 ;         if(j eq 38) then stop
           goto,bail
         endif
@@ -266,7 +276,8 @@ endfor
 
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
-       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts}
+       rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts,$
+       rvcco:rvcco}
        
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
@@ -286,17 +297,17 @@ fxaddpar,hdr,'FIBZ0',fib0
 fxaddpar,hdr,'FIBZ1',fib1
 fxaddpar,hdr,'MJD-OBS',mjdd,'Data MJD'
 fxaddpar,hdr,'MJD',mjdc,'Creation date'
+fxaddpar,hdr,'L1IDZER0',zeronames(0),'ZERO name fib 0'
+fxaddpar,hdr,'L1IDZER2',zeronames(1),'ZERO name fib 2'
 
-for i=0,1 do begin
-  stri=string(i,format='(i1)')
-  fxaddpar,hdr,'RCC'+stri,rcco(i),'Cross-Corr redshift'
-  fxaddpar,hdr,'WIDCC'+stri,widcco(i),'Cross-Corr width (km/s)'
-  fxaddpar,hdr,'AMPCC'+stri,ampcco(i),'Cross-Corr peak height'
-  fxaddpar,hdr,'BJD'+stri,bjdo(i),'Exposure center barycen date'
-  fxaddpar,hdr,'REDSHA'+stri,rroa(i),'Avg blockfit redshift'
-  fxaddpar,hdr,'REDSHM'+stri,rrom(i),'Median blockfit redshift'
-  fxaddpar,hdr,'REDSHER'+stri,rroe(i),'Blockfit redshift formal err'
-endfor
+fxaddpar,hdr,'RCC',rcco(fib0),'Cross-Corr redshift'
+fxaddpar,hdr,'WIDCC',widcco(fib0),'Cross-Corr width (km/s)'
+fxaddpar,hdr,'AMPCC',ampcco(fib0),'Cross-Corr peak height'
+fxaddpar,hdr,'RVCC',rvcco(fib0),'[km/s] Bary corrected cross-correl RV'
+fxaddpar,hdr,'BJD',bjdo(fib0),'Exposure center barycen date'
+fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Avg blockfit redshift'
+fxaddpar,hdr,'ZBLKMED',rrom(fib0),'Median blockfit redshift'
+fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal err'
 
 ; write out the data as a fits extension table.
 ; each column contains a single row, and each element is an array

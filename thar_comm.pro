@@ -1,7 +1,7 @@
 ; common data area for thar-fitting routines
 common thar_am, mm_c,grspc_c,grinc_c,sinalp_c,fl_c,y0_c,z0_c,gltype_c,apex_c,$
        lamcen_c,rot_c,pixsiz_c,nx_c,nord_c,tharspec_c,iord_c,xpos_c,amp_c,$
-       wid_c,xperr_c,$
+       wid_c,xperr_c,tripfile_short_c,$
        dsinalp_c,dfl_c,dy0_c,dz0_c,linelam_c,lineamp_c,diff_c,clip_c,$
        matchlam_c,matchamp_c,matcherr_c,matchdif_c,matchord_c,matchxpos_c,$
        matchwts_c,matchline_c,matchbest_c,matchwid_c,nmatch_c,$

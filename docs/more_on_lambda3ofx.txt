@@ -1,0 +1,99 @@
+This is a description of the ThAr-based wavelength model, embodied in routine
+lambda3ofx.pro.
+
+The wavelength model consists of 2 parts, a physical model and a polynomial
+correction.  The physical model uses physically-motivated parameters to
+compute wavelength in nm as a function of (x-pixel index, order index, fiber
+number);  the polynomial correction adjusts this wavelength grid to account
+for optical effects that are not included in the physical model, and that
+may in fact have unknown origins.
+
+Conceptually, the physical model involves a diffraction grating, a cross-
+dispersing prism, and a camera.  The collimator is assumed to be perfect,
+presenting a perfectly collimated beam to the cross-disperser.  The camera
+is assumed to be a perfect Gaussian imager characterized by its (wavelength-
+independent) focal length.  This optical system is characterized by a number
+of parameters that are taken as known and fixed, and by a few for which,for
+every new TARGET spectrum, the pipeline does a minimum-chi^2 fit (minimizing 
+the wavelength difference between observed and catalog ThAr lines).
+
+The parameters are described in routine lambda3ofx, and repeated here.
+The constant parameters are:
+  mm(nord) = vector containing order numbers for which lam is to be calculated
+  .d = grating groove spacing (microns)
+  .gltype = prism glass type (one of 'BK7','SF2','SiO2','LLF1','PBM2','LF5')
+  .apex = prism vertex angle (degrees)
+  .lamcen = nominal wavelength (micron) for which prism out-and-back
+           deviation is zero
+  .rot = rotation angle of CCD (degree) relative to main dispersion along x
+  .pixsiz = detector pixel size in mm
+
+The fitted parameters are
+  .sinalp = sin of incidence angle on grating
+  .fl = focal length of the spectrograph camera (mm)
+  .y0 = y-coordinate on CCD (mm) at which gamma angle = 0.
+  .z0 = refractive index of ambient medium surrounding SG is 1.+z0.
+
+The model computes the y-position (mm) at the center of each order for fiber 1
+from the prism refractive index vs lambda, computes the wavelength-dependent 
+grating gamma angle from the y-position and focal length, and computes the 
+x-position (mm) of the diffracted beam from the grating equation
+  m*lambda = d*( sin(alpha) + sin(beta))*cos(gamma)
+and focal length.  It then maps the (x,y) positions in mm into pixel
+coordinates using the rotation angle and pixel size. 
+
+This physical model does a fairly good job (~0.1 nm) of reproducing the actual
+wavelengths over the illuminated area of the chip, but this is not good enough
+even to get a robust least-squares fit to all the ThAr lines to converge,
+let alone to achieve the desired radial velocity accuracy.  The residuals
+about the physical model are quite systematic, so one can do much better by 
+approximating these residuals with a polynomial in (x-index, order index).  The
+polynomials I use involve Legendre functions in x and in order index, with 
+orders running from 0 to 4 in both cases.  For technical reasons (see the code)
+I compute these with the routine mylegendre.pro.
+
+The polynomial that the code uses is (presently) a sum of the 15 Legendre 
+product functions L_i(x)*L_j(iord), where 0 <= (i+j) <= 4.  Starting values 
+for the needed 15 coefficients are similar but not the same for each 
+spectrograph; their values are found in csv/spectrographs.csv.  Starting 
+values for the physical model parameters are found in the same file.  The
+routine lambda3ofx simply computes the physical model, evaluates the
+polynomial correction for the coefficients it finds in the input parameter
+specstruc, and adds the two together.
+
+Finally, if the fiber for which wavelengths are requested is not fiber 1,
+lambda3ofx computes another polynomial (Legendre functions again), which
+provides an estimate of the x (pixel) displacement between lines found in
+the desired fiber and those in fiber 1.  These come from a separate analysis
+of TRIPLE arc files.  From these displacements and the wavelength scale for 
+fiber 1, it computes corrections to the wavelength scale in the desired fiber.
+The needed polynomial coefficients are also provided in the input parameter 
+specstruc.
+
+The wavelength estimates resulting from this procedure can be used within
+a loop that adjusts physical model parameters and polynomial coefficients
+to minimize residuals (this is how the wavelength solution code works).  With 
+good ThAr data, the line wavelength residuals over the central 35 or so orders 
+are typically 0.001 nm.
+
+
+The code described above has deficiencies, one of which I imagine curing 
+in the fairly near future:
+Line wavelength fit residuals continue to look systematic, even at
+wavelength scales below 0.001 nm.  Moreover, the polynomial corrections
+are unable to fit the residuals to the physical model over a range of orders
+that is much larger than half of the available orders.  These facts suggest
+(unsurprisingly) that there are physical effects in the spectrograph that
+are not being captured by the current physical model.  If included, these
+effects may allow considerable improvements in both accuracy and wavelength
+coverage.  Numerical experiments have shown that both cubic distortion and
+lateral chromatic aberration are important --  together, they account for
+about 3/4 of the variance in the residuals to the current physical model.
+Including these terms in the model is straightforward, and is on my list of
+things to do.  This should allow better solutions, and solutions that are
+good over more orders.
+
+ The residuals after subtracting these aberrations remain systematic also,
+so there is likely at least one more important term to unearth.  Fixing this
+kind of modeling error could go on for a long time;  it is not yet clear
+where diminishing returns will kick in.

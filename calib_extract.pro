@@ -175,6 +175,7 @@ if(~keyword_set(flatk)) then begin
   update_data_size_in_header, hdr, corspec
   sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
   sxaddpar, hdr, 'L1IDDARK', get_output_name(darkhdr) , 'ID of bias frame used'
+  sxaddpar,hdr,'MJD-OBS',mjdobs,'MJD of shutter open'
   sxaddpar,hdr,'MJD',mjdc,'Creation date'
   nfravg=1
   sxaddpar,hdr,'NFRAVGD',nfravg,'Avgd this many frames'
@@ -190,6 +191,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'EXPTIME',exptime
   sxaddpar,hdr,'NELECTR0',echdat.nelectron(0),format='(e12.5)'
   sxaddpar,hdr,'NELECTR1',echdat.nelectron(1),format='(e12.5)'
+  sxaddpar,hdr,'TRACDY',echdat.tracdy,'[pix] Y-shift of extraction traces'
   sxaddpar,hdr,'MJD-OBS',mjdobs
   if(mfib eq 3) then begin
     sxaddpar,hdr,'LONG1',long1
@@ -247,8 +249,10 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NBLOCK',specdat.nblock
   sxaddpar,hdr,'NFIB',specdat.nfib
   sxaddpar,hdr,'NORD',specdat.nord
+  sxaddpar,hdr,'FIB0',fib0
   sxaddpar,hdr,'NX',specdat.nx
   sxaddpar,hdr,'DATESTRD',datestrd
+  sxaddpar,hdr,'L1IDTRAC',tracefile,'TRACE file'
   tarlist=[tarlist,nresrooti+'reduced/'+tracefile]
 
   writefits,specout,corspec,hdr

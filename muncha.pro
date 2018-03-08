@@ -130,7 +130,7 @@ case 1 of
 ; obs2txt                ; writes all metadata to obs.txt
   plot_qc                ; writes extract and thar quality control plot
   tarpath=nresrooti+tardir
-  tarout,tarlist,tarpath   ; collect useful output into a directory, tar it.
+  tarout2,tarlist,tarpath   ; collect useful output into a directory, tar it.
   end
 
 ; a bias image.  Make copy in reduced/bias dir, add entry to csv/standards.csv

@@ -172,8 +172,10 @@ for ifib=0,mfib-1 do begin
 ;     plot,uum
       goto,traceloop
     endif
+    tracdy=median(dymed0)
   endif else begin
     dymed=fltarr(nord)
+    tracdy=0.
   endelse
 
 ; make expected fractional pixel shift of profile from order center,
@@ -356,7 +358,7 @@ echdat={spectrum:spectrum,specrms:specrms,specdy:specdy,specdy2:specdy2,$
     diffrms:rms,nx:nx,nord:nord,nfib:nfib,mjdd:0.d0,mjdc:0.d0,origname:'NULL',$
     flatname:'NULL',$
     nfravg:1L,siteid:'NULL',camera:'NULL',exptime:0.,objects:'NULL',$
-    nelectron:nelectron,craybadpix:nsbad}
+    nelectron:nelectron,craybadpix:nsbad,tracdy:tracdy}
 
 fini:
 

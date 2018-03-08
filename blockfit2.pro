@@ -26,6 +26,8 @@ pro blockfit2,lamblock,zblock,dblock,blockparms
 ;          a serious omission because many blocks have few or no ThAr
 ;          lines, but the calculation of total ThAr precision should be
 ;          addressed somewhere.
+;  .modelo = result of model fit to dblock
+;  .resido = residuals dblock-modelo
 ;
 
 ; common data area
@@ -38,6 +40,8 @@ taperr=rotate(taper,2)
 
 ; get size of vectors, make wts array
 npt=n_elements(lamblock)
+modelo=dblarr(npt)
+resido=dblarr(npt)
 wts=fltarr(npt)+1.
 ; give low weight to edges of the block of nonzero data
 ; that are presumed to lie inside this block somewhere.
@@ -57,7 +61,7 @@ endelse
 
 ; run lsqblkfit
 ;vals=mpfit('rv_mpfit',p0,parinfo=parinfo,covar=cov,/quiet)
-vals=lsqblkfit(lamblock,zblock,dblock,wts,cov)
+vals=lsqblkfit2(lamblock,zblock,dblock,wts,cov,modelo,resido)
 ; use gaus_elim3,a,b,x,ierr,eps=eps
 
 ; compute pldp
@@ -70,6 +74,7 @@ pldp=c*pldpix/lammid
 bail:
 
 ; make output structure
-blockparms={rr:vals(2),aa:vals(0),bb:vals(1),cov:cov,pldp:pldp}
+blockparms={rr:vals(2),aa:vals(0),bb:vals(1),cov:cov,pldp:pldp,$
+           modelo:double(modelo),resido:double(resido)}
 
 end

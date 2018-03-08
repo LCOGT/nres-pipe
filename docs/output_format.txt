@@ -1,0 +1,100 @@
+FORMAT OF NRES PIPELINE OUTPUT FILES    9 Mar 2018
+
+
+Stellar spectrum output data files produced by the NRES reduction pipeline
+will soon have a new format.  We hope this will be both more accurate, more
+complete, and easier to use.
+
+Unpacking data sets from the archive will continue to be tedious, as described
+immediately below.  Sorry about that.
+
+Data from the archive arrive in a zipped file named for the date of the
+transfer, and the number of files contained, eg lcogtdata-20180308-6.
+
+Unzipping this file yields a directory lcogtdata-20180308-6 containing, in
+this case, 6 gzipped tar files, each corresponding to an observation requested
+from the archive.  These have names like
+   lscnrs01-fl09-20180307-0036-e91.tar.gz
+   lscnrs01-fl09-20180307-0037-e91.tar.gz
+where
+   lsc = the observing site: lsc=CTIO, elp=McDonald, cpt=SAAO, tlv=Wise
+   nrs0x = which spectrograph; NRES-0 to NRES-4
+   20180307 = UT date on which the observation was started
+   0036 = The nightly sequence number
+   e91 = A code for the reduction level.  e91 = reduced with Banzai pipeline
+
+Unpacking (tar -xzf file.tar.gz) each of these tar files yields a directory
+named after the observation, eg lscnrs01-fl09-20180307-0031-e91.  Each such
+directory will henceforth contain only 2 files:  the fpacked main data file  
+(eg lscnrs01-fl09-20180307-0031-e91.fits.fz)
+and the diagnostic plots pdf file
+(eg lscnrs01-fl09-20180307-0031-e91.pdf)
+
+Running funpack on the main data file yields the main data file
+(eg lscnrs01-fl09-20180307-0031-e91.fits)
+
+
+Now the interesting part.  The main data file is a multi-extension fits
+file containing 10 extensions.  The first of these is essentially only a
+header;  the last is a binary table extension.  All the rest are IMAGE
+extensions.  Their contents are as follows:
+
+Extn #,name     Data contents             Header keywords
+
+0: --            None            Everything relating to the observation as a
+                                 whole: instrument config, dates, scheduling
+                                 info, names of calib frames used, weather info,
+                                 instrument setup info, spectrograph environment
+                                 readings.
+
+1: SPECRAW   Raw extracted star  Data unique to this star spectrum:  Telescope
+             spectrum (nx,nord)  RA, Dec, Object name, total fluxes for star
+             (float)             and ThAr, telescope lat, long.
+
+2: SPECFLAT  Flat-fielded        Nothing of interest.
+             extracted star
+             spectrum (nx,nord)
+             (float)
+
+3: SPECBLAZE Blaze-subtracted    NORD, per-order scaling factor AMPFLxx applied
+             extracted star      to the flat field calibration before sub-
+             spectrum (nx,nord)  tracting from the raw extracted spectrum.
+             (float)
+
+4: THARRAW   Raw extracted ThAr  Nothing of interest.
+             spectrum (nx,nord)
+             from calibration 
+             fiber (float)
+
+5: THARFLAT  Flat-fielded        Nothing of interest.
+             extracted ThAr
+             spectrum (nx,nord)
+             (float)
+
+6: WAVESPEC  Wavelength solu-    Nothing of interest.
+             tion [nm] vs
+             (nx,nord) for the
+             starlight-
+             carrying fiber
+             (double)
+
+7: WAVETHAR  Wavelength solu-    Wavelength solution parameters (SINALP, FL,
+             tion [nm] vs        Y0, Z0), polynomial correction coeffs
+             (nx,nord) for the   C0 to C14, between-fiber correctopm coeffs
+             standard ThAr       FIBC0 to FIBC9, name of ThAr line catalog file.
+             fiber (fiber 1)
+             (double)
+
+8: SPECXCOR  Correlation fn      Cross-correl peak width (km/s) and height,
+             with template spec  RCC = redshift of peak relative to template
+             vs lag (km/s)       RVCC = redshift (km/s) rel to barycenter
+             (float)             lag (km/s) vs pixel index, in fits-standard
+                                 CRVAL1, CDELT1, CTYPE1, CRPIX1 format.
+
+9: RVBLOCKFIT Redshift and       Robust average, median, formal errors for
+             related parameters  per-block redshifts, descriptive info about
+             per (order,block)   table columns.  PLDP = "photon-limited Doppler
+             from least-squares  precision."
+             fit, relative to
+             RCC redshift
+             (double, mostly)

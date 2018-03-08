@@ -88,6 +88,7 @@ for i=0,nf-1 do begin
   cmd2='cp '+curfile+' '+dirpath+output_filename
   spawn,cmd2
   skip:
+  print,i,curfile,output_filename
 endfor
 
 remove, where(tarlist eq rv_template_filename), tarlist
@@ -111,7 +112,8 @@ write_readme_file, file_search('*')
 
 
 cd, '..'
-cmd3='tar --warning=no-file-changed -czf '+reduced_name+'.tar.gz '+reduced_name
+;cmd3='tar --warning=no-file-changed -czf '+reduced_name+'.tar.gz '+reduced_name
+cmd3='tar -czf '+reduced_name+'.tar.gz '+reduced_name
 
 spawn,cmd3
 

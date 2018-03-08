@@ -47,6 +47,7 @@ for k=0,2 do begin        ; loop over number of rows.
 
 ; do for all rows below pivot
   for i=k+1,m-1 do begin       ; i indexes over rows below the pivot
+    if(aa(k,k) eq 0.) then stop
     f=aa(k,i)/aa(k,k)
     for j=k,n-1 do begin      ; j indexes over columns, including last
       aa(j,i)=aa(j,i) - aa(j,k)*f

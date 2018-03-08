@@ -83,8 +83,10 @@ if(nfib eq 2) then begin
     targra(1)=targ1struc.ra
     targdec(1)=targ1struc.dec
   endif
+; here and below, reverse sign of tlon because headers give E longitude,
+; but nresbarycorr expects W. longitude.
   baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
-     tlat(1),tlon(1),talt(1))
+     tlat(1),-tlon(1),talt(1))
 endif
 
 if(nfib eq 3) then begin
@@ -108,7 +110,7 @@ if(nfib eq 3) then begin
       targdec(0)=targ0struc.dec
     endif
     baryshifts(0)=nresbarycorr(targnames(0),centtimes(0),targra(0),targdec(0),$
-       tlat(0),tlon(0),talt(0))
+       tlat(0),-tlon(0),talt(0))
   endif else begin
     targnames(0)='NULL'
     zeronames(0)='NULL'
@@ -130,7 +132,7 @@ if(nfib eq 3) then begin
       targdec(1)=targ1struc.dec
     endif
     baryshifts(1)=nresbarycorr(targnames(1),centtimes(1),targra(1),targdec(1),$
-       tlat(1),tlon(1),talt(1))
+       tlat(1),-tlon(1),talt(1))
   endif else begin
     targnames(1)='NULL'
     zeronames(1)='NULL'

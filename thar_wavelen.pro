@@ -253,6 +253,41 @@ fxaddpar,hdr,'SITEID',site
 fxaddpar,hdr,'INSTRUME',camera
 fxaddpar,hdr,'OBSTYPE','WAVE' 
 fxaddpar,hdr,'EXPTIME',exptime
+fxaddpar,hdr,'L1IDTRIP',tripfile_short_c,'TRIPLE filename'
+fxaddpar,hdr,'THARLIST',tharlist,'Name of ThAr lines catalog file'
+
+; Add keywords relating to fiber=1 wavelength solution
+fxaddpar,hdr,'SINALP',sgparms(0,1),'Sin of echelle incidence angle'
+fxaddpar,hdr,'FL',sgparms(1,1),'[mm] Camera focal length'
+fxaddpar,hdr,'Y0',sgparms(2,1),'[mm] y-position on CCD where gamma=0'
+fxaddpar,hdr,'Z0',sgparms(3,1),'Air (n-1) refractive index in spectrograph'
+
+fxaddpar,hdr,'C00',sgcoefs(0,1),'Fiber 1 coefs(0)'
+fxaddpar,hdr,'C01',sgcoefs(1,1),'Fiber 1 coefs(1)'
+fxaddpar,hdr,'C02',sgcoefs(2,1),'Fiber 1 coefs(2)'
+fxaddpar,hdr,'C03',sgcoefs(3,1),'Fiber 1 coefs(3)'
+fxaddpar,hdr,'C04',sgcoefs(4,1),'Fiber 1 coefs(4)'
+fxaddpar,hdr,'C05',sgcoefs(5,1),'Fiber 1 coefs(5)'
+fxaddpar,hdr,'C06',sgcoefs(6,1),'Fiber 1 coefs(6)'
+fxaddpar,hdr,'C07',sgcoefs(7,1),'Fiber 1 coefs(7)'
+fxaddpar,hdr,'C08',sgcoefs(8,1),'Fiber 1 coefs(8)'
+fxaddpar,hdr,'C09',sgcoefs(9,1),'Fiber 1 coefs(9)'
+fxaddpar,hdr,'C10',sgcoefs(10,1),'Fiber 1 coefs(10)'
+fxaddpar,hdr,'C11',sgcoefs(11,1),'Fiber 1 coefs(11)'
+fxaddpar,hdr,'C12',sgcoefs(12,1),'Fiber 1 coefs(12)'
+fxaddpar,hdr,'C13',sgcoefs(13,1),'Fiber 1 coefs(13)'
+fxaddpar,hdr,'C14',sgcoefs(14,1),'Fiber 1 coefs(14)'
+
+fxaddpar,hdr,'FIBC0',fibcoefs_c(0,fib0),'Star fiber fibcoef0'
+fxaddpar,hdr,'FIBC1',fibcoefs_c(1,fib0),'Star fiber fibcoef1'
+fxaddpar,hdr,'FIBC2',fibcoefs_c(2,fib0),'Star fiber fibcoef2'
+fxaddpar,hdr,'FIBC3',fibcoefs_c(3,fib0),'Star fiber fibcoef3'
+fxaddpar,hdr,'FIBC4',fibcoefs_c(4,fib0),'Star fiber fibcoef4'
+fxaddpar,hdr,'FIBC5',fibcoefs_c(5,fib0),'Star fiber fibcoef5'
+fxaddpar,hdr,'FIBC6',fibcoefs_c(6,fib0),'Star fiber fibcoef6'
+fxaddpar,hdr,'FIBC7',fibcoefs_c(7,fib0),'Star fiber fibcoef7'
+fxaddpar,hdr,'FIBC8',fibcoefs_c(8,fib0),'Star fiber fibcoef8'
+fxaddpar,hdr,'FIBC9',fibcoefs_c(9,fib0),'Star fiber fibcoef9'
 
 tharo='THAR'+datestrd+'.fits' 
 tharout=nresrooti+thardir+tharo

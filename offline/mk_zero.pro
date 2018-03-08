@@ -203,7 +203,8 @@ jdavg=mjdavg+2400000d0-0.5d0
 ; Combining the target star redshift with zbary then involves switching
 ; the sign of the target redshift.
 rrv=1.d0-rv/c             ; target intrinsic red shift correction
-rrtarg=nresbarycorr(targname,jdavg,ra,dec,lat,longi,height)
+; note that headers contain E. longitude, but nresbarycorr wants W. longitude
+rrtarg=nresbarycorr(targname,jdavg,ra,dec,lat,-longi,height)
 rrt=rrv*(rrtarg+1.d0)-1.d0                      ; net correction - unity
 
 ; convert wavelength scale to the nominal source rest frame.

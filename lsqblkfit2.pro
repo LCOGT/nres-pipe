@@ -1,11 +1,12 @@
-function lsqblkfit,lamblock,zblock,dblock,wts,cov,modelo,resido
+function lsqblkfit2,lamblock,zblock,dblock,wts,cov,modelo,resido
 ; This routine accepts the wavelength array lamblock, the ZERO intensity array
 ; zblock (both modified to account for the estimated barycentric and
 ; cross-correlation shifts), and the observed data array dblock.
 ; It performs an iterated least-squares fit to minimize the weighted squared
-; difference between dblock and a redshifted, scaled model given by
-;   model = zblock(lamblock*(1.-rr))*(aa + bb*x), where is the pixel coordinate
-; scaled to run from -1 to +1 across the width of the block.
+; difference between dblock and a redshifted, scaled model given by the
+; following.  Let u = zblock(lamblock*(1.-rr)) - <zblock(lamblock*(1.-rr))>,
+;      where <> denotes mean value.  Then
+;   model = u*bb + aa
 ; Values of {rr, aa, bb} are returned as a double-precision array.
 ; Also returned in the calling sequence is the covariance array cov
 ; describing the returned variables, and
@@ -21,11 +22,11 @@ rr0max=0.001                 ; 300 km/s = comparable to width of block
 itermax=10                   ; max allowed number of iterations
 rutname='lsqblkfit'
 
-aa0=double(total(dblock*wts)/total(zblock*wts))     ; first guess at aa
-bb0=0.d0                                    ; first guess at bb
-rr0=0.d0                                    ; first guess at rr
+uu0=double(zblock-total(zblock*wts)/total(wts))     ; starting u vector
+aa0=double(total(dblock*wts)/total(wts))            ; first guess at aa
+bb0=double(total((dblock-aa0)*uu0*wts)/total(uu0^2*wts)) ; first guess at aa
+rr0=0.d0
 np=n_elements(zblock)
-xx=(dindgen(np)-np/2.)*2./np        ; x-coordinate for linear term in scaling
 
 ; iteratively do least-squares fit for parameters aa, bb, ss
 funs=fltarr(np,3)
@@ -35,13 +36,14 @@ for i=0,itermax-1 do begin
   zbt=interpol(zblock,lamblock,lamt,/quadratic)   ; ZERO array on curr lam grid
 
 ; dzdx=deriv(zbt)
-  model=zbt*(aa0+bb0*xx)               ; current model
+  um=zbt-aa0
+  model=(zbt-aa0)*bb0 + aa0               ; current model
   dzdx=deriv(model)
   resid=dblock-model
 
 ; do least-squares fit to adjust aa, bb, rr to minimiza residuals
-  funs(*,0)=zbt
-  funs(*,1)=zbt*xx
+  funs(*,0)=1.0                 ; aa
+  funs(*,1)=um                  ; bb
   funs(*,2)=dzdx
   if(max(abs(zbt)) eq 0.0) then begin  ; test for non-overlap with ZERO fn
     cc=[0.,0.,0.]
@@ -59,7 +61,7 @@ for i=0,itermax-1 do begin
   delrr=cc(2)*mean(dlamdx/lamt)      ; pix shift expressed as redshift
 
   rr0=rr0+delrr
-  modelo=zbt*(aa0+bb0*xx)+cc(2)*dzdx
+  modelo=(zbt-aa0)*bb0 + aa0 + cc(2)*dzdx
   resido=dblock-modelo
 
 ; we are finished if delrr is small enough, or if rr0 is too big)

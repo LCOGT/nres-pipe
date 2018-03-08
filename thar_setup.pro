@@ -100,7 +100,13 @@ if(gerr eq 0) then begin
   trip_unpack,tripdat,triphdr,trp=trp ; put TRIPLE data into specdat, coefs_c, 
                  ; fibcoefs_c or not, depending on the value of keyword trp.
   tarlist=[tarlist,nresrooti+'reduced/'+tripfile]
-endif
+  ip=strpos(tripfile,'/',/reverse_search)
+  plen=strlen(tripfile)
+  tripfile_short_c=strmid(tripfile,ip+1,plen-ip)    ; this lives in thar_comm
+  logo_nres2,rutname,'INFO','TRIPLE file used = '+tripfile_short_c
+endif else begin
+  tripfile_short_c='spectrographs.csv'
+endelse
 
 sz=size(corspec)
 nx=sz(1)
