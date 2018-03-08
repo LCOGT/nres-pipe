@@ -6,7 +6,7 @@ RUN yum -y install epel-release mariadb-devel \
         && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
-RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy pytest mock requests ipython celery \
+RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy=1.1.4 pytest mock requests ipython celery \
         && conda clean -y --all
 
 RUN mkdir /home/archive \
@@ -70,6 +70,15 @@ RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
         && cp $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
+
+RUN conda install -y -c astropy astroquery matplotlib\
+        && conda clean -y --all
+
+RUN git clone https://github.com/mstamy2/PyPDF2 /usr/src/pypdf2
+
+WORKDIR /usr/src/pypdf2
+
+RUN python setup.py install
 
 COPY . /nres/code/
 

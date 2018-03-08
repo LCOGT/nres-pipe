@@ -185,7 +185,7 @@ if(~keyword_set(flatk)) then begin
   if not keyword_set(flatk) then begin
       sxaddpar,hdr,'L1IDFLAT', get_output_name(flathdr), 'ID of flat frame used'
   endif
-  sxaddpar,hdr,'SITEID',site 
+  sxaddpar,hdr,'SITEID',strlowcase(site) 
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
   sxaddpar,hdr,'EXPTIME',exptime

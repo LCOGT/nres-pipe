@@ -31,7 +31,7 @@ sxaddpar,hdr,'MJD',mjdc,'Creation date'
 sxaddpar,hdr,'MJD-OBS',mjdd,'Data date'
 sxaddpar,hdr,'NFRAVGD',1,'Avgd this many frames'
 sxaddpar,hdr,'ORIGNAME',strip_fits_extension(filname),'Original raw filename'
-sxaddpar,hdr,'SITEID',site
+sxaddpar,hdr,'SITEID',strlowcase(site)
 sxaddpar,hdr,'INSTRUME',camera
 sxaddpar,hdr,'OBSTYPE','DARK'
 sxaddpar,hdr,'EXPTIME',exptime

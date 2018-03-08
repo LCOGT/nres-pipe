@@ -5,11 +5,13 @@ from kombu import Exchange, Connection, Queue
 
 from nrespipe import settings
 from nrespipe.listener import NRESListener
-from nrespipe.utils import wait_for_task_rabbitmq
+from nrespipe.utils import wait_for_task_rabbitmq, make_signal_to_noise_pdf, get_last_night
 from nrespipe import tasks
 import celery.bin.worker
 import celery.bin.beat
 import argparse
+import itertools
+import os
 
 logger = logging.getLogger('nrespipe')
 logger.propagate = False
@@ -98,3 +100,30 @@ def run_beats_scheduler():
     logger.info('Starting Beats Scheduler')
     beat = celery.bin.beat.beat(app=tasks.app)
     beat.run()
+
+instruments = {'lsc': 'nres01', 'elp': 'nres02', 'cpt': 'nres03'}
+
+def make_signal_to_noise_plot():
+    parser = argparse.ArgumentParser(description='Make a plot of signal-to-noise values.')
+    parser.add_argument('--site', action='append', dest='sites', default=('lsc', 'elp', 'cpt'),
+                        help='Site code (e.g. ogg)'
+                             'This option can be specified multiple times to have more than one site')
+    parser.add_argument('--day-obs', dest='daysobs', action='append',
+                        help='DAY-OBS to get the signal-to-noise. Default: Last night.'
+                             'This option can be specified multiple times to have more than one DAY-OBS')
+    parser.add_argument('--data-root', dest='data_root', default='/archive/engineering',
+                        help='Top level directory with the reduced data')
+    parser.add_argument('--output-filename', dest='output_filename', default='nres_sn.pdf',
+                        help='Output filename for the signal-to-noise plot')
+
+    args = parser.parse_args()
+
+    if args.daysobs is None:
+        args.daysobs = [get_last_night()]
+
+    sites, daysobs = zip(*list(itertools.product(args.sites, args.daysobs)))
+
+    input_directories = [os.path.join(args.data_root, site, instruments[site], dayobs, 'specproc')
+                         for site, dayobs in zip(sites, daysobs)]
+    output_text_filenames = [None for _ in sites]
+    make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_filenames, args.output_filename)

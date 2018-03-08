@@ -34,6 +34,10 @@ do_radial_velocity = os.getenv('NRES_DO_RV', 1)
 
 blacklisted_filenames = ['g00', 'x00']
 
+recipient_emails = os.getenv('SUMMARY_RECIPIENTS', "somaddress@somewhere.com").split(',')
+sender_email = os.getenv('SUMMARY_SENDER', "somaddress@somewhere.com")
+sender_password = os.getenv('SUMMARY_SENDER_PASSWORD', "password")
+
 # Format for parsing dates throughout the code
 date_format = '%Y-%m-%dT%H:%M:%S'
 
@@ -77,6 +81,16 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                               'schedule': crontab(minute=1, hour=11),
                                               'kwargs': {'site': 'cpt', 'camera': 'fl13',
                                                          'nres_instrument': 'nres03',
+                                                         'raw_data_root': '/archive/engineering'},
+                                              'options': {'queue': 'periodic'}
+                                              },
+                 'send_nightly_summary': {'task': 'nrespipe.tasks.send_end_of_night_summary_plots',
+                                              'schedule': crontab(minute=31, hour=16),
+                                              'kwargs': {'sites': ['lsc', 'elp', 'cpt'],
+                                                         'instruments':['nres01', 'nres02', 'nres03'],
+                                                         'sender_email': sender_email,
+                                                         'sender_password': sender_password,
+                                                         'recipient_emails': recipient_emails,
                                                          'raw_data_root': '/archive/engineering'},
                                               'options': {'queue': 'periodic'}
                                               }

@@ -4,8 +4,15 @@ import logging
 import os
 import sep
 import shutil
+import smtplib
 import time
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from glob import glob
+from PyPDF2 import PdfFileReader, PdfFileWriter
+import tarfile
+import tempfile
 
 import numpy as np
 import requests
@@ -15,6 +22,11 @@ from kombu import Connection, Exchange
 
 from nrespipe import dbs
 from nrespipe import settings
+from nrespipe.plots import plot_signal_to_noise
+
+from astroquery.simbad import Simbad
+import re
+
 
 logger = logging.getLogger('nrespipe')
 
@@ -211,6 +223,10 @@ def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_inst
     shutil.move(file_to_upload, output_directory)
     return os.path.join(output_directory, os.path.basename(file_to_upload))
 
+def get_last_night():
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    return yesterday.strftime('%Y%m%d')
+
 
 def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instrument):
     """
@@ -236,8 +252,7 @@ def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instru
     -----
     File names will be sorted in the output list.
     """
-    yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
-    last_night = yesterday.strftime('%Y%m%d')
+    last_night = get_last_night()
 
     raw_data_path = os.path.join(raw_data_root, site, nres_instrument, last_night, 'raw')
     file_names = glob(os.path.join(raw_data_path, filename_pattern))
@@ -421,3 +436,120 @@ def n_poly_coefficients(order):
     # Sum[Sum[1, {j, 0, n - i}], {i, 0, n}]
     # Which simplifies to (1/2) (1 + n) (2 + n)
     return (1 + order) * (2 + order) // 2
+
+
+def send_email(subject, recipient_emails, sender_email, sender_password, email_body, attachment_filenames, smtp_url='smtp.gmail.com:587'):
+    """
+    Send the email via command line
+    :param subject: str Subject line of the email
+    :param recipient_emails: List of email addresses of the recipients
+    :param sender_email: str Email address of the sender (must be a Google account)
+    :param sender_password: str Password for the sender email account
+    :param email_body: str Body of the email
+    :param attachment_filenames: List of files to attach
+    """
+    # Create the container (outer) email message.
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(recipient_emails)
+
+    msg.attach(MIMEText(email_body, 'html'))
+
+    for filename in attachment_filenames:
+        with open(filename, 'rb') as f:
+            attachment = MIMEApplication(f.read(), 'pdf')
+
+        attachment.add_header('Content-Disposition', 'attachment', filename=os.path.basename(filename))
+        msg.attach(attachment)
+
+    # Send the email via our the localhost SMTP server.
+    server = smtplib.SMTP(smtp_url)
+    server.ehlo()
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, recipient_emails, msg.as_string())
+    server.quit()
+
+
+def extract_from_pdfs(input_directory, extraction_function):
+    # Get all of the tar files in the input_directory
+    tar_files = glob(os.path.join(input_directory, '*.tar.gz'))
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for tar_filename in tar_files:
+            basename = os.path.basename(tar_filename).replace('.tar.gz', '')
+            with tarfile.open(tar_filename) as open_tar_file:
+                # Extract the pdf file from the tar directory into a temporary directory
+                open_tar_file.extract('{basename}/{basename}.pdf'.format(basename=basename), path=temp_dir)
+                tmp_pdf_filename = os.path.join(temp_dir, basename, '{basename}.pdf'.format(basename=basename))
+                pdf_reader = PdfFileReader(tmp_pdf_filename)
+                extraction_function(pdf_reader)
+
+def make_summary_pdf(input_directory, output_pdf_filename):
+    pdf_writer = PdfFileWriter()
+    extraction_function = lambda pdf_reader: pdf_writer.appendPagesFromReader(pdf_reader)
+    extract_from_pdfs(input_directory, extraction_function)
+    with open(output_pdf_filename, 'wb') as output_stream:
+        pdf_writer.write(output_stream)
+
+
+def make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_filenames, output_pdf_filename):
+
+    signal_to_noise_table = Table(names=['target', 'mag', 'sn', 'exptime', 'site', 'dayobs'], dtype=('S60', np.float,
+                                                                                                     np.float, np.float,
+                                                                                                     'S3', 'S8'))
+    for input_directory, site, dayobs, output_text_filename in zip(input_directories, sites, daysobs, output_text_filenames):
+        extraction_function = lambda pdf_reader: extract_signal_to_noise_from_pdf(pdf_reader, signal_to_noise_table, site, dayobs)
+        # Extract the Signal to noise
+        extract_from_pdfs(input_directory, extraction_function)
+        output_table = signal_to_noise_table[np.logical_and(signal_to_noise_table['site'] == site,
+                                                            signal_to_noise_table['dayobs'] == dayobs)]
+        if output_text_filename is not None:
+            output_table.write(output_text_filename, format='ascii', overwrite=True)
+
+    plot_signal_to_noise(output_pdf_filename, signal_to_noise_table, sites, daysobs)
+
+
+def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Table, site: str, dayobs: str):
+    pdf_text_to_search = pdf_reader.getPage(0).extractText()
+    # parse the output with an easy to read regex.
+    regex = '^([\w_\s\+-]+)\,\s.+expt\s?=\s?(\d+) s\,.+N=\s*(\d+\.\d+),'
+    m = re.search(regex, pdf_text_to_search)
+    if m is not None:
+        output_table.add_row({'target': m.group(1), 'mag': get_mag_from_simbad(m.group(1)),
+                              'sn': m.group(3), 'exptime': m.group(2), 'site': site, 'dayobs': dayobs})
+    else:
+        logger.error("Failed to extract S/N", extra={'tags': {'regex': regex,
+                                                              'search_text': pdf_text_to_search}})
+
+
+def get_missing_files(raw_directory, specproc_directory):
+    get_files_without_extensions_and_e00 = lambda filenames, extension: [os.path.basename(filename).replace(extension, "")[:-4]
+                                                                         for filename in filenames]
+    raw_files = get_files_without_extensions_and_e00(glob(os.path.join(raw_directory, '*e00.fits*')), '.fits.fz')
+    processed_files = get_files_without_extensions_and_e00(glob(os.path.join(specproc_directory, '*.tar.gz')), '.tar.gz')
+    return raw_files, processed_files, list(set(raw_files) - set(processed_files))
+
+
+target_name_translations = {'PSIPHE' : 'psi Phe',
+                            'MUCAS' : 'mu Cas',
+                            'KS18C14487' :'TYC 8856-529-1',
+                            'BD093070': 'BD-09 3070'}
+
+def get_mag_from_simbad(target_name : str):
+    try:
+        simbad_query = Simbad()
+        simbad_query.add_votable_fields('flux(V)')
+
+        search_name = target_name.split('_')[0]
+        if search_name in target_name_translations:
+            search_name = target_name_translations[search_name]
+        logger.info('Querying Simbad for {target}'.format(target=search_name))
+        result = simbad_query.query_object(search_name)
+        mag = float(result['FLUX_V'][0])
+    except Exception as e:
+        logger.error('Simbad query failed for {target}: {exeception}'.format(target=target_name, exeception=e))
+        mag = np.nan
+
+    return mag

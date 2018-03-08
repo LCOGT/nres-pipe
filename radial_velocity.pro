@@ -291,7 +291,7 @@ sxdelpar, hdr, 'NAXIS2'
 sxaddpar, hdr, 'NAXIS', 0
 
 fxaddpar,hdr,'OBJECTS',targnames(0)+'&'+targnames(1)
-fxaddpar,hdr,'SITEID',site
+fxaddpar,hdr,'SITEID',strlowcase(site)
 fxaddpar,hdr,'INSTRUME',camera
 fxaddpar,hdr,'FIBZ0',fib0
 fxaddpar,hdr,'FIBZ1',fib1

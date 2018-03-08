@@ -50,7 +50,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'MJD-OBS','Data date'
   sxaddpar,hdr,'NFRAVGD',3,'Avgd this many frames' 
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0013.fits','1st filename'
-  sxaddpar,hdr,'SITEID',site
+  sxaddpar,hdr,'SITEID',strlowcase(site)
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE','BIAS'
   sxaddpar,hdr,'EXPTIME',0.0
@@ -84,7 +84,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'MJD',mjd,'Creation date'
   sxaddpar,hdr,'NFRAVGD',7,'Avgd this many frames'
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0020.fits','1st filename'
-  sxaddpar,hdr,'SITEID',site
+  sxaddpar,hdr,'SITEID',strlowcase(site)
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE','FLAT'
   sxaddpar,hdr,'EXPTIME',1.0
@@ -99,7 +99,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'MJD',mjd,'Creation date'
   sxaddpar,hdr,'NFRAVGD',2,'Avgd this many frames'
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0025.fits','1st filename'
-  sxaddpar,hdr,'SITEID',site
+  sxaddpar,hdr,'SITEID',strlowcase(site)
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE','ZERO'
   sxaddpar,hdr,'EXPTIME',1.0
@@ -122,7 +122,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'MJD',mjd,'Creation date'
   sxaddpar,hdr,'NFRAVGD',4,'Avgd this many frames'
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0030.fits','1st filename'
-  sxaddpar,hdr,'SITEID',site
+  sxaddpar,hdr,'SITEID',strlowcase(site)
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE','TRIPLE'
   sxaddpar,hdr,'EXPTIME',3.0
@@ -144,7 +144,7 @@ for ic=0,n-1 do begin
   sxaddpar,hdr,'MJD',mjd,'Creation date'
   sxaddpar,hdr,'NFRAVGD',8,'Avgd this many frames'
   sxaddpar,hdr,'FILNAME1','lab_fl01_17760704.0030.fits','1st filename'
-  sxaddpar,hdr,'SITEID',site
+  sxaddpar,hdr,'SITEID',strlowcase(site)
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE','TRACE'
   sxaddpar,hdr,'EXPTIME',15.0
