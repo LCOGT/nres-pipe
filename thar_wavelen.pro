@@ -37,6 +37,11 @@ jdd=sxpar(dathdr,'MJD-OBS')+2400000.5d0
 ;nresroot=getenv('NRESROOT')
 matchedlines=nresrooti+'reduced/config/mtchThAr.txt' ; name of output file
                            ; for well-matched ThAr lines
+; constants for wavelength diagnostic keyword calculation
+iordred=5 & iordgreen=38 & iordblue=60  ; orders designated red, green, blue
+irlo=0.125 & irhi=0.875          ; lo and hi ends of red order
+iglo=0.25 & ighi=0.8            ; lo and hi ends of green order
+iblo=0.40 & ibhi=0.7            ; lo and hi ends of blue order
 
 ; want lamp IDs, etc too
 
@@ -224,6 +229,14 @@ tharred={fibth:sth,lam:lam_all,sinalp:sinalp_all,fl:fl_all,y0:y0_all,$
       rmsgood:rmsgood_all,mgbdisp:mgbdisp_all,lammid:lammid_all,$
       site:site,jd:jdd}
 
+; make wavelength diagnostics for header
+lamcenr=lam_all(nx/2,iordred)
+lamceng=lam_all(nx/2,iordgreen)
+lamcenb=lam_all(nx/2,iordblue)
+lamranr=lam_all(nx*irhi,iordred) - lam_all(nx*irlo,iordred)
+lamrang=lam_all(nx*ighi,iordgreen) - lam_all(nx*iglo,iordgreen)
+lamranb=lam_all(nx*ibhi,iordblue) - lam_all(nx*iblo,iordblue)
+
 ;stop
 
 ; Write the contents of this structure out as a multi-extension fits file,
@@ -289,6 +302,12 @@ fxaddpar,hdr,'FIBC7',fibcoefs_c(7,fib0),'Star fiber fibcoef7'
 fxaddpar,hdr,'FIBC8',fibcoefs_c(8,fib0),'Star fiber fibcoef8'
 fxaddpar,hdr,'FIBC9',fibcoefs_c(9,fib0),'Star fiber fibcoef9'
 
+fxaddpar,hdr,'LAMCENR',lamcenr,'[nm] Center lam of red order'
+fxaddpar,hdr,'LAMCENG',lamceng,'[nm] Center lam of green order'
+fxaddpar,hdr,'LAMCENB',lamcenb,'[nm] Center lam of blue order'
+fxaddpar,hdr,'LAMRANR',lamranr,'[nm] Lambda range of red order'
+fxaddpar,hdr,'LAMRANG',lamrang,'[nm] Lambda range of green order'
+fxaddpar,hdr,'LAMRANB',lamranb,'[nm] Lambda range of blue order'
 tharo='THAR'+datestrd+'.fits' 
 tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr

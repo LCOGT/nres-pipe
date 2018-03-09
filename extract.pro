@@ -135,6 +135,7 @@ specdy=fltarr(nx,nord,mfib)
 specdy2=fltarr(nx,nord,mfib)
 specwid=fltarr(nx,nord,mfib)
 ;dymed=0.
+tracdy=0.
 
 for ifib=0,mfib-1 do begin
   jfib=sobjg(ifib)
@@ -175,7 +176,6 @@ for ifib=0,mfib-1 do begin
     tracdy=median(dymed0)
   endif else begin
     dymed=fltarr(nord)
-    tracdy=0.
   endelse
 
 ; make expected fractional pixel shift of profile from order center,
