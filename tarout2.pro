@@ -127,6 +127,7 @@ if(strpos(tarlist(i),'RADV') ge 0) then begin
     fxbread,iun,lx1coef,'Lx1Coef'
     fxbread,iun,errlx1,'ErrLx1'
     fxbread,iun,pldp,'PLDP'
+    fxbclose,iun
     fxbopen,iun,filin,2,hrad2
     fxbread,iun,cc_fn,'CC_fn'
     fxbread,iun,lagvel,'LagVel'
