@@ -55,7 +55,7 @@ for i=0,nt-1 do begin
       1: t1=[t1,sxpar(hdr,keylist(1))]
       2: t2=[t2,sxpar(hdr,keylist(2))]
       3: t3=[t3,sxpar(hdr,keylist(3))]
-      1: t4=[t4,sxpar(hdr,keylist(4))]
+      4: t4=[t4,sxpar(hdr,keylist(4))]
     endcase
   endfor
 endfor
