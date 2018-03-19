@@ -34,8 +34,9 @@ idl_logger = logging.getLogger('idl')
 def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
     os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
-
-    cmd = shlex.split('idl -e {command} -quiet -args {args}'.format(command=idl_procedure, args=" ".join(args)))
+    cmd = 'idl -e {command} -quiet -args {args}'.format(command=idl_procedure, args=" ".join(args))
+    logger.info('Running the following idl command: {cmd}'.format(cmd=cmd))
+    cmd = shlex.split(cmd)
     console_output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     logger.info('IDL NRES pipeline output:')
     for message in console_output.stdout.splitlines():
@@ -86,7 +87,7 @@ def process_nres_file(path, data_reduction_root_path, db_address):
         else:
             logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
             nres_site, nres_instrument = which_nres(path)
-            return_code = run_idl('run_nres_pipeline', [path, settings.do_radial_velocity],
+            return_code = run_idl('run_nres_pipeline', [path, str(settings.do_radial_velocity)],
                                   data_reduction_root_path, nres_site, nres_instrument)
             if return_code == 0:
                 dbs.set_file_as_processed(input_filename, checksum, db_address)
