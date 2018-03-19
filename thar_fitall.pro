@@ -39,6 +39,7 @@ endif
 site_c=sgsite
 fibindx_c=fibindx
 ;print,'In thar_fitall, fibindx=',fibindx
+;stop
 
 if(keyword_set(oskip)) then oskip_c=oskip-1 else oskip_c=[-1]
 
@@ -124,5 +125,7 @@ endelse
 ; in the common block thar_am
 
 fini:
+
+;stop
 
 end

@@ -34,6 +34,9 @@ pro mk_zero,listin,trp=trp,tharlist=tharlist,cubfrz=cubfrz
 ; common block for ThAr reduction
 @thar_comm
 
+; set default tharlist to 'mtchThAr.txt'
+if(not keyword_set(tharlist)) then tharlist='mtchThAr.txt'
+
 ; initialize tarlist to an empty list
 tarlist = []
 ; constants
