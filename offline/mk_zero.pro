@@ -249,6 +249,16 @@ fxaddpar,hdr,'FL',fl_c,'Focal Length (mm)'
 fxaddpar,hdr,'Y0',y0_c,'Y0 (mm)'
 fxaddpar,hdr,'Z0',z0_c,'Z0 - 1.'
 
+; write out the names of the input files
+for i=0,nfiles-1 do begin
+  istr=string(i,format='(i02)')
+  kwd='FILIN'+istr
+  fnam=flist[i]
+  bp=strpos(fnam,'blaz/')
+  if(bp ge 0) then fna=strmid(fnam,bp+5) else fna=fnam
+  fxaddpar,hdr,kwd,fna,'Input Filename'
+endfor
+
 fxaddpar,hdr,'C00',coefs_c(0)
 fxaddpar,hdr,'C01',coefs_c(1)
 fxaddpar,hdr,'C02',coefs_c(2)

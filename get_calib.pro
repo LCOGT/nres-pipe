@@ -31,16 +31,21 @@ gerr=0
 ; in quick succession.  As the file gets large, this may become a performance
 ; problem.  If so, we should rewrite so that one call to stds_rd will suffice
 ; for all of BIAS, DARK, FLAT, TRACE, TRIPLE ****
+;
+; Modification 18 Mar 2018:  match data with calibration file based on the
+; data mjdd = data date and on the calibration data date as shown in the filename.
+
 stds_rd,types,fnames,navgs,sites,cameras,jdates,flags,stdhdr 
 types=strtrim(strupcase(types),2)
 sites=strtrim(strupcase(sites),2)
 cameras=strtrim(strupcase(cameras),2)
 stypeu=strtrim(strupcase(stype),2)
+if(strlen(stypeu) gt 4) then stypeu=strmid(stypeu,0,4)
 siteu=strtrim(strupcase(site),2)
 camerau=strtrim(strupcase(camera),2)
 
 ; select for type, site, camera, flags
-s=where((types eq stypeu) and (sites eq siteu) and $
+s=where((strpos(types,stypeu) ge 0) and (sites eq siteu) and $
         (cameras eq camerau) and $
         (strmid(flags,0,1) eq '0'), ns)
 if(ns le 0) then begin
@@ -54,10 +59,27 @@ if(ns le 0) then begin
 endif
 fnames1=fnames(s)
 navgs1=navgs(s)
-jdates1=jdates(s)
 
+; make data jdates, based on fnames and types arrays
+djdates1=dblarr(ns)
+typlen=strlen(stypeu)
+for i=0,ns-1 do begin
+  datpos=strpos(fnames1(i),stypeu)
+; deal with early filenames that do not contain the instance name,
+; and also with TRACE filenames in which the date 20xx is replaced
+; with 00xx.
+  if(not is_digit(strmid(fnames1(i),datpos+typlen,1))) then begin
+    datdbl=double(strmid(fnames1(i),datpos+typlen+3,13))
+    if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
+  endif else begin
+    datdbl=double(strmid(fnames1(i),datpos+typlen,13))
+    if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
+  endelse
+  djdates1(i)=date_conv(datdbl,'julian')
+endfor
+  
 ; find nearest jdate
-jddif1=abs(jdates1-jdc)
+jddif1=abs(djdates1-(mjdd+2400000.5d0))
 md=min(jddif1,ix)
 dt=(1.5*md) > (md + 1.5)             ; search radius
 s2=where((jddif1 le dt) and (navgs1 gt 1),ns2)
@@ -66,7 +88,7 @@ if(ns2 gt 0) then begin          ; get here if there is a super-cal inside the
                                  ; search radius
   fnames2=fnames1(s2)
   navgs2=navgs1(s2)
-  jdates2=jdates1(s2)
+  jdates2=djdates1(s2)
   jdiff2=abs(jdates2-jdc)
   md2=min(jdiff2,ix2)
   
