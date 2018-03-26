@@ -69,6 +69,7 @@ for i=0,nhdrout-1 do begin
       hh=[hh,hcurr]
     endif else begin
       print,'ERROR keyword '+keywd+' not found, header'+string(i)
+      if(strpos(keywd,'RADESYS') ge 0) then stop
     endelse
   endwhile
 

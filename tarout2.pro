@@ -157,6 +157,18 @@ szb=size(redshft)
 nfib=szb(1)
 nblock=szb(3)
 
+; select cross-correlation data for the desired fiber, add coord info
+; to hrad2
+lagv=reform(lagvel[fib0,*])
+xcorr=reform(cc_fn[fib0,*])
+nlag=n_elements(lagv)
+crval1=double(lagv(0))
+cdelt1=(double(lagv(nlag-1)) - double(lagv(0)))/double(nlag-1)
+sxaddpar,hrad2,'CRVAL1',crval1,'minimum lag value (km/s)'
+sxaddpar,hrad2,'CDELT1',cdelt1,'lag increment (km/s per pix)
+sxaddpar,hrad2,'CTYPE1','PIXEL','index type for lags'
+sxaddpar,hrad2,'CRPIX1',1L,'pixel index corresp to CRVAL1'
+
 ; make headers from a crafty combination of the unique input headers
 mk_hdroutput,hblaz,hthar,hrad0,hrad1,hrad2,hdrstruc
 
@@ -193,17 +205,8 @@ fits_write,fcb,wavspec,hdrstruc.wavespec,xtension='IMAGE',$
 fits_write,fcb,wavthar,hdrstruc.wavethar,xtension='IMAGE',$
     extname=wavenames(1)
 
-; select cross-correlation data for the desired fiber, and write it out
-lagv=reform(lagvel[fib0,*])
-xcorr=reform(cc_fn[fib0,*])
-nlag=n_elements(lagv)
-crval1=double(lagv(0))
-cdelt1=(double(lagv(nlag-1)) - double(lagv(0)))/double(nlag-1)
+; write out cross-correlation data for the desired fiber
 hdrxc=hdrstruc.xcor
-sxaddpar,hdrxc,'CRVAL1',crval1,'minimum lag value (km/s)'
-sxaddpar,hdrxc,'CDELT1',cdelt1,'lag increment (km/s per pix)
-sxaddpar,hdrxc,'CTYPE1','PIXEL','index type for lags'
-sxaddpar,hdrxc,'CRPIX1',1L,'pixel index corresp to CRVAL1'
 fits_write,fcb,xcorr,hdrxc,xtension='IMAGE',extname='SPECXCOR'
 fits_close,fcb
 

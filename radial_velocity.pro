@@ -102,7 +102,8 @@ bbo=dblarr(2,nord,nblock)  ; Legendre 1 scale factor ditto
 erro=dblarr(2,nord,nblock) ; formal uncertainty in rro (redshift units)
 eaao=dblarr(2,nord,nblock) ; formal uncertainty in aao
 ebbo=dblarr(2,nord,nblock) ; formal uncertainty in bbo
-pldpo=dblarr(2,nord,nblock)  ; photon-limited doppler precision (km/s)
+pldpo=dblarr(2,nord,nblock)+10.  ; photon-limited doppler precision (km/s)
+; pldpo is set non-zero so later averaging will not fail if nostar set
     
 ; make output arrays for cross-correlation results
 ccmo=fltarr(2,801)  ; cross-correl fn, vs velocity shift
@@ -279,6 +280,9 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts,$
        rvcco:rvcco}
        
+; compute the averaged pldp values for star and ThAr
+pldpav=1./sqrt(total(1./pldpo(fib0,*,*)^2)) ; optimistic gaussian estimate
+
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
 
@@ -308,6 +312,7 @@ fxaddpar,hdr,'BJD',bjdo(fib0),'Exposure center barycen date'
 fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Avg blockfit redshift'
 fxaddpar,hdr,'ZBLKMED',rrom(fib0),'Median blockfit redshift'
 fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal err'
+fxaddpar,hdr,'PLDP',pldpav,'Star photon-limited doppler precision'
 
 ; write out the data as a fits extension table.
 ; each column contains a single row, and each element is an array

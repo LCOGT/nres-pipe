@@ -253,6 +253,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NX',specdat.nx
   sxaddpar,hdr,'DATESTRD',datestrd
   sxaddpar,hdr,'L1IDTRAC',tracefile,'TRACE file'
+  sxaddpar,hdr,'RADESYS',sxpar(tel1hdr,'RADESYS'),'[FK5] Fundamental coord. system of the object'
   tarlist=[tarlist,nresrooti+'reduced/'+tracefile]
 
   writefits,specout,corspec,hdr
