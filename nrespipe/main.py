@@ -105,7 +105,7 @@ instruments = {'lsc': 'nres01', 'elp': 'nres02', 'cpt': 'nres03'}
 
 def make_signal_to_noise_plot():
     parser = argparse.ArgumentParser(description='Make a plot of signal-to-noise values.')
-    parser.add_argument('--site', action='append', dest='sites', default=('lsc', 'elp', 'cpt'),
+    parser.add_argument('--site', action='append', dest='sites', default=None,
                         help='Site code (e.g. ogg)'
                              'This option can be specified multiple times to have more than one site')
     parser.add_argument('--day-obs', dest='daysobs', action='append',
@@ -118,6 +118,8 @@ def make_signal_to_noise_plot():
 
     args = parser.parse_args()
 
+    if args.sites is None:
+        args.sites = ['lsc', 'elp', 'cpt']
     if args.daysobs is None:
         args.daysobs = [get_last_night()]
 
