@@ -189,9 +189,25 @@ wavenames=['WAVESPEC','WAVETHAR']
 fits_open,output_filename,fcb,/write
 
 ; write out the various spectrum-related data blocks, with headers
-fits_write,fcb,[-1L],hdrstruc.keyall
+fits_write,fcb,[-1L],hdrstruc.keyall,extname='NRESOUT'
+;hdr0=hdrstruc.keyall
+;sxaddpar,hdr0,'NAXIS',0,before='DATADICV'
+;sxaddpar,hdr0,'BITPIX',32,before='DATADICV'
+;sxaddpar,hdr0,'EXTEND','T',before='DATADICV'
+
+;writefits,output_filename,[],hdr0
+
 fits_write,fcb,extr,hdrstruc.extr,xtension='IMAGE',$
     extname=specnames(0)
+;hdr1=hdrstruc.extr
+;sxaddpar,hdr1,'EXTEND','T'
+;writefits,output_filename,extr,hdr1,/append
+
+;#########
+;fits_close,fcb
+;stop
+;#######
+
 fits_write,fcb,spec,hdrstruc.spec,xtension='IMAGE',$
     extname=specnames(1)
 fits_write,fcb,blaz,hdrstruc.blaz,xtension='IMAGE',$
