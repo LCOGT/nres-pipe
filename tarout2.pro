@@ -185,46 +185,86 @@ specnames=['SPECRAW','SPECFLAT','SPECBLAZE']
 tharnames=['THARRAW','THARFLAT']
 wavenames=['WAVESPEC','WAVETHAR']
 
-; open output file, write out general header keywords.
-fits_open,output_filename,fcb,/write
-
 ; write out the various spectrum-related data blocks, with headers
-fits_write,fcb,[-1L],hdrstruc.keyall,extname='NRESOUT'
-;hdr0=hdrstruc.keyall
-;sxaddpar,hdr0,'NAXIS',0,before='DATADICV'
-;sxaddpar,hdr0,'BITPIX',32,before='DATADICV'
-;sxaddpar,hdr0,'EXTEND','T',before='DATADICV'
+hdr0=hdrstruc.keyall
+sxaddpar,hdr0,'EXTEND','T'
+sxaddpar,hdr0,'BITPIX',32,before='EXTEND
+sxaddpar,hdr0,'NAXIS',0,before='EXTEND'
 
-;writefits,output_filename,[],hdr0
+writefits,output_filename,[],hdr0
 
-fits_write,fcb,extr,hdrstruc.extr,xtension='IMAGE',$
-    extname=specnames(0)
-;hdr1=hdrstruc.extr
-;sxaddpar,hdr1,'EXTEND','T'
-;writefits,output_filename,extr,hdr1,/append
+hdr1=hdrstruc.extr
+sxaddpar,hdr1,'XTENSION','IMAGE'
+sxaddpar,hdr1,'BITPIX',-32
+sxaddpar,hdr1,'NAXIS',2
+sxaddpar,hdr1,'NAXIS1',nx
+sxaddpar,hdr1,'NAXIS2',nord
+sxaddpar,hdr1,'EXTNAME',specnames(0)
+writefits,output_filename,extr,hdr1,/append
 
-;#########
-;fits_close,fcb
-;stop
-;#######
+hdr2=hdrstruc.spec
+sxaddpar,hdr2,'XTENSION','IMAGE'
+sxaddpar,hdr2,'BITPIX',-32
+sxaddpar,hdr2,'NAXIS',2
+sxaddpar,hdr2,'NAXIS1',nx
+sxaddpar,hdr2,'NAXIS2',nord
+sxaddpar,hdr2,'EXTNAME',specnames(1)
+writefits,output_filename,spec,hdr2,/append
 
-fits_write,fcb,spec,hdrstruc.spec,xtension='IMAGE',$
-    extname=specnames(1)
-fits_write,fcb,blaz,hdrstruc.blaz,xtension='IMAGE',$
-    extname=specnames(2)
-fits_write,fcb,thar_i,hdrstruc.thar_i,xtension='IMAGE',$
-    extname=tharnames(0)
-fits_write,fcb,thar_f,hdrstruc.thar_f,xtension='IMAGE',$
-    extname=tharnames(1)
-fits_write,fcb,wavspec,hdrstruc.wavespec,xtension='IMAGE',$
-    extname=wavenames(0)
-fits_write,fcb,wavthar,hdrstruc.wavethar,xtension='IMAGE',$
-    extname=wavenames(1)
+hdr3=hdrstruc.blaz
+sxaddpar,hdr3,'XTENSION','IMAGE'
+sxaddpar,hdr3,'BITPIX',-32
+sxaddpar,hdr3,'NAXIS',2
+sxaddpar,hdr3,'NAXIS1',nx
+sxaddpar,hdr3,'NAXIS2',nord
+sxaddpar,hdr3,'EXTNAME',specnames(2)
+writefits,output_filename,blaz,hdr3,/append
+
+hdr4=hdrstruc.thar_i
+sxaddpar,hdr4,'XTENSION','IMAGE'
+sxaddpar,hdr4,'BITPIX',-32
+sxaddpar,hdr4,'NAXIS',2
+sxaddpar,hdr4,'NAXIS1',nx
+sxaddpar,hdr4,'NAXIS2',nord
+sxaddpar,hdr4,'EXTNAME',tharnames(0)
+writefits,output_filename,thar_i,hdr4,/append
+
+hdr5=hdrstruc.thar_f
+sxaddpar,hdr5,'XTENSION','IMAGE'
+sxaddpar,hdr5,'BITPIX',-32
+sxaddpar,hdr5,'NAXIS',2
+sxaddpar,hdr5,'NAXIS1',nx
+sxaddpar,hdr5,'NAXIS2',nord
+sxaddpar,hdr5,'EXTNAME',tharnames(1)
+writefits,output_filename,thar_f,hdr5,/append
+
+hdr6=hdrstruc.wavespec
+sxaddpar,hdr6,'XTENSION','IMAGE'
+sxaddpar,hdr6,'BITPIX',-64
+sxaddpar,hdr6,'NAXIS',2
+sxaddpar,hdr6,'NAXIS1',nx
+sxaddpar,hdr6,'NAXIS2',nord
+sxaddpar,hdr6,'EXTNAME',wavenames(0)
+writefits,output_filename,wavspec,hdr6,/append
+
+hdr7=hdrstruc.wavethar
+sxaddpar,hdr7,'XTENSION','IMAGE'
+sxaddpar,hdr7,'BITPIX',-64
+sxaddpar,hdr7,'NAXIS',2
+sxaddpar,hdr7,'NAXIS1',nx
+sxaddpar,hdr7,'NAXIS2',nord
+sxaddpar,hdr7,'EXTNAME',wavenames(1)
+writefits,output_filename,wavthar,hdr7,/append
 
 ; write out cross-correlation data for the desired fiber
 hdrxc=hdrstruc.xcor
-fits_write,fcb,xcorr,hdrxc,xtension='IMAGE',extname='SPECXCOR'
-fits_close,fcb
+nxc=n_elements(xcorr)
+sxaddpar,hdrxc,'XTENSION','IMAGE'
+sxaddpar,hdrxc,'BITPIX',-32
+sxaddpar,hdrxc,'NAXIS',1
+sxaddpar,hdrxc,'NAXIS1',nxc
+sxaddpar,hdrxc,'EXTNAME','SPECXCOR'
+writefits,output_filename,xcorr,hdrxc,/append
 
 ; give names to the blockfit parameter vectors, write them to a binary table
 ; first make the extension block header
@@ -278,10 +318,6 @@ fxbwrite,iuno,ordindx,9,1
 
 ; close the output file
 fxbfinish,iuno
-
-;stop
-
-fits_close,fcb,/no_abort,message=message
 
 ; tar the directory
 cd, dirpath, current=orig_dir
