@@ -188,8 +188,11 @@ wavenames=['WAVESPEC','WAVETHAR']
 ; write out the various spectrum-related data blocks, with headers
 hdr0=hdrstruc.keyall
 sxaddpar,hdr0,'EXTEND','T'
-sxaddpar,hdr0,'BITPIX',32,before='EXTEND
+sxaddpar,hdr0,'BITPIX',32,before='EXTEND'
+sxaddpar,hdr0,'SIMPLE','T',before='BITPIX'
 sxaddpar,hdr0,'NAXIS',0,before='EXTEND'
+
+stop
 
 writefits,output_filename,[],hdr0
 
@@ -200,6 +203,7 @@ sxaddpar,hdr1,'NAXIS',2
 sxaddpar,hdr1,'NAXIS1',nx
 sxaddpar,hdr1,'NAXIS2',nord
 sxaddpar,hdr1,'EXTNAME',specnames(0)
+stop
 writefits,output_filename,extr,hdr1,/append
 
 hdr2=hdrstruc.spec
