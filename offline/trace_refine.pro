@@ -90,7 +90,7 @@ if(keyword_set(dely)) then trace(0,*,*)=trace(0,*,*)+dely
 
 if(keyword_set(eflat)) then begin
   effile=nresrooti+flatdir+strtrim(eflat,2)
-  efwt=readfits(effile,efhdr)
+  efwt=readfits(effile,efhdr,/silent)
   efwt=rebin(efwt(*,*,1),nx,nord,nfib)     ; take only fiber1 values
 endif else begin
   efwt=fltarr(nx,nord,nfib)+1.

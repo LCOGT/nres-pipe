@@ -308,6 +308,7 @@ fxaddpar,hdr,'LAMCENB',lamcenb,'[nm] Center lam of blue order'
 fxaddpar,hdr,'LAMRANR',lamranr,'[nm] Lambda range of red order'
 fxaddpar,hdr,'LAMRANG',lamrang,'[nm] Lambda range of green order'
 fxaddpar,hdr,'LAMRANB',lamranb,'[nm] Lambda range of blue order'
+ 
 tharo='THAR'+datestrd+'.fits' 
 tharout=nresrooti+thardir+tharo
 ;writefits,tharout,lam,hdr
@@ -387,8 +388,6 @@ fxbwritm,unit,['matchlam','matchamp','matchwid','matchline','matchxpos',$
       long(matchord_c),matcherr_c,matchdif_c,matchwts_c,matchbest_c
 
 fxbfinish,unit
-
-;stop
 
 fini:
 logo_nres2,rutname,'INFO','finished'

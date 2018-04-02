@@ -281,7 +281,8 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        rvcco:rvcco}
        
 ; compute the averaged pldp values for star and ThAr
-pldpav=1./sqrt(total(1./pldpo(fib0,*,*)^2)) ; optimistic gaussian estimate
+pldpav=1./(sqrt(total(1./pldpo(fib0,*,*)^2)) > 1.e-5) 
+; optimistic gaussian estimate
 
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.

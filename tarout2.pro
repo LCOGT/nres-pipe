@@ -71,7 +71,7 @@ output_filename=dirpath+reduced_name+'.fits'
 for i=0,nf-1 do begin
   if(strpos(tarlist(i),'EXTR') ge 0) then begin
     filin=tarlist(i)
-    extr2=readfits(filin,hextr)
+    extr2=readfits(filin,hextr,/silent)
     fib0=sxpar(hextr,'FIB0')
     if(fib0) then begin
       extr=extr2(*,*,1)
@@ -84,7 +84,7 @@ for i=0,nf-1 do begin
 
 if(strpos(tarlist(i),'BLAZ') ge 0) then begin
     filin=tarlist(i)
-    blaz2=readfits(filin,hblaz)
+    blaz2=readfits(filin,hblaz,/silent)
     fib0=sxpar(hblaz,'FIB0')
     if(fib0) then begin
       blaz=blaz2(*,*,1)
@@ -95,7 +95,7 @@ if(strpos(tarlist(i),'BLAZ') ge 0) then begin
 
 if(strpos(tarlist(i),'SPEC') ge 0) then begin
     filin=tarlist(i)
-    spec2=readfits(filin,hspec)
+    spec2=readfits(filin,hspec,/silent)
     fib0=sxpar(hspec,'FIB0')
     if(fib0) then begin
       spec=spec2(*,*,1)
@@ -108,7 +108,7 @@ if(strpos(tarlist(i),'SPEC') ge 0) then begin
 
 if(strpos(tarlist(i),'THAR') ge 0) then begin
     filin=tarlist(i)
-    thar=readfits(filin,hthar)
+    thar=readfits(filin,hthar,/silent)
     wav0=thar(*,*,0)
     wav1=thar(*,*,1)
     wav2=thar(*,*,2)
@@ -118,7 +118,7 @@ if(strpos(tarlist(i),'THAR') ge 0) then begin
 
 if(strpos(tarlist(i),'RADV') ge 0) then begin
     filin=tarlist(i)
-    radv=readfits(filin,hrad0)           ; no data, but hrad0 is useful
+    radv=readfits(filin,hrad0,/silent)      ; no data, but hrad0 is useful
     fxbopen,iun,filin,1,hrad1
     fxbread,iun,redshft,'RedShft'
     fxbread,iun,errrshft,'ErrRShft'

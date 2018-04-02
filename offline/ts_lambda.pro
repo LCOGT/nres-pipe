@@ -26,7 +26,7 @@ free_lun,iun
 ; make output file, get sizes of things
 tt=dblarr(nt)
 infil=tharroot+'/'+files(0)
-dd=readfits(infil,hdr)
+dd=readfits(infil,hdr,/silent)
 sz=size(dd)
 nx=sz(1)
 nord=sz(2)
@@ -35,7 +35,7 @@ wav=dblarr(nx,nord,nfib,nt)
 
 ; read in the wavelength data
 for i=0,nt-1 do begin
-  dd=readfits(files(i),hdr)
+  dd=readfits(files(i),hdr,/silent)
   tt(i)=sxpar(hdr,'MJD-OBS')
   wav(*,*,*,i)=dd
 endfor
