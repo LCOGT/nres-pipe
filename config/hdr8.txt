@@ -1,2 +1,6 @@
 header line only
+CRPIX1 0 / Velocity lag zero pixel
+CRVAL1 0 / Velocity lag zero pix value (km/s)
+CDELT1 0 / Velocity lag increment (km/s)
+CTYPE1 0 / Velocity lag increment type
 END

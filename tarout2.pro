@@ -260,10 +260,10 @@ writefits,output_filename,wavthar,hdr7,/append
 ; write out cross-correlation data for the desired fiber
 hdrxc=hdrstruc.xcor
 nxc=n_elements(xcorr)
-sxaddpar,hdrxc,'XTENSION','IMAGE'
-sxaddpar,hdrxc,'BITPIX',-32
-sxaddpar,hdrxc,'NAXIS',1
-sxaddpar,hdrxc,'NAXIS1',nxc
+sxaddpar,hdrxc,'XTENSION','IMAGE',before='CRPIX1'
+sxaddpar,hdrxc,'BITPIX',-32,before='CRPIX1'
+sxaddpar,hdrxc,'NAXIS',1,before='CRPIX1'
+sxaddpar,hdrxc,'NAXIS1',nxc,before='CRPIX1'
 sxaddpar,hdrxc,'EXTNAME','SPECXCOR'
 writefits,output_filename,xcorr,hdrxc,/append
 

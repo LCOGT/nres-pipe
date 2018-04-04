@@ -19,7 +19,7 @@ hdr8=hstruc0.xcor
 hdr9=hstruc0.wblocks
 
 ; rename DATESTRD because the fits standard thinks this means something
-keyword_rename,hdr1,'DATESTRD','DATSTRNG'
+keyword_rename,hdr0,'DATESTRD','DATSTRNG'
 
 ; rename averaged redshift keywords to connect with output data columns
 ;keyword_rename,hdr9,'REDSHA0','ZBLKAVG'

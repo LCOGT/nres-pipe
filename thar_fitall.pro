@@ -72,6 +72,24 @@ endif
 ; if(ierr_c ne 0) then goto,fini
 ; print,'ncalls = ',ncalls
 
+; #########hack to force spectrograph parms to remain fixed
+;vals=[0.,0.,0.,0.]
+;nmatch_c=11
+;nmatch=nmatch_c
+;dlam2_c=1.e4
+;matchlam_c=dblarr(nmatch)
+;matchamp_c=fltarr(nmatch)
+;matchwid_c=fltarr(nmatch)
+;matchline_c=dblarr(nmatch)
+;matchxpos_c=dblarr(nmatch)
+;matchord_c=lonarr(nmatch)
+;matcherr_c=fltarr(nmatch)
+;matchdif_c=fltarr(nmatch)
+;matchwts_c=fltarr(nmatch)
+;matchbest_c=dblarr(nmatch)
+;goto,skipfit
+; #########
+
 ;
 ; do the fit using mpfit, not amoeba
 vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
@@ -98,6 +116,10 @@ if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
     vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
   endif
 endif
+
+; ##############
+;skipfit:
+; ##############
 
 logo_nres2,rutname,'INFO',{state:'after mpfit',nmatch:nmatch_c,$
      scatter:sqrt(dlam2_c)}

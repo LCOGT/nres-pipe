@@ -191,7 +191,6 @@ O_BZERO
 NFRAVGD 
 RLEVEL  
 L1PUBDAT
-L1IDFLAT
 NELECTR0  0  / Total electrons in stellar spectrum
 NELECTR1  0  / Total electrons in ThAr spectrum
 LONG1 0 / [deg] Telescope 1 E. longitude   
@@ -212,7 +211,6 @@ NORD 0 / Number of diffraction orders
 FIB0 0 / Index of 1st illuminated fiber
 NX 0 / Number of pix along dispersion per order      
 DATESTRD 0 / Date-time ID string
-NORD
 AMPFL000 0 / Flat amplitude subtracted, by order
 AMPFL001 0 / Flat amplitude subtracted, by order
 AMPFL002 0 / Flat amplitude subtracted, by order
@@ -387,10 +385,6 @@ RCC 0 / Redshift from Mgb order x-correl
 WIDCC 0 / Width of x-correl peak (km/s)
 AMPCC 0 / Amplitude of x-correl peak
 RVCC 0 / [km/s] Bary corrected cross-correl RV
-CRPIX1 0 / Velocity lag zero pixel
-CRVAL1 0 / Velocity lag zero pix value (km/s)
-CDELT1 0 / Velocity lag increment (km/s)
-CTYPE1 0 / Velocity lag increment type
 ZBLKAVG 0 / Avg block redshift rel to xcorrel
 ZBLKMED 0 / Median of block redshift rel to xcorrel
 ZBLKERR 0 / Formal error of REDSHA0
