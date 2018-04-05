@@ -1,4 +1,4 @@
-FORMAT OF NRES PIPELINE OUTPUT FILES    9 Mar 2018
+FORMAT OF NRES PIPELINE OUTPUT FILES    5 Apr 2018
 
 
 Stellar spectrum output data files produced by the NRES reduction pipeline
@@ -45,20 +45,34 @@ Extn #,name     Data contents             Header keywords
                                  whole: instrument config, dates, scheduling
                                  info, names of calib frames used, weather info,
                                  instrument setup info, spectrograph environment
-                                 readings.
+                                 readings.  Data unique to this star spectrum:  
+                                 Telescope RA, Dec, Object name, total fluxes for 
+                                 star and ThAr, telescope lat, long.
+                                 NORD, per-order scaling factor AMPFLxx applied
+                                 to the flat field calibration before sub-
+                                 tracting from the raw extracted spectrum.
+                                 Wavelength solution parameters (SINALP, FL,
+                                 Y0, Z0), polynomial correction coeffs
+                                 C0 to C14, between-fiber correctopm coeffs
+                                 FIBC0 to FIBC9, name of ThAr line catalog file.
+                                 Cross-correl peak width (km/s) and height,
+                                 RCC = redshift of peak relative to template
+                                 RVCC = redshift (km/s) rel to barycenter
+                                 Robust average, median, formal errors for
+                                 per-block redshifts.
 
-1: SPECRAW   Raw extracted star  Data unique to this star spectrum:  Telescope
-             spectrum (nx,nord)  RA, Dec, Object name, total fluxes for star
-             (float)             and ThAr, telescope lat, long.
+1: SPECRAW   Raw extracted star  Nothing of interest.
+             spectrum (nx,nord)  
+             (float)            
 
 2: SPECFLAT  Flat-fielded        Nothing of interest.
              extracted star
              spectrum (nx,nord)
              (float)
 
-3: SPECBLAZE Blaze-subtracted    NORD, per-order scaling factor AMPFLxx applied
-             extracted star      to the flat field calibration before sub-
-             spectrum (nx,nord)  tracting from the raw extracted spectrum.
+3: SPECBLAZE Blaze-subtracted    Nothing of interest.
+             extracted star      
+             spectrum (nx,nord)  
              (float)
 
 4: THARRAW   Raw extracted ThAr  Nothing of interest.
@@ -78,23 +92,23 @@ Extn #,name     Data contents             Header keywords
              carrying fiber
              (double)
 
-7: WAVETHAR  Wavelength solu-    Wavelength solution parameters (SINALP, FL,
-             tion [nm] vs        Y0, Z0), polynomial correction coeffs
-             (nx,nord) for the   C0 to C14, between-fiber correctopm coeffs
-             standard ThAr       FIBC0 to FIBC9, name of ThAr line catalog file.
+7: WAVETHAR  Wavelength solu-    Nothing of interest.
+             tion [nm] vs        
+             (nx,nord) for the   
+             standard ThAr       
              fiber (fiber 1)
              (double)
 
-8: SPECXCOR  Correlation fn      Cross-correl peak width (km/s) and height,
-             with template spec  RCC = redshift of peak relative to template
-             vs lag (km/s)       RVCC = redshift (km/s) rel to barycenter
-             (float)             lag (km/s) vs pixel index, in fits-standard
-                                 CRVAL1, CDELT1, CTYPE1, CRPIX1 format.
+8: SPECXCOR  Correlation fn      lag (km/s) vs pixel index, in fits-standard
+             with template spec  CRVAL1, CDELT1, CTYPE1, CRPIX1 format.
+             vs lag (km/s)       
+             (float)             
+                                 
 
-9: RVBLOCKFIT Redshift and       Robust average, median, formal errors for
-             related parameters  per-block redshifts, descriptive info about
-             per (order,block)   table columns.  PLDP = "photon-limited Doppler
-             from least-squares  precision."
+9: RVBLOCKFIT Redshift and       descriptive info about table columns.
+             related parameters  
+             per (order,block)   
+             from least-squares  
              fit, relative to
              RCC redshift
              (double, mostly)
