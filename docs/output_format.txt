@@ -48,7 +48,7 @@ Extn #,name     Data contents             Header keywords
                                  readings.  Data unique to this star spectrum:  
                                  Telescope RA, Dec, Object name, total fluxes for 
                                  star and ThAr, telescope lat, long.
-                                 NORD, per-order scaling factor AMPFLxx applied
+                                 NORD (number of orders), per-order scaling factor AMPFLxx applied
                                  to the flat field calibration before sub-
                                  tracting from the raw extracted spectrum.
                                  Wavelength solution parameters (SINALP, FL,
