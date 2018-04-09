@@ -179,7 +179,10 @@ def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
     else:
         flat1 = flats_2[(len(flats_2) + 1) //  2]
         flat2 = ''
+
     # run refine_trace on the main task queue
+    # Note that flat1 should have fibers 0,1 illuminated while flat2 should have 1,2
+    # The IDL pipeline seems to require this.
     run_refine_trace.apply_async(kwargs={'site': site, 'camera': camera, 'nres_instrument': nres_instrument,
                                          'data_reduction_root': settings.data_reduction_root,
                                          'input_flat1': flat1, 'input_flat2': flat2},
