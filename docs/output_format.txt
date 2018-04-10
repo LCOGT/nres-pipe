@@ -26,7 +26,8 @@ where
 Unpacking (tar -xzf file.tar.gz) each of these tar files yields a directory
 named after the observation, eg lscnrs01-fl09-20180307-0031-e91.  Each such
 directory will henceforth contain only 2 files:  the fpacked main data file  
-(eg lscnrs01-fl09-20180307-0031-e91.fits.fz)
+(eg lscnrs01-fl09-20180307-0031-e91.
+.fz)
 and the diagnostic plots pdf file
 (eg lscnrs01-fl09-20180307-0031-e91.pdf)
 
@@ -34,7 +35,7 @@ Running funpack on the main data file yields the main data file
 (eg lscnrs01-fl09-20180307-0031-e91.fits)
 
 
-Now the interesting part.  The main data file is a multi-extension fits
+Now the interesting part.  The main data file is a multi-extension FITS
 file containing 10 extensions.  The first of these is essentially only a
 header;  the last is a binary table extension.  All the rest are IMAGE
 extensions.  Their contents are as follows:
@@ -99,7 +100,7 @@ Extn #,name     Data contents             Header keywords
              fiber (fiber 1)
              (double)
 
-8: SPECXCOR  Correlation fn      lag (km/s) vs pixel index, in fits-standard
+8: SPECXCOR  Correlation fn      lag (km/s) vs pixel index, in FITS-standard
              with template spec  CRVAL1, CDELT1, CTYPE1, CRPIX1 format.
              vs lag (km/s)       
              (float)             
@@ -112,3 +113,722 @@ Extn #,name     Data contents             Header keywords
              fit, relative to
              RCC redshift
              (double, mostly)
+
+
+
+
+The FITS headers of all extensions of an example file are given below. Note that the key words have self-explaining  comments assocaited. 
+
+
+====> file lscnrs01-fl09-20171110-0037-e91.fits.fz (main) <====
+SIMPLE  =                    T / Written by IDL:  Tue Apr 10 20:05:19 2018
+BITPIX  =                   32 /
+NAXIS   =                    0 /
+EXTEND  =                    T / Extensions are permitted
+DATADICV= 'LCOGT-DIC.FITS-0.10.0' / Version number of the data dictionary
+HDRVER  = 'LCOGT-HDR-1.3.0'    / Version number of the headers
+ORIGIN  = 'LCOGT   '           / Organization responsible for the data
+SITEID  = 'lsc     '           / ID code of the Observatory site
+SITE    = 'LCOGT node at Cerro Tololo Inter-American Observatory' / Site name
+TELID   = 'igla    '           / ID code of the Telescope
+TELESCOP= 'nres01  '           / The Name of the Telescope
+OBSTYPE = 'TARGET  '           / Type ID for current observation
+FRAMENUM=                   38 / Running frame number
+MOLTYPE = 'N/A     '           / Molecule type
+MOLNUM  =                   12 / Molecule number
+MOLFRNUM=                    1 / Exposure number within molecule
+FRMTOTAL=                    1 / Total number of exposures within molecule
+ORIGNAME= 'lscnrs01-fl09-20171110-0037-e00' /Orignal raw filename
+RAWIMAGE= 'lsc1m00X-fl09-20171110-0038-e00.fits' / Fname written by Sinistro
+OBSTELEM= 'N/A     '           / Telemetry data
+TIMESYS = 'UTC     '           / Time system used
+DATE    = '2017-11-11'         / [UTC] Date this FITS file was written
+DATE-OBS= '2017-11-11T03:52:56.596' / [UTC] Start date and time of observation
+DAY-OBS = '20171110'           / [UTC] Date at start of local observing night
+UTSTART = '03:52:56.596'       / Start time of the observation
+UTSTOP  = '04:07:56.597'       / Finish time of the observation
+BJD     =        2458068.66170 / Exposure center barycen date
+MJD     =        58218.8366204 /Creation date
+MJD-OBS =        58068.1617029 /MJD of shutter open
+EXPTIME =              900.000 / [s] Exposure length
+INSTRUME= 'fl09    '           / Instrument used
+INSSTATE= 'OKAY    '           / The instrument status
+ICSVER  = 'issue-9890@0xf57f65d' / Version number of the ICS software
+CONFMODE= 'N/A     '           / Camera mode configuration
+CONFNAME= 'N/A     '           / The instrument configuration used
+DETECTOR= 'UNKNOWN '           / Detector type
+DETECTID= 'DB-53   '           / Detector serial number
+GAIN    =     2.17000007629395 / [electrons/count] Pixel gain
+RDNOISE =                 8.34 / [electrons/pixel] Read noise
+DARKCURR=                  0.0 / [electrons/pixel/s @ 200K] Dark current
+SATURATE=              55000.0 / [ADU] Saturation level
+MAXLIN  =              55000.0 / [ADU] Non-linearity level
+RDSPEED =                180.0 / [kpix/s] Readout speed used
+DETSIZE = '[1:0,1:0]'          / [pixel] Detector size
+AMPNAME = 'default '           / Amplifier name
+CCDSEC  = 'UNKNOWN '           / [pixel] Region of CCD read
+CCDSUM  = '1 1     '           / CCD on-chip summing/binning
+BIASSEC = '[4103:4160,1:4096]' / [binned pixel] Section of bias/overscan data
+DATASEC = '[1:4096,1:4096]'    / [binned pixel] Data section
+TRIMSEC = '[1:4096,1:4096]'    / [binned pixel] Section of useful data
+ROI     = 'UNKNOWN '           / [binned pixel] Region of interest or MULTIPLE
+DETSEC  = '[1:4096,1:4096]'    / [binned pixel] Section of useful data
+CCDXPIXE=             0.000015 / [m] Size of pixels
+CCDYPIXE=             0.000015 / [m] Size of pixels
+CCDSTEMP=                -90.0 / [deg C] CCD required temperature
+CCDATEMP=          -90.0019989 / [deg C] CCD actual temperature
+CCDSESIG=                  0.0 / [mK] CCD temp control servo error signal
+TAGID   = 'SCICOLLAB'          / Time Allocation Group ID
+USERID  = 'tbrown@lcogt.net'   / User ID
+PROPID  = 'KEY2017AB-002'      / Proposal ID
+GROUPID = 'Classify_1'         / Group ID
+OBSID   = 'UNSPECIFIED'        / Observation ID
+OBSNOTE = 'UNSPECIFIED'        / Observation Note
+SCHEDNAM= 'POND    '           / Name of scheduler in control
+TRACKNUM= '0000516096'         / Request DB tracking number
+REQNUM  = '0001320967'         / Request DB request number
+MOLUID  = '443357349'          / Molecule unique ID
+BLKTYPE = 'POND    '           / Group type
+BLKUID  = '197004831'          / Group unique ID
+BLKSDATE= '2017-11-11T03:28:40' / Block start date
+BLKEDATE= '2017-11-11T04:10:51' / Block end date
+BLKNOMEX= '2531.0  '           / [s] Block nominal exec time
+BLKMNPH = 'NaN     '           / Maximum lunar phase required
+BLKMNDST= '30.0    '           / Minimum lunar distance required
+BLKSEECO= 'NONE    '           / Minimum seeing required
+BLKTRNCO= 'NONE    '           / Minimum transparency required
+BLKAIRCO= '1.6     '           / Maximum airmass required
+SCHEDSEE= 'N/A     '           / [arcsec] Estimated seeing when group scheduled
+SCHEDTRN= 'NaN'            / [(0-1)] Estimated transparency when group scheduled
+TRIGGER = '        '           / External trigger ID
+RA      =    4.253786428238123 / [hours] RA where telescope is pointing
+DEC     =   -7.669839343705768 / [deg] Dec where telescope is pointing
+RADESYS = 'ICRS    '           /[FK5] Fundamental coord. system of the object
+RADIUS  =                  5.0 / [arcsec] Radius of observation on sky
+FOLDPORT= '1       '           / Fold mirror port
+L1IDBIAS= 'bias_lsc_nres01_fl09_20171111' /ID of bias frame used
+L1IDDARK= 'dark_lsc_nres01_fl09_20171111' /ID of bias frame used
+L1IDFLAT= 'flat_lsc_nres01_fl09_20171112' /ID of flat frame used
+L1IDTRAC= 'trace/TRAClsc0018099.90110.fits' /TRACE file
+L1IDTRIP= 'TRIPlsc2017316.73871.fits' / TRIPLE filename
+L1IDZER0= 'zero/ZEROlsc2017317.27425.fits' / ZERO name fib 0
+L1IDZER2= 'NULL    '           / ZERO name fib 2
+WMSSTATE= 'OKAY    '           / WMS system state
+WMSHUMID=   20.399999618530273 / [%] Current percentage humidity
+WMSTEMP =   16.399999618530273 / [deg C] External temperature
+WMSPRES =     834.198273074707 / [mbar] Atmospheric pressure
+WINDSPEE=    1.649999976158142 / [km/h] Windspeed
+WINDDIR =                235.0 / [deg E of N] Wind direction
+WMSRAIN = 'CLEAR   '           / Rain alert
+WMSMOIST=    256.8999938964844 / [mV] Moisture level
+WMSDEWPT=   -6.300000190734863 / [deg C] Dewpoint
+WMSCLOUD=                -28.5 / [deg C] Boltwood sky temperature
+WMSSKYBR=     22.1200008392334 / [mag/arcsec^2] Measured sky brightness
+SKYMAG  =               22.0 / [mag/arcsec^2] Computed (expected) sky brightness
+COMMENT1= '---------------------------------------------------------------'
+CSTAG_MM=               -0.298 / [mm] Collimator stage position
+CSTAG_ET=               -94.0 / [encoder tics] Collimator stage encoder position
+CSTAG_PP=                  3.0 / Collimator stage motor pole position
+FSTAG_MM=                  0.4 / [mm] Fiber stage position
+FSTAG_ET=                126.0 / [encoder tics] Fiber stage encoder position
+FSTAG_PP=                  1.0 / Fiber stage motor pole position
+COMMENT2= '---------------------------------------------------------------'
+SHUTTER0= 'open    '           / Cal out AGU A shutter
+SHUTTER1= 'closed  '           / Cal out AGU B shutter
+SHUTTER2= 'open    '           / Cal out spec shutter
+SHUTTER3= 'closed  '           / ThAr Master shutter
+SHUTTER4= 'open    '           / ThAr Slave shutter
+SHUTTER5= 'closed  '           / Tungsten Halogen shutter
+SHUTTER6= 'closed  '           / Spare shutter (not used)
+SHUTTER7= 'closed  '           / Spectrograph input shutter
+NDANGLE =                287.1 / deg Angle of neutral density filter
+NDZERO  =              -319.05 / Diff between motor home and ND=0
+AGU1POSN= 'CALIBRATION'        / NRES AGU 1 wheel position
+AGU2POSN= 'CALIBRATION'        / NRES AGU 2 wheel position
+COMMENT3= '---------------------------------------------------------------'
+OUTLET01= 'On      '           / TC-PSU
+OUTLET02= 'On      '           / Exposure Meter Cooler
+OUTLET03= 'Off     '           / ThAr Master Lamp
+OUTLET04= 'Off     '           / Datataker-bench
+OUTLET05= 'Off     '           / Outlet 5 status
+OUTLET06= 'Off     '           / 1ch meerstetter
+OUTLET07= 'Off     '           / Outlet 7 status
+OUTLET08= 'On      '           / Sinistro Power Supply
+OUTLET09= 'On      '           / Cradle Ethernet Switch
+OUTLET10= 'On      '           / ThAr Slave Lamp
+OUTLET11= 'Off     '           / Tungsten Halogen Lamp
+OUTLET12= 'Off     '           / Raspberry pi)
+OUTLET13= 'Off     '           / Channel 13 status
+OUTLET14= 'Off     '           / SJJ ThAr PSU
+OUTLET15= 'Off     '           / Channel 15 status
+OUTLET16= 'On      '           / Cradle Long Crate
+COMMENT4= '---------------------------------------------------------------'
+CLKMODE =                    2 / Sinistro Readout Mode
+AMPMASK =                    1 / Sinistro Active Amplifier Mask
+COMMENT5= '---------------------------------------------------------------'
+IGLSTEMP= '22.39   '           / [deg C] Igloo air set-temperature
+IGLATEMP= '22.39   '           / [deg C] Igloo air actual temperature
+IGLERROR= 'TRUE    '           / Igloo error condition indicator
+IGLFAULT= 'TRUE    '           / Igloo fault condition indicator
+NRESTEMP= 'N/A     '           / [degC] NRES spectrograph temperature
+NRESPRES=            11.774949 / [PSI] NRES spectrograph pressure
+OBJECTS = 'GJ166&thar&none'    / Concatenation of 3 fiber objects
+OBJECT  = 'GJ166   '
+TRACDY  =             -1.17686 /[pix] Y-shift of extraction traces
+PLDP    =        0.00000000000 / Star photon-limited doppler precision
+UT1-UTC =              0.27053 / [s] UT1-UTC
+POLARMOX=               0.1661 / [arcsec] Polar motion X
+POLARMOY=               0.2475 / [arcsec] Polar motion Y
+EOPSRC  = 'IERS BULL. A 2017/11/09' / Source of the EOP Values
+MOONSTAT= 'DOWN    '           / [UP] Moon position at obs start
+MOONFRAC=  0.46117558541166326 / [(0 - 1)] Lunar Illuminated Fraction
+MOONALT =   -22.83705100645622 / [deg] Lunar altitude
+SUNALT  =  -41.654591052742404 / [deg] Solar altitude
+EXTNAME = 'SPECTRUM'           / Extension Name
+CHECKSUM= 'anC3ak90akC0ak90'   / HDU checksum updated 2018-04-10T20:05:20
+DATASUM = '0       '           / data unit checksum updated 2018-04-10T20:05:20
+O_BZERO =                32768 / Original BZERO Value
+NFRAVGD =                    1 /Avgd this many frames
+RLEVEL  =                   91 /Reduction level
+L1PUBDAT= '2018-11-11T03:52:56.596' /[UTC] Date the frame becomes public
+NELECTR0=          6.49775E+08 / Total electrons in stellar spectrum
+NELECTR1=          6.42586E+07 / Total electrons in ThAr spectrum
+LONG1   =       -70.8046611111 / [deg] Telescope 1 E. longitude
+LAT1    =       -30.1673305556 / [deg] Telescope 1 latitude
+HT1     =              2201.00 / [m] Telescope 1 elevation
+OBJ1    = 'GJ166   '           / Telescope 1 target name
+LONG2   =        0.00000000000 / [deg] Telescope 2 E. longitude
+LAT2    =        0.00000000000 / [deg] Telescope 2 latitude
+HT2     =        0.00000000000 / [m] Telescope 2 elevation
+OBJ2    = 'none    '           / Telescope 2 target name
+TEL1_RA =        63.8067833344 / [deg] Telescope 1 RA
+TEL2_RA =        355.445687501 / [deg] Telescope 2 RA
+TEL1_DEC=       -7.66983333323 / [deg] Telescope 1 Dec
+TEL2_DEC=       -1.35147499998 / [deg] Telescope 2 Dec
+NBLOCK  =                   12 / Number of wavelength blocks per order
+NFIB    =                    3 / Number of fibers into spectrograph
+NORD    =                   67 / Number of diffraction orders
+FIB0    =                    0 / Index of 1st illuminated fiber
+NX      =                 4096 / Number of pix along dispersion per order
+DATSTRNG= 'lsc2017315.16170'   / Date-time ID string
+AMPFL000=              5250.60 / Flat amplitude subtracted, by order
+AMPFL001=              6510.05 / Flat amplitude subtracted, by order
+AMPFL002=              6648.91 / Flat amplitude subtracted, by order
+AMPFL003=              7217.56 / Flat amplitude subtracted, by order
+AMPFL004=              7100.44 / Flat amplitude subtracted, by order
+AMPFL005=              7324.21 / Flat amplitude subtracted, by order
+AMPFL006=              7487.73 / Flat amplitude subtracted, by order
+AMPFL007=              8014.68 / Flat amplitude subtracted, by order
+AMPFL008=              8358.01 / Flat amplitude subtracted, by order
+AMPFL009=              7966.21 / Flat amplitude subtracted, by order
+AMPFL010=              7700.37 / Flat amplitude subtracted, by order
+AMPFL011=              7133.27 / Flat amplitude subtracted, by order
+AMPFL012=              6590.64 / Flat amplitude subtracted, by order
+AMPFL013=              6322.48 / Flat amplitude subtracted, by order
+AMPFL014=              6901.85 / Flat amplitude subtracted, by order
+AMPFL015=              6090.81 / Flat amplitude subtracted, by order
+AMPFL016=              6269.91 / Flat amplitude subtracted, by order
+AMPFL017=              5705.93 / Flat amplitude subtracted, by order
+AMPFL018=              5857.94 / Flat amplitude subtracted, by order
+AMPFL019=              5612.28 / Flat amplitude subtracted, by order
+AMPFL020=              5737.36 / Flat amplitude subtracted, by order
+AMPFL021=              5683.05 / Flat amplitude subtracted, by order
+AMPFL022=              5258.66 / Flat amplitude subtracted, by order
+AMPFL023=              5427.10 / Flat amplitude subtracted, by order
+AMPFL024=              5178.81 / Flat amplitude subtracted, by order
+AMPFL025=              5227.86 / Flat amplitude subtracted, by order
+AMPFL026=              5102.83 / Flat amplitude subtracted, by order
+AMPFL027=              4407.71 / Flat amplitude subtracted, by order
+AMPFL028=              4731.79 / Flat amplitude subtracted, by order
+AMPFL029=              4407.30 / Flat amplitude subtracted, by order
+AMPFL030=              4210.88 / Flat amplitude subtracted, by order
+AMPFL031=              3863.80 / Flat amplitude subtracted, by order
+AMPFL032=              3966.59 / Flat amplitude subtracted, by order
+AMPFL033=              3990.30 / Flat amplitude subtracted, by order
+AMPFL034=              3916.82 / Flat amplitude subtracted, by order
+AMPFL035=              4120.94 / Flat amplitude subtracted, by order
+AMPFL036=              4241.80 / Flat amplitude subtracted, by order
+AMPFL037=              4100.69 / Flat amplitude subtracted, by order
+AMPFL038=              3239.53 / Flat amplitude subtracted, by order
+AMPFL039=              3899.15 / Flat amplitude subtracted, by order
+AMPFL040=              3947.36 / Flat amplitude subtracted, by order
+AMPFL041=              3710.59 / Flat amplitude subtracted, by order
+AMPFL042=              3842.42 / Flat amplitude subtracted, by order
+AMPFL043=              3603.13 / Flat amplitude subtracted, by order
+AMPFL044=              3410.66 / Flat amplitude subtracted, by order
+AMPFL045=              3483.59 / Flat amplitude subtracted, by order
+AMPFL046=              3149.37 / Flat amplitude subtracted, by order
+AMPFL047=              2977.78 / Flat amplitude subtracted, by order
+AMPFL048=              2831.89 / Flat amplitude subtracted, by order
+AMPFL049=              2767.94 / Flat amplitude subtracted, by order
+AMPFL050=              2725.13 / Flat amplitude subtracted, by order
+AMPFL051=              2495.27 / Flat amplitude subtracted, by order
+AMPFL052=              2392.97 / Flat amplitude subtracted, by order
+AMPFL053=              2058.07 / Flat amplitude subtracted, by order
+AMPFL054=              1724.08 / Flat amplitude subtracted, by order
+AMPFL055=              1740.00 / Flat amplitude subtracted, by order
+AMPFL056=              1304.49 / Flat amplitude subtracted, by order
+AMPFL057=              1457.90 / Flat amplitude subtracted, by order
+AMPFL058=              1388.39 / Flat amplitude subtracted, by order
+AMPFL059=              1443.39 / Flat amplitude subtracted, by order
+AMPFL060=              1418.23 / Flat amplitude subtracted, by order
+AMPFL061=              1381.08 / Flat amplitude subtracted, by order
+AMPFL062=              1254.00 / Flat amplitude subtracted, by order
+AMPFL063=              1116.61 / Flat amplitude subtracted, by order
+AMPFL064=              1349.73 / Flat amplitude subtracted, by order
+AMPFL065=              567.836 / Flat amplitude subtracted, by order
+AMPFL066=              392.200 / Flat amplitude subtracted, by order
+AMPFL100=              0.00000 / Flat amplitude subtracted, by order
+AMPFL101=              0.00000 / Flat amplitude subtracted, by order
+AMPFL102=              0.00000 / Flat amplitude subtracted, by order
+AMPFL103=              0.00000 / Flat amplitude subtracted, by order
+AMPFL104=              0.00000 / Flat amplitude subtracted, by order
+AMPFL105=              0.00000 / Flat amplitude subtracted, by order
+AMPFL106=              0.00000 / Flat amplitude subtracted, by order
+AMPFL107=              0.00000 / Flat amplitude subtracted, by order
+AMPFL108=              0.00000 / Flat amplitude subtracted, by order
+AMPFL109=              0.00000 / Flat amplitude subtracted, by order
+AMPFL110=              0.00000 / Flat amplitude subtracted, by order
+AMPFL111=              0.00000 / Flat amplitude subtracted, by order
+AMPFL112=              0.00000 / Flat amplitude subtracted, by order
+AMPFL113=              0.00000 / Flat amplitude subtracted, by order
+AMPFL114=              0.00000 / Flat amplitude subtracted, by order
+AMPFL115=              0.00000 / Flat amplitude subtracted, by order
+AMPFL116=              0.00000 / Flat amplitude subtracted, by order
+AMPFL117=              0.00000 / Flat amplitude subtracted, by order
+AMPFL118=              0.00000 / Flat amplitude subtracted, by order
+AMPFL119=              0.00000 / Flat amplitude subtracted, by order
+AMPFL120=              0.00000 / Flat amplitude subtracted, by order
+AMPFL121=              0.00000 / Flat amplitude subtracted, by order
+AMPFL122=              0.00000 / Flat amplitude subtracted, by order
+AMPFL123=              0.00000 / Flat amplitude subtracted, by order
+AMPFL124=              0.00000 / Flat amplitude subtracted, by order
+AMPFL125=              0.00000 / Flat amplitude subtracted, by order
+AMPFL126=              0.00000 / Flat amplitude subtracted, by order
+AMPFL127=              0.00000 / Flat amplitude subtracted, by order
+AMPFL128=              0.00000 / Flat amplitude subtracted, by order
+AMPFL129=              0.00000 / Flat amplitude subtracted, by order
+AMPFL130=              0.00000 / Flat amplitude subtracted, by order
+AMPFL131=              0.00000 / Flat amplitude subtracted, by order
+AMPFL132=              0.00000 / Flat amplitude subtracted, by order
+AMPFL133=              0.00000 / Flat amplitude subtracted, by order
+AMPFL134=              0.00000 / Flat amplitude subtracted, by order
+AMPFL135=              0.00000 / Flat amplitude subtracted, by order
+AMPFL136=              0.00000 / Flat amplitude subtracted, by order
+AMPFL137=              0.00000 / Flat amplitude subtracted, by order
+AMPFL138=              0.00000 / Flat amplitude subtracted, by order
+AMPFL139=              0.00000 / Flat amplitude subtracted, by order
+AMPFL140=              0.00000 / Flat amplitude subtracted, by order
+AMPFL141=              0.00000 / Flat amplitude subtracted, by order
+AMPFL142=              0.00000 / Flat amplitude subtracted, by order
+AMPFL143=              0.00000 / Flat amplitude subtracted, by order
+AMPFL144=              0.00000 / Flat amplitude subtracted, by order
+AMPFL145=              0.00000 / Flat amplitude subtracted, by order
+AMPFL146=              0.00000 / Flat amplitude subtracted, by order
+AMPFL147=              0.00000 / Flat amplitude subtracted, by order
+AMPFL148=              0.00000 / Flat amplitude subtracted, by order
+AMPFL149=              0.00000 / Flat amplitude subtracted, by order
+AMPFL150=              0.00000 / Flat amplitude subtracted, by order
+AMPFL151=              0.00000 / Flat amplitude subtracted, by order
+AMPFL152=              0.00000 / Flat amplitude subtracted, by order
+AMPFL153=              0.00000 / Flat amplitude subtracted, by order
+AMPFL154=              0.00000 / Flat amplitude subtracted, by order
+AMPFL155=              0.00000 / Flat amplitude subtracted, by order
+AMPFL156=              0.00000 / Flat amplitude subtracted, by order
+AMPFL157=              0.00000 / Flat amplitude subtracted, by order
+AMPFL158=              0.00000 / Flat amplitude subtracted, by order
+AMPFL159=              0.00000 / Flat amplitude subtracted, by order
+AMPFL160=              0.00000 / Flat amplitude subtracted, by order
+AMPFL161=              0.00000 / Flat amplitude subtracted, by order
+AMPFL162=              0.00000 / Flat amplitude subtracted, by order
+AMPFL163=              0.00000 / Flat amplitude subtracted, by order
+AMPFL164=              0.00000 / Flat amplitude subtracted, by order
+AMPFL165=              0.00000 / Flat amplitude subtracted, by order
+AMPFL166=              0.00000 / Flat amplitude subtracted, by order
+SINALP  =       0.971752791943 / Sin of echelle incidence angle
+FL      =        375.148150860 / [mm] Camera focal length
+Y0      =       -22.1609437182 / [mm] y-position on CCD where gamma=0
+Z0      =    0.000267987291401 / Air (n-1) refractive index in spectrograph
+C00     =           0.00340326 / Fiber 1 coefs(0)
+C01     =          -0.00187633 / Fiber 1 coefs(1)
+C02     =           -0.0360488 / Fiber 1 coefs(2)
+C03     =          -0.00910170 / Fiber 1 coefs(3)
+C04     =            0.0450354 / Fiber 1 coefs(4)
+C05     =             0.143455 / Fiber 1 coefs(5)
+C06     =            0.0336166 / Fiber 1 coefs(6)
+C07     =          -0.00217271 / Fiber 1 coefs(7)
+C08     =           -0.0308000 / Fiber 1 coefs(8)
+C09     =            0.0301350 / Fiber 1 coefs(9)
+C10     =          -0.00449405 / Fiber 1 coefs(10)
+C11     =            0.0134021 / Fiber 1 coefs(11)
+C12     =          -0.00732926 / Fiber 1 coefs(12)
+C13     =          -0.00803556 / Fiber 1 coefs(13)
+C14     =          -0.00622579 / Fiber 1 coefs(14)
+FIBC0   =        5.99252653122 / Star fiber fibcoef0
+FIBC1   =       0.174400657415 / Star fiber fibcoef1
+FIBC2   =    0.000944467145018 / Star fiber fibcoef2
+FIBC3   =    2.29340348596E-05 / Star fiber fibcoef3
+FIBC4   =     0.00153816898819 / Star fiber fibcoef4
+FIBC5   =    1.20484585864E-07 / Star fiber fibcoef5
+FIBC6   =    1.24920561007E-07 / Star fiber fibcoef6
+FIBC7   =    2.96445468173E-09 / Star fiber fibcoef7
+FIBC8   =    3.92722443107E-12 / Star fiber fibcoef8
+FIBC9   =    9.24733649299E-06 / Star fiber fibcoef9
+THARLIST= 'mtchThAr.txt'       / Name of ThAr lines catalog file
+LAMCENR =        819.302627259 / [nm] Center lam of red order
+LAMCENG =        518.420809109 / [nm] Center lam of green order
+LAMCENB =        415.800943616 / [nm] Center lam of blue order
+LAMRANR =        12.1490000754 / [nm] Lambda range of red order
+LAMRANG =        5.60080654574 / [nm] Lambda range of green order
+LAMRANB =        2.47648319861 / [nm] Lambda range of blue order
+RCC     =   -0.000152488163996 / Cross-Corr redshift
+WIDCC   =              16.2292 / Cross-Corr width (km/s)
+AMPCC   =             0.396464 / Cross-Corr peak height
+RVCC    =       -40.6405861234 / [km/s] Bary corrected cross-correl RV
+ZBLKAVG =    2.49009940936E-06 / Avg blockfit redshift
+ZBLKMED =    3.45800294167E-06 / Median blockfit redshift
+ZBLKERR =      0.0129685827539 / Blockfit redshift formal err
+END
+===> xtension 1
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =               274220 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(4752)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'SPECRAW '           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  722 / dithering offset when quantizing floats
+CHECKSUM= '6q4b6n4Z6n4b6n4Z'   / HDU checksum updated 2018-04-10T20:05:20
+DATASUM = '2565596449'         / data unit checksum updated 2018-04-10T20:05:20
+END
+===> xtension 2
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =               272747 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(4726)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'SPECFLAT'           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  728 / dithering offset when quantizing floats
+CHECKSUM= 'gXLagVJXgVJagVJW'   / HDU checksum updated 2018-04-10T20:05:20
+DATASUM = '78098794'           / data unit checksum updated 2018-04-10T20:05:20
+END
+===> xtension 3
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =               278386 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(4820)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'SPECBLAZE'          /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  733 / dithering offset when quantizing floats
+CHECKSUM= '5g5aAd4V5d4aAd4U'   / HDU checksum updated 2018-04-10T20:05:21
+DATASUM = '3053434364'         / data unit checksum updated 2018-04-10T20:05:21
+END
+===> xtension 4
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =               306746 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(4726)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'THARRAW '           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  739 / dithering offset when quantizing floats
+CHECKSUM= 'ViiEXZfBVffBVZfB'   / HDU checksum updated 2018-04-10T20:05:21
+DATASUM = '3643095712'         / data unit checksum updated 2018-04-10T20:05:21
+END
+===> xtension 5
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =               310725 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(4765)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'THARFLAT'           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  744 / dithering offset when quantizing floats
+CHECKSUM= 'oaQTqVPSoZPSoZPS'   / HDU checksum updated 2018-04-10T20:05:22
+DATASUM = '3784494396'         / data unit checksum updated 2018-04-10T20:05:22
+END
+===> xtension 6
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   32 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =              1730067 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    4 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(0)  '           / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -64 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'WAVESPEC'           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  749 / dithering offset when quantizing floats
+TTYPE4  = 'GZIP_COMPRESSED_DATA' / label for field
+TFORM4  = '1PB(26020)'         / format of field
+CHECKSUM= 'jUgAkUg6jUgAjUg3'   / HDU checksum updated 2018-04-10T20:05:22
+DATASUM = '907065661'          / data unit checksum updated 2018-04-10T20:05:22
+END
+===> xtension 7
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   32 / width of table in bytes
+NAXIS2  =                   67 / number of rows in table
+PCOUNT  =              1731269 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    4 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(0)  '           / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                 4096 / size of tiles to be compressed
+ZTILE2  =                    1 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -64 /
+ZNAXIS  =                    2 /
+ZNAXIS1 =                 4096 /
+ZNAXIS2 =                   67 /
+EXTNAME = 'WAVETHAR'           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  785 / dithering offset when quantizing floats
+TTYPE4  = 'GZIP_COMPRESSED_DATA' / label for field
+TFORM4  = '1PB(26013)'         / format of field
+CHECKSUM= '9JifEIhe9IheCIhe'   / HDU checksum updated 2018-04-10T20:05:28
+DATASUM = '1359539948'         / data unit checksum updated 2018-04-10T20:05:28
+END
+===> xtension 8
+XTENSION= 'BINTABLE'           / binary table extension
+BITPIX  =                    8 / 8-bit bytes
+NAXIS   =                    2 / 2-dimensional binary table
+NAXIS1  =                   24 / width of table in bytes
+NAXIS2  =                    1 / number of rows in table
+PCOUNT  =                 1337 / size of special data area
+GCOUNT  =                    1 / one data group (required keyword)
+TFIELDS =                    3 / number of fields in each row
+TTYPE1  = 'COMPRESSED_DATA'    / label for field   1
+TFORM1  = '1PB(1337)'          / data format of field: variable length array
+TTYPE2  = 'ZSCALE  '           / label for field   2
+TFORM2  = '1D      '           / data format of field: 8-byte DOUBLE
+TTYPE3  = 'ZZERO   '           / label for field   3
+TFORM3  = '1D      '           / data format of field: 8-byte DOUBLE
+ZIMAGE  =                    T / extension contains compressed image
+ZTILE1  =                  801 / size of tiles to be compressed
+ZCMPTYPE= 'RICE_1  '           / compression algorithm
+ZNAME1  = 'BLOCKSIZE'          / compression block size
+ZVAL1   =                   32 / pixels per block
+ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+ZVAL2   =                    4 / bytes per pixel (1, 2, 4, or 8)
+ZTENSION= 'IMAGE   '           /
+ZBITPIX =                  -32 /
+ZNAXIS  =                    1 /
+ZNAXIS1 =                  801 /
+CRPIX1  =                    1 /pixel index corresp to CRVAL1
+CRVAL1  =       -442.044189453 /minimum lag value (km/s)
+CDELT1  =       0.991130485535 /lag increment (km/s per pix)
+CTYPE1  = 'PIXEL   '           /index type for lags
+EXTNAME = 'SPECXCOR'           /
+ZQUANTIZ= 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+HISTORY Image was compressed by CFITSIO using scaled integer quantization:
+HISTORY   q = 64.000000 / quantized level scaling parameter
+HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm
+ZDITHER0=                  822 / dithering offset when quantizing floats
+CHECKSUM= '83X3A1W311W381W3'   / HDU checksum updated 2018-04-10T20:05:34
+DATASUM = '795673150'          / data unit checksum updated 2018-04-10T20:05:34
+END
+===> xtension 9
+XTENSION= 'BINTABLE'           / Written by IDL:  Tue Apr 10 20:05:20 2018
+BITPIX  =                    8 /
+NAXIS   =                    2 / Binary table
+NAXIS1  =                51456 / Number of bytes per row
+NAXIS2  =                    1 / Number of rows
+PCOUNT  =                    0 / Random parameter count
+GCOUNT  =                    1 / Group count
+TFIELDS =                    9 / Number of columns
+EXTNAME = 'RVBLOCKFIT'         / Extension name
+TFORM1  = '804D    '           / Real*8 (double precision)
+TTYPE1  = 'ZBLOCK  '           / redshift of block rel to xcorrel
+TDIM1   = '(67,12) '           / Array dimensions for column 1
+TFORM2  = '804D    '           / Real*8 (double precision)
+TTYPE2  = 'ERRZBLOCK'          / formal error of zblock
+TDIM2   = '(67,12) '           / Array dimensions for column 2
+TFORM3  = '804D    '           / Real*8 (double precision)
+TTYPE3  = 'SCALE   '           / scale factor for block
+TDIM3   = '(67,12) '           / Array dimensions for column 3
+TFORM4  = '804D    '           / Real*8 (double precision)
+TTYPE4  = 'ERRSCALE'           / formal error of scale for  block
+TDIM4   = '(67,12) '           / Array dimensions for column 4
+TFORM5  = '804D    '           / Real*8 (double precision)
+TTYPE5  = 'LX1COEF '           / Lx1 coeff for block
+TDIM5   = '(67,12) '           / Array dimensions for column 5
+TFORM6  = '804D    '           / Real*8 (double precision)
+TTYPE6  = 'ERRLX1  '           / formal error for Lx1 coeff
+TDIM6   = '(67,12) '           / Array dimensions for column 6
+TFORM7  = '804D    '           / Real*8 (double precision)
+TTYPE7  = 'PLDP    '           / PLDP for block
+TDIM7   = '(67,12) '           / Array dimensions for column 7
+TFORM8  = '804J    '           / Integer*4 (long integer)
+TTYPE8  = 'BLKINDX '           / block index
+TFORM9  = '804J    '           / Integer*4 (long integer)
+TTYPE9  = 'ORDINDX '           / order index
+CHECKSUM= '5h8Z6f5Y5f5Y5f5Y'   / HDU checksum updated 2018-04-10T20:05:34
+DATASUM = '254629515'          / data unit checksum updated 2018-04-10T20:05:34
+END
+
+
+
