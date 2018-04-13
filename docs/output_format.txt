@@ -6,7 +6,7 @@ will soon have a new format.  We hope this will be both more accurate, more
 complete, and easier to use.
 
 Unpacking data sets from the archive will continue to be tedious, as described
-immediately below.  Sorry about that.
+immediately below.
 
 Data from the archive arrive in a zipped file named for the date of the
 transfer, and the number of files contained, eg lcogtdata-20180308-6.
