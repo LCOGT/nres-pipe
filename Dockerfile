@@ -80,6 +80,11 @@ WORKDIR /usr/src/pypdf2
 
 RUN python setup.py install
 
+RUN yum -y install xorg-x11-server-Xvfb \
+        && yum -y clean all
+
+ENV DISPLAY=":99"
+
 COPY . /nres/code/
 
 WORKDIR /nres/code
