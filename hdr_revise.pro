@@ -40,8 +40,8 @@ sxdelpar,hdr0,'F2SOURCE'
 
 ; if FIB0=0, then rename all AMPFL0xx keywords to AMPFLxx, remove all AMPFL1xx
 ; if FIB0=1, then rename all AMPFL1xx keywords to AMPFLxx, remove all AMPFL0xx
-fib0=sxpar(hdr1,'FIB0')
-nord=sxpar(hdr1,'NORD')
+fib0=sxpar(hdr0,'FIB0')
+nord=sxpar(hdr0,'NORD')
 ampfl='AMPFL'
 for i=0,nord-1 do begin
   strord=string(i,format='(i02)')
@@ -54,8 +54,8 @@ for i=0,nord-1 do begin
     namnew='AMPFL'+strord
     namr='AMPFL0'+strord
   endelse
-  sxdelpar,hdr3,namr
-  keyword_rename,hdr3,namold,namnew
+  sxdelpar,hdr0,namr
+  keyword_rename,hdr0,namold,namnew
 endfor
    
 ; rebuild header structure for output

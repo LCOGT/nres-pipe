@@ -200,6 +200,8 @@ sxaddpar,hdr1,'BITPIX',-32
 sxaddpar,hdr1,'NAXIS',2
 sxaddpar,hdr1,'NAXIS1',nx
 sxaddpar,hdr1,'NAXIS2',nord
+sxaddpar,hdr1,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr1,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr1,'EXTNAME',specnames(0)
 writefits,output_filename,extr,hdr1,/append
 
@@ -209,6 +211,8 @@ sxaddpar,hdr2,'BITPIX',-32
 sxaddpar,hdr2,'NAXIS',2
 sxaddpar,hdr2,'NAXIS1',nx
 sxaddpar,hdr2,'NAXIS2',nord
+sxaddpar,hdr2,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr2,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr2,'EXTNAME',specnames(1)
 writefits,output_filename,spec,hdr2,/append
 
@@ -218,6 +222,8 @@ sxaddpar,hdr3,'BITPIX',-32
 sxaddpar,hdr3,'NAXIS',2
 sxaddpar,hdr3,'NAXIS1',nx
 sxaddpar,hdr3,'NAXIS2',nord
+sxaddpar,hdr3,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr3,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr3,'EXTNAME',specnames(2)
 writefits,output_filename,blaz,hdr3,/append
 
@@ -227,6 +233,8 @@ sxaddpar,hdr4,'BITPIX',-32
 sxaddpar,hdr4,'NAXIS',2
 sxaddpar,hdr4,'NAXIS1',nx
 sxaddpar,hdr4,'NAXIS2',nord
+sxaddpar,hdr4,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr4,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr4,'EXTNAME',tharnames(0)
 writefits,output_filename,thar_i,hdr4,/append
 
@@ -236,6 +244,8 @@ sxaddpar,hdr5,'BITPIX',-32
 sxaddpar,hdr5,'NAXIS',2
 sxaddpar,hdr5,'NAXIS1',nx
 sxaddpar,hdr5,'NAXIS2',nord
+sxaddpar,hdr5,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr5,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr5,'EXTNAME',tharnames(1)
 writefits,output_filename,thar_f,hdr5,/append
 
@@ -245,6 +255,8 @@ sxaddpar,hdr6,'BITPIX',-64
 sxaddpar,hdr6,'NAXIS',2
 sxaddpar,hdr6,'NAXIS1',nx
 sxaddpar,hdr6,'NAXIS2',nord
+sxaddpar,hdr6,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr6,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr6,'EXTNAME',wavenames(0)
 writefits,output_filename,wavspec,hdr6,/append
 
@@ -254,6 +266,8 @@ sxaddpar,hdr7,'BITPIX',-64
 sxaddpar,hdr7,'NAXIS',2
 sxaddpar,hdr7,'NAXIS1',nx
 sxaddpar,hdr7,'NAXIS2',nord
+sxaddpar,hdr7,'PCOUNT',0,'Required keyword'
+sxaddpar,hdr7,'GCOUNT',1,'Required keyword'
 sxaddpar,hdr7,'EXTNAME',wavenames(1)
 writefits,output_filename,wavthar,hdr7,/append
 
@@ -264,6 +278,8 @@ sxaddpar,hdrxc,'XTENSION','IMAGE',before='CRPIX1'
 sxaddpar,hdrxc,'BITPIX',-32,before='CRPIX1'
 sxaddpar,hdrxc,'NAXIS',1,before='CRPIX1'
 sxaddpar,hdrxc,'NAXIS1',nxc,before='CRPIX1'
+sxaddpar,hdrxc,'PCOUNT',0,'Required keyword',before='CRPIX1'
+sxaddpar,hdrxc,'GCOUNT',1,'Required keyword',before='CRPIX1'
 sxaddpar,hdrxc,'EXTNAME','SPECXCOR'
 writefits,output_filename,xcorr,hdrxc,/append
 
@@ -337,6 +353,11 @@ endforeach
 combine_plot_files, reduced_name
 
 ;write_readme_file, file_search('*')
+
+;######## testing
+print,'waiting....'
+wait,5
+;##############
 
 cd, '..'
 ;cmd3='tar --warning=no-file-changed -czf '+reduced_name+'.tar.gz '+reduced_name

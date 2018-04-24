@@ -242,10 +242,10 @@ if(~keyword_set(flatk)) then begin
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
-  sxaddpar,hdr,'TEL1_RA',tel1dat.ra
-  sxaddpar,hdr,'TEL2_RA',tel2dat.ra
-  sxaddpar,hdr,'TEL1_DEC',tel1dat.dec
-  sxaddpar,hdr,'TEL2_DEC',tel2dat.dec
+  sxaddpar,hdr,'TEL1_RA',tel1dat.ra,'[deg] RA where Telescope 1 is pointing'
+  sxaddpar,hdr,'TEL2_RA',tel2dat.ra,'[deg] RA where Telescope 2 is pointing'
+  sxaddpar,hdr,'TEL1_DEC',tel1dat.dec,'[deg] DEC where Telescope 1 is pointing'
+  sxaddpar,hdr,'TEL2_DEC',tel2dat.dec,'[deg] DEC where Telescope 2 is pointing'
   sxaddpar,hdr,'NBLOCK',specdat.nblock
   sxaddpar,hdr,'NFIB',specdat.nfib
   sxaddpar,hdr,'NORD',specdat.nord
@@ -253,7 +253,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NX',specdat.nx
   sxaddpar,hdr,'DATESTRD',datestrd
   sxaddpar,hdr,'L1IDTRAC',tracefile,'TRACE file'
-  sxaddpar,hdr,'RADESYS',sxpar(tel1hdr,'RADESYS'),'[FK5] Fundamental coord. system of the object'
+  sxaddpar,hdr,'RADESYS',sxpar(tel1hdr,'RADESYS'),'[ICRS] Fundamental coord. system of the object'
   tarlist=[tarlist,nresrooti+'reduced/'+tracefile]
 
   writefits,specout,corspec,hdr

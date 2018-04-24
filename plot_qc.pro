@@ -212,7 +212,7 @@ for i=0,nplot-1 do begin
   loadct,coltab,/silent
 
   tit=datestrd
-  tit2=[' B-band',' B-band',' A-band',' A-band']
+  tit2=[' Telluric B-band',' Telluric B-band',' Telluric A-band',' Telluric A-band']
   xtit='Wavelength (nm)'
   ytit='Flux (kADU)'
   lamline=[688.1829d0,688.57326d0,761.82397d0,762.30873d0]  ; line vac wavelengths
@@ -245,12 +245,12 @@ for i=0,nplot-1 do begin
 ; do the plots
   for j=0,1 do begin
     plot,plam0,pdat0,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
-      ytit=ytit,/xsty,/ysty,charsiz=1.
+      ytit=ytit,/xsty,/ysty,charsiz=0.9
     oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
   endfor
   for j=2,3 do begin
     plot,plam1,pdat1,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
-      ytit=ytit,/xsty,/ysty,charsiz=1.
+      ytit=ytit,/xsty,/ysty,charsiz=0.9
     oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
   endfor
 

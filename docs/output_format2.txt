@@ -1,0 +1,140 @@
+FORMAT OF NRES PIPELINE OUTPUT FILES    20 Apr 2018
+
+
+Stellar spectrum output data files produced by the NRES reduction pipeline
+will soon have a new format.  We hope this will be both more accurate, more
+complete, and easier to use.
+
+Data from the archive arrive in a form that depends on how you acquire it.
+Please refer to the archive documentation to understand differences between
+downloading your data via a web browser, or with a wget script, or one file
+at a time with a Python script, or perhaps other methods.  In any case the
+underlying data items are gzipped tar files, each corresponding to an 
+individual spectrum exposure.  These have names like
+   lscnrs01-fl09-20180307-0036-e91.tar.gz
+   lscnrs01-fl09-20180307-0037-e91.tar.gz
+where
+   lsc = the observing site: lsc=CTIO, elp=McDonald, cpt=SAAO, tlv=Wise
+   nrs0x = which spectrograph; NRES-0 to NRES-4
+   20180307 = The OBS-DATE date on which the observation was started
+      (This date rolls over at a different UT time for each site, such
+       that OBS-DATE is fixed during each night of observation.)
+   0036 = The nightly sequence number
+   e91 = A code for the reduction level.  e91 = reduced with Banzai pipeline
+
+Unpacking (tar -xzf file.tar.gz) each of these tar files yields a directory
+named after the observation, eg lscnrs01-fl09-20180307-0031-e91.  Each such
+directory will henceforth contain only 2 files:  the fpacked main data file  
+(eg lscnrs01-fl09-20180307-0031-e91.fits.fz)
+and the diagnostic plots pdf file
+(eg lscnrs01-fl09-20180307-0031-e91.pdf)
+
+Running funpack on the main data file yields the main data file
+(eg lscnrs01-fl09-20180307-0031-e91.fits)
+
+The main data file is a multi-extension fits
+file containing 10 extensions.  The first of these is essentially only a
+header;  the last is a binary table extension.  All the rest are IMAGE
+extensions.  Their contents are as follows:
+
+Extn #,name     Data contents             Header keywords
+
+0: --            None            Everything relating to the observation as a
+                                 whole: instrument config, dates, scheduling
+                                 info, names of calib frames used, weather info,
+                                 instrument setup info, spectrograph environment
+                                 readings.  Data unique to this star spectrum:  
+                                 Telescope RA, Dec, Object name, total fluxes of
+                                 star and ThAr, telescope lat, long.
+                                 NORD, per-order scaling factor AMPFLxxx applied
+                                 to the flat field calibration before sub-
+                                 tracting from the raw extracted spectrum.
+                                 Wavelength solution parameters (SINALP, FL,
+                                 Y0, Z0), polynomial correction coeffs
+                                 C0 to C14, between-fiber correctopm coeffs
+                                 FIBC0 to FIBC9, name of ThAr line catalog file.
+                                 Cross-correl peak width (km/s) and height,
+                                 RCC = redshift of peak relative to template
+                                 RVCC = redshift (km/s) rel to barycenter
+                                 Robust average, median, formal errors for
+                                 per-block redshifts.
+
+1: SPECRAW   Raw extracted star  Nothing of interest.
+             spectrum (NX,NORD)  
+             (float)            
+
+2: SPECFLAT  Flat-fielded        Nothing of interest.
+             extracted star
+             spectrum (NX,NORD)
+             (float).  This
+             spectrum is the
+             most nearly free
+             of instrumental
+             signatures, but
+             it is noisy near its
+             boundaries.
+
+3: SPECBLAZE Blaze-subtracted    Nothing of interest.
+             extracted star      
+             spectrum (NX,NORD)  
+             (float).  This
+             spectrum has simple
+             noise properties,
+             and is the one used
+             in radial velocity
+             estimation.
+
+4: THARRAW   Raw extracted ThAr  Nothing of interest.
+             spectrum (NX,NORD)
+             from calibration 
+             fiber (float)
+
+5: THARFLAT  Flat-fielded        Nothing of interest.
+             extracted ThAr
+             spectrum (NX,NORD)
+             (float)
+
+6: WAVESPEC  Wavelength solu-    Nothing of interest.
+             tion [nm] vs
+             (NX,NORD) for the
+             starlight-
+             carrying fiber
+             (double)
+
+7: WAVETHAR  Wavelength solu-    Nothing of interest.
+             tion [nm] vs        
+             (NX,NORD) for the   
+             standard ThAr       
+             fiber (fiber 1)
+             (double)
+
+8: SPECXCOR  Correlation fn      lag (km/s) vs pixel index, in fits-standard
+             with template spec  CRVAL1, CDELT1, CTYPE1, CRPIX1 format.
+             vs lag (km/s)       
+             (float)             
+                                 
+
+9: RVBLOCKFIT Redshift and       descriptive info about table columns.
+             related parameters  
+             per (order,block)   
+             from least-squares  
+             fit, relative to
+             RCC redshift
+             (double, mostly)
+             Data columns are:
+             ZBLOCK              Array of (NORDER,NBLOCK) values of
+                                 measured redshift relative to cross-correlation
+                                 redshift.  Units are dimensionless (velocity/c)
+             ERRZBLOCK           Formal error on ZBLOCK
+             SCALE               Estimated scale factor connecting intensity
+                                 in current spectrum to that in template
+                                 spectrum, by order and block. (dimensionless)
+             ERRSCALE            Formal error on SCALE
+             LX1COEF             Estimated zero-point shift between intensity
+                                 in current spectrum and in template spectrum,
+                                 by order and block.  Units are ADU.
+             ERRLX1              Formal error on LX1COEF
+             PLDP                Estimated Photon-Limited Doppler Precision
+                                 by order and block (km/s).
+             BLKINDX             Block index.  Range [0 - NBLOCK-1]
+             ORDINDX             Order index.  Range [0 - NORD-1]

@@ -1,4 +1,4 @@
-How to Interpret NRES Diagnostic Plots  5 Sep 2017
+How to Interpret NRES Diagnostic Plots 20 Apr 2018
 
 The NRES pipeline produces two diagnostic plots of 3 pp each.   These two
 plots are produced for every spectrum of type TARGET that is processed.
@@ -18,7 +18,8 @@ PLOT*.ps
 The first (PLOT*.ps) plot is intended as a near-duplicate of the "quick" plots
 produced for Dave Latham's TRES spectrograph. It is intended to help the user
 evaluate the quality of incoming spectra, and to judge some astrophysical
-characteristics of the target object.
+characteristics of the target object.  Note that wavelengths on these plots
+are shown in Angstrom (AA).
 
 p. 1, top panel:  This plot shows one order (order index=38, diffraction order
 = 89, containing the Mg b lines) of the observed spectrum (blue trace),
@@ -81,7 +82,18 @@ for revealing the failings of the flat-fielding process.
 PLQC*.ps
 The PLQC*.ps plots are intended to help in debugging the processes of spectrum
 extraction and wavelength solution.  Thus, they are more about hardware and
-software performance than about astronomy.
+software performance than about astronomy.  Note that wavelengths on these
+plots are shown in nm.
+
+Data filenames that appear in these plots use an internal naming convention 
+that reflects the UT date on which the observation was started.  The name 
+format is
+sssyyyyddd.fffff    where
+sss = site name, eg "lsc".
+yyy = UT year on which observation was started.
+ddd = UT cumulative day number (range 001-365) of observation
+.fffff = fractional day number (range .00000-.99999) on which the observation
+    was started.
 
 p. 1, top panel:  This plot shows extracted intensity (k ADU) vs wavelength (nm)
 for a somewhat redder order than the Mg b order.  For stars with relatively

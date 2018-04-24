@@ -1,0 +1,75 @@
+Description of TRACE calibration files for NRES  (DRAFT, 17 Apr 2018)
+
+
+General Description:
+To produce an extracted spectrum dimensioned (NX x NORD x NFIB) eg (4096,67,3)
+from an input NRES image (typically dimensioned (4096,4096), one requires
+the information from a TRACE file.  This file contains the information that
+specifies at which y-coordinates in the input image one expects light from each 
+x-coordinate, diffraction order, and fiber number.  More, it provides
+the shape of the cross-dispersion intensity profile as a function of the
+cross-dispersion pixel index dy (typical range 0-10), the order index (usual
+range 0-66), the fiber number (range 0-2), and the extraction block index
+(which specifies one of NBLOCK sets of contiguous x-pixels along the given
+order).  NBLOCK is the number of extraction blocks per order; this is specified
+in the spectrographs.csv file, so in principle can be set by the user.  A
+typical value is NBLOCK=12.  All of these data are packed into the 4-dimensional
+TRACE data array in an obscure way.  Someday it may make sense to consider
+recoding the routines that read and write TRACE files to make the files
+themselves more transparent.
+
+TRACE data format:
+A TRACE file is a FITS image file, containing a header and a 4-dimensional
+data array.  The header contains the following useful items:
+DATE     = The day on which the TRACE file was created.
+NX       = Number of x-pixels in the original detector, and in the extracted
+           spectra.
+NORD     = Number of diffraction orders for which spectra will be extracted
+           (typically 67).
+NFIB     = Number of fibers that *may* be illuminated for the current
+           spectrograph (normally 3).
+NBLOCK   = Number of extraction blocks per order (usually 12).  The number
+           of x-pixels per block is, modulo rounding, NX/NBLOCK ~= 341.
+NPOLY    = Number of Legendre polynomials used to parameterize y(x,order,fiber)
+           for each order and fiber (typically 7).
+ORDWIDTH = The requested cross-dispersion order width (in pix).  This is
+           specified in spectrographs.csv
+COWID    = The actual cross-dispersion width of the box used for extraction
+           (an integer), usually obtained by rounding ORDWIDTH up.
+MEDBOXSIZ= The size of the median-averaging box used in the background-
+           subtraction routine.  This is not essential to the TRACE data;
+           its presence in this header is an historical fluke. 
+FILE_IN  = The name of the first input file used to make the TRACE.  Normally
+           one wants two input files, one each illuminating fibers 0 and 2.
+           It is a bug that the 2nd input filename does not appear in the header
+
+The TRACE data array is dimensioned trace(COWID,NORD,NFIB,NBLOCK+1).
+
+The y-position of the center of the light distribution for each order, fiber,
+and x-coordinate is given by
+  y(x,iord,ifib) = Sum_j(trace(j,iord,ifib,0)*L_j(X))
+  where j runs from 0 to NPOLY-1, and
+  X is the x-coordinate, linearly scaled to span [-1.0,1.0].
+  The Legendre polynomials used here are scaled so that their values at the
+      domain endpoints are (+/-)1.0.
+Notice that this scheme only works if NPOLY is less or equal to COWID.
+Experience suggests this is not a problem; NPOLY=7 seems to work fine, and
+COWID really needs to be 10 or more.  This could become a problem if we
+bin by 2 across the dispersion, yielding COWID = 6 or so.
+
+The cross-dispersion light distribution curves (the "profiles") are stored in
+trace(*,*,*,1:NBLOCK).  Thus, the estimated profile corresponding to
+order=16, fiber=1, block=4 is given in trace(*,16,1,4).
+The profiles are computed on a block-by-block basis, to allow enough averaging
+over x-pixels to suppress the effects of low light (esp important for blue 
+orders), bad pixels, cosmic rays, etc.  When the code needs to compute a
+profile at a particular value of x, this is done by linear interpolation
+between adjacent blocks.  The profiles are normalized at each (iord,ifib,iblock)
+so that the sum over the cross-dispersion direction (the y-coordinate) is unity.
+
+The actual profile shapes should (almost) always appear vaguely gaussian, smooth
+with a peak very near the center (within +/- 1 pixel), and small values near
+the edges.  The only exceptions should be for the outermost blocks of blue
+orders, where there is no light to provide a profile estimate (and also no
+light in the spectrum to measure).  If cross-dispersion profiles look flat,
+or ragged, or significantly off-center, then something is wrong.

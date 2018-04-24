@@ -110,13 +110,27 @@ ccmo=fltarr(2,801)  ; cross-correl fn, vs velocity shift
 delvo=fltarr(2,801) ; indep var for ccmo, spans +/- 400 km/s
 rvvo=fltarr(2)      ; same as rcco, but in km/s units
 
+; get telescope coordinates
+tlat=[tel1dat.latitude,tel2dat.latitude]
+tlon=[tel1dat.longitude,tel2dat.longitude]   ; E longitude
+talt=[tel1dat.height,tel2dat.height]
+
 ; make rvred output structure, in case keyword nostar is set
 rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        bbo:bbo,ebbo:ebbo,pldpo:pldpo,ccmo:ccmo,delvo:delvo,rvvo:rvvo,$
        rcco:rcco,ampcco:ampcco,widcco:widcco,barycorr:baryshifts,$
        rvcco:rvcco}
 centtimes=expmred.expfwt
-bjdtdb_c=expmred.expfwt              ; ***temporary hack***
+
+;bjdtdb_c=expmred.expfwt              ; ***temporary hack***
+bjdtdb_c=dblarr(2)
+; compute bjd_tdb
+jd_utc=sxpar(dathdr,'MJD-OBS')+2400000.5d0
+for i=0,1 do begin
+  bjdtdb_c[i] = utc2bjd(jd_utc, targra[i], targdec[i], lat=tlat[i],$
+            lon=tlon[i], elevation=talt[i])
+endfor
+bjdo=bjdtdb_c             ; supposedly accurate to ~1ms
 
 if(keyword_set(nostar)) then goto,skipall
        
@@ -138,7 +152,8 @@ for i=0,1 do begin
     rcco(i)=rcc                   ; no correction for baryshifts at this point
     ampcco(i)=ampcc
     widcco(i)=widcc
-    bjdo(i)=sxpar(dathdr,'MJD-OBS')+2400000.5d0
+    
+;   bjdo(i)=sxpar(dathdr,'MJD-OBS')+2400000.5d0
     ccmo(i,*)=ccm
     delvo(i,*)=delv         ; x-coord vector for ccmo, in km/s
     rvvo(i)=rvv             ; shift of cross-correl peak, in km/s (no BC corr)
@@ -302,17 +317,17 @@ fxaddpar,hdr,'FIBZ0',fib0
 fxaddpar,hdr,'FIBZ1',fib1
 fxaddpar,hdr,'MJD-OBS',mjdd,'Data MJD'
 fxaddpar,hdr,'MJD',mjdc,'Creation date'
-fxaddpar,hdr,'L1IDZER0',zeronames(0),'ZERO name fib 0'
-fxaddpar,hdr,'L1IDZER2',zeronames(1),'ZERO name fib 2'
+fxaddpar,hdr,'L1IDZER0',zeronames(0),'ZERO name fiber 0'
+fxaddpar,hdr,'L1IDZER2',zeronames(1),'ZERO name fiber 2'
 
-fxaddpar,hdr,'RCC',rcco(fib0),'Cross-Corr redshift'
-fxaddpar,hdr,'WIDCC',widcco(fib0),'Cross-Corr width (km/s)'
+fxaddpar,hdr,'RCC',rcco(fib0),'Cross-Corr redshift RV/c'
+fxaddpar,hdr,'WIDCC',widcco(fib0),'[km/s] Cross-Corr width'
 fxaddpar,hdr,'AMPCC',ampcco(fib0),'Cross-Corr peak height'
 fxaddpar,hdr,'RVCC',rvcco(fib0),'[km/s] Bary corrected cross-correl RV'
-fxaddpar,hdr,'BJD',bjdo(fib0),'Exposure center barycen date'
-fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Avg blockfit redshift'
+fxaddpar,hdr,'BJD',bjdo(fib0),'[BJD_TDB] Exposure center barycen date'
+fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Average blockfit redshift'
 fxaddpar,hdr,'ZBLKMED',rrom(fib0),'Median blockfit redshift'
-fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal err'
+fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal error'
 fxaddpar,hdr,'PLDP',pldpav,'Star photon-limited doppler precision'
 
 ; write out the data as a fits extension table.

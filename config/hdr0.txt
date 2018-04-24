@@ -29,8 +29,6 @@ EXPTIME
 INSTRUME
 INSSTATE
 ICSVER  
-CONFMODE
-CONFNAME
 DETECTOR
 DETECTID
 GAIN    
@@ -79,7 +77,7 @@ TRIGGER
 RA      
 DEC     
 RADESYS 
-RADIUS  
+RADIUS 0 / [arcsec] Acquire on Brightest radius  
 FOLDPORT
 L1IDBIAS
 L1IDDARK
@@ -121,10 +119,10 @@ NREST31 0 / [degC] NRES chamber bottom temperature
 NREST32 0 / [degC] NRES chamber bottom temperature
 CSTAG_MM
 CSTAG_ET
-CSTAG_PP
+CSTAG_PP 0 / Collimator stage motor pole position (range 0-3)
 FSTAG_MM
 FSTAG_ET
-FSTAG_PP
+FSTAG_PP 0 / Fiber stage motor pole position (range 0-3)
 COMMENT2
 SHUTTER0
 SHUTTER1
@@ -193,13 +191,13 @@ RLEVEL
 L1PUBDAT
 NELECTR0  0  / Total electrons in stellar spectrum
 NELECTR1  0  / Total electrons in ThAr spectrum
-LONG1 0 / [deg] Telescope 1 E. longitude   
-LAT1  0 / [deg] Telescope 1 latitude    
-HT1   0 / [m] Telescope 1 elevation     
+LONG1 0 / [deg] Telescope 1 E. longitude (WGS84)   
+LAT1  0 / [deg] Telescope 1 latitude (WGS84)   
+HT1   0 / [m] Telescope 1 elevation (WGS84)    
 OBJ1  0 / Telescope 1 target name    
-LONG2 0 / [deg] Telescope 2 E. longitude   
-LAT2  0 / [deg] Telescope 2 latitude    
-HT2   0 / [m] Telescope 2 elevation     
+LONG2 0 / [deg] Telescope 2 E. longitude (WGS84)  
+LAT2  0 / [deg] Telescope 2 latitude (WGS84)   
+HT2   0 / [m] Telescope 2 elevation (WGS84)    
 OBJ2  0 / Telescope 2 target name    
 TEL1_RA 0 / [deg] Telescope 1 RA 
 TEL2_RA  0 / [deg] Telescope 2 RA 
