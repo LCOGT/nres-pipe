@@ -2,7 +2,7 @@
 Written by Allen B. Davis (c) 2018.
 Yale University.
 
-Last update: April 30, 2018.
+Last update: May 1, 2018.
 """
 
 import numpy as np
@@ -11,6 +11,7 @@ from scipy.signal import medfilt
 import collections
 import warnings
 import sys
+
 
 def trace(data,
           n_orders=67, reference_row=3500, reference_column=2000,
@@ -110,11 +111,11 @@ def trace(data,
     fiber_hunt_offset = 2 + column_halfwidth
     fiber_hunt_column_length = 20
     cent_init = centroids_init[reference_column]
-    candidate_1_indices, candidate_1_intensities = get_slice(data, reference_column,  # Blue side
+
+    candidate_1_indices, candidate_1_intensities = get_slice(data, reference_column,
                                                              lower_limit=cent_init + fiber_hunt_offset,
-                                                             upper_limit=cent_init + fiber_hunt_offset + fiber_hunt_column_length,
-                                                             smooth=7)
-    candidate_2_indices, candidate_2_intensities = get_slice(data, reference_column,  # Red side
+                                                             upper_limit=cent_init + fiber_hunt_offset + fiber_hunt_column_length, smooth=7)
+    candidate_2_indices, candidate_2_intensities = get_slice(data, reference_column,
                                                              lower_limit=cent_init - fiber_hunt_offset - fiber_hunt_column_length,
                                                              upper_limit=cent_init - fiber_hunt_offset, smooth=7)
 
@@ -146,15 +147,15 @@ def trace(data,
 
     # Create lists to hold fiber centroids.
     if polynomial_neighbor(reference_column) > p_init(reference_column):
-        red_fiber_centroids = collections.deque([centroids_init])
-        blue_fiber_centroids = collections.deque([centroids_neighbor])
-        red_polynomials = collections.deque([p_init])
-        blue_polynomials = collections.deque([polynomial_neighbor])
+        red_fiber_centroids = [centroids_init]
+        blue_fiber_centroids = [centroids_neighbor]
+        red_polynomials = [p_init]
+        blue_polynomials = [polynomial_neighbor]
     else:
-        red_fiber_centroids = collections.deque([centroids_neighbor])
-        blue_fiber_centroids = collections.deque([centroids_init])
-        red_polynomials = collections.deque([polynomial_neighbor])
-        blue_polynomials = collections.deque([p_init])
+        red_fiber_centroids = [centroids_neighbor]
+        blue_fiber_centroids = [centroids_init]
+        red_polynomials = [polynomial_neighbor]
+        blue_polynomials = [p_init]
 
     if debug_plot:
         cols = np.arange(data.shape[1])
@@ -220,13 +221,13 @@ def trace(data,
     row_indices, intensities = get_slice(data, reference_column, center=centroid, halfwidth=column_halfwidth)
     centroid = get_centroid(row_indices, intensities)
 
-    o_sep_init = int(np.round(centroid - blue_polynomials[0](reference_column)))
-    assert o_sep_init > 0, 'o_sep_init must be positive.'
+    order_separation_initial = int(np.round(centroid - blue_polynomials[0](reference_column)))
+    assert order_separation_initial > 0, 'order_separation_initial must be positive.'
 
     # Search for other orders
     n_found = 1
     direction = 'blue'
-    o_sep = o_sep_init
+    o_sep = order_separation_initial
     last_printed = 0
     switched_direction = False
     while n_found < n_orders:
@@ -239,19 +240,14 @@ def trace(data,
 
         f_sep = abs(blue_polynomials[previous_index](reference_column)
                     - red_polynomials[previous_index](reference_column))
-        print('f_sep: %d, o_sep: %d'%(f_sep, o_sep))
         cent_red, cent_blue, p_red, p_blue = find_next_order(data, previous_polynomial, direction, reference_column,
                                                              f_sep, o_sep, column_halfwidth, degree)
-        if p_red is not None:
-            print('p_red: %d'%p_red(2000))
-        if p_blue is not None:
-            print('p_blue: %d'%p_blue(2000))
 
         if p_red is None or p_blue is None:
             if not switched_direction:
                 # Change direction once we've exhausted the blue orders.
                 direction = 'red'
-                o_sep = o_sep_init
+                o_sep = order_separation_initial
                 switched_direction = True
                 continue
             else:
@@ -259,10 +255,10 @@ def trace(data,
                 break
 
         if direction == 'blue':
-            red_fiber_centroids.appendleft(cent_red)
-            blue_fiber_centroids.appendleft(cent_blue)
-            red_polynomials.appendleft(p_red)
-            blue_polynomials.appendleft(p_blue)
+            red_fiber_centroids.insert(0, cent_red)
+            blue_fiber_centroids.insert(0, cent_blue)
+            red_polynomials.insert(0, p_red)
+            blue_polynomials.insert(0, p_blue)
         else:
             red_fiber_centroids.append(cent_red)
             blue_fiber_centroids.append(cent_blue)
@@ -277,11 +273,8 @@ def trace(data,
 
         n_found += 1
 
-        if verbose:
-            last_printed = print_progress(n_found, last_printed, n_orders, report=1,
-                                          msg='Tracing orders... ', verbose=verbose)
-            print('{}/{}'.format(n_found, n_orders))
-            sys.stdout.flush()
+        last_printed = print_progress(n_found, last_printed, n_orders, report=10,
+                                      msg='Tracing orders... ', verbose=verbose)
 
     return red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials
 
@@ -442,7 +435,7 @@ def fit_polynomial(column_indices, row_indices, degree=4):
         valid_indices = ~np.isnan(row_indices)
         z = np.polyfit(column_indices[valid_indices], row_indices[valid_indices], deg=degree)
         poly = np.poly1d(z)
-    except (TypeError, ValueError) as e:
+    except (TypeError, ValueError):
         # Occurs when valid_indices is all False: i.e., no centroids are there to be traced,
         # or when one of the parameters is None.
         poly = None
@@ -460,7 +453,7 @@ def follow_fiber(data, start_row, start_col, halfwidth,
         The full frame image.
     start_col: int or float
         Index of the column for the first starting position along the fiber.
-    start_row: int
+    start_row: int or float
         Index of the row for the first starting position along the fiber.
     halfwidth: (opt) int
         The halfwidth of the slice. Fullwidth will be 1 + (halfwidth * 2).
@@ -583,7 +576,7 @@ def get_slice(data, column,
         Intensity values within the slice.
     """
 
-    if (smooth > 0 and smooth % 2 == 0):
+    if smooth > 0 and smooth % 2 == 0:
         smooth += 1
         warnings.warn('`smooth` should be an odd number. Increased value to {}.'.format(smooth))
 
@@ -634,7 +627,7 @@ def get_centroid(row_indices, column_intensities):
     """
     try:
         centroid = float(np.sum(column_intensities * row_indices)) / np.sum(column_intensities)
-    except (TypeError, ValueError) as e:
+    except (TypeError, ValueError):
         # Occurs when column_intensities and/or row_indices are None.
         centroid = None
     return centroid
@@ -655,8 +648,11 @@ def get_remove_background(arr):
         The array after background subtraction.
     """
 
-    min_value = np.min(arr)
-    array_no_background = arr - min_value
+    try:
+        min_value = np.min(arr)
+        array_no_background = arr - min_value
+    except ValueError:
+        array_no_background = None
 
     return array_no_background
 
@@ -684,8 +680,6 @@ def print_progress(i, last_printed, n_tot, report=10, msg='', verbose=False):
     -------
     last_printed: int
         The iteration of the loop that was last printed out, possibly updated by function.
-    percent_complete: str -> stdout
-        Prints the percentage progress through the loop to stdout when conditions are met.
 
     Notes
     -----
@@ -695,7 +689,8 @@ def print_progress(i, last_printed, n_tot, report=10, msg='', verbose=False):
     percent_complete = (100. * i / n_tot)
     if percent_complete - last_printed > report or percent_complete == 100:
         if verbose:
-            print('{msg}{percent_complete}%'.format(msg=msg, percent_complete=percent_complete))
+            print('{msg}{percent_complete:.1f}%'.format(msg=msg, percent_complete=percent_complete))
+            sys.stdout.flush()
         last_printed = percent_complete
 
     return last_printed
