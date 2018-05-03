@@ -143,6 +143,9 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
             unpacked_path2 = funpack(input_flat2, tempdir)
         else:
             unpacked_path2 = ''
+        
+        trace_orders.trace(input_flat1)  # fiber 1
+        trace_orders.trace(input_flat2)  # fiber 2
         run_idl('run_nres_trace_refine', [site, camera, unpacked_path1, unpacked_path2], data_reduction_root, site,
                 nres_instrument)
 

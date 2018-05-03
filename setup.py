@@ -28,5 +28,6 @@ setup(name='nrespipe',
                                         'nres_stack_calibrations=nrespipe.main:stack_nres_calibrations',
                                         'run_nres_beats=nrespipe.main:run_beats_scheduler',
                                         'run_nres_trace0=nrespipe.main:run_nres_trace0',
+                                        'run_nres_trace_orders=nrespipe.main:run_trace_orders',
                                         'run_nres_trace_refine=nrespipe.main:run_nres_trace_refine',
                                         'nres_sn=nrespipe.main:make_signal_to_noise_plot']})
