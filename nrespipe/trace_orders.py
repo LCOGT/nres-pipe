@@ -765,39 +765,6 @@ def get_initial_order_separation(image, red_peak, blue_polynomials, reference_co
 
     return order_separation_initial
 
-# FUNCTION IS PART OF UPGRADING TO CONTINUING THE BAFFLE CLIPPING ONCE THE STOP CONDITION BECOMES THE IMAGE EDGE.
-# def get_extremal_valid_index(array, side):
-#     """
-#     Finds the index for the left-most or right-most non-nan value in an array.
-#
-#     Parameters
-#     ----------
-#     array : 1D array
-#     side : str
-#         Valid values are 'left' and 'right'.
-#
-#     Returns
-#     -------
-#     extremal_index : int
-#     """
-#     if side == 'left':
-#         i_start = 0
-#         i_step = 1
-#     elif side == 'right':
-#         i_start = len(array) - 1
-#         i_step = -1
-#     else:
-#         warnings.warn("Unrecognized value for `side`: {side}. Should be 'left' or 'right'.".format(side=side))
-#         return None
-#
-#     extremal_index = i_start
-#     value = array[extremal_index]
-#     while not value == value:
-#         extremal_index += i_step
-#         value = array[extremal_index]
-#
-#     return extremal_index
-
 
 def print_progress(i, last_printed, n_tot, report=10, msg='', verbose=False):
     """
