@@ -85,33 +85,80 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
     of orders are found.
     """
 
-    # Make initial slice. Near the blue end.
     initial_row_indices, initial_column_intensities = get_slice(image, reference_column, center=reference_row,
                                                                 halfwidth=blind_search_column_length // 2, smooth=7)
-
-    # Find a point on an order
-    guess_row_indices, guess_column_intensities = guess_point(initial_row_indices, initial_column_intensities,
-                                                              percentile=guess_percentile)
-    plot_guess(image, initial_row_indices, initial_column_intensities, guess_row_indices, guess_column_intensities,
+    guess_row_index, guess_column_intensity = guess_point(initial_row_indices, initial_column_intensities,
+                                                          percentile=guess_percentile)
+    plot_guess(image, initial_row_indices, initial_column_intensities, guess_row_index, guess_column_intensity,
                reference_column, blind_search_column_length, debug_plots=debug_plots)
 
-    # Make another slice next to chosen pixel and centroid twice.
-    row_indices, intensities = get_slice(image, reference_column, center=guess_row_indices, halfwidth=column_halfwidth)
+    row_indices, intensities = get_slice(image, reference_column, center=guess_row_index, halfwidth=column_halfwidth)
     centroid = get_centroid(row_indices, intensities)
-    fig, ax = plot_column(row_indices, intensities, guess_row_indices, guess_column_intensities, centroid,
+    fig, ax = plot_column(row_indices, intensities, guess_row_index, guess_column_intensity, centroid,
                           debug_plots=debug_plots)
-
     row_indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=column_halfwidth)
     centroid = get_centroid(row_indices, intensities)
-    plot_column(row_indices, intensities, guess_row_indices, guess_column_intensities, centroid, fig=fig, ax=ax,
+    plot_column(row_indices, intensities, guess_row_index, guess_column_intensity, centroid, fig=fig, ax=ax,
                 debug_plots=debug_plots)
 
     centroids_initial = follow_fiber(image, centroid, reference_column, column_halfwidth)
-
-    # Fit polynomial to the centroids
     polynomial_initial = fit_polynomial(np.arange(image.shape[1]), centroids_initial, degree=degree)
 
-    # Hunt for second fiber. Compare two candidate slices above and below this fiber.
+    neighbor_fiber_row_indices, neighbor_fiber_intensities = find_first_neighbor_fiber(
+        image, centroids_initial, reference_column, column_halfwidth)
+    guess_row_index, guess_column_intensity = guess_point(neighbor_fiber_row_indices, neighbor_fiber_intensities,
+                                                          percentile=guess_percentile)
+
+    row_indices, intensities = get_slice(image, reference_column, center=guess_row_index, halfwidth=column_halfwidth)
+    centroid = get_centroid(row_indices, intensities)
+    row_indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=column_halfwidth)
+    centroid = get_centroid(row_indices, intensities)
+
+    centroids_neighbor = follow_fiber(image, centroid, reference_column, column_halfwidth)
+    polynomial_neighbor = fit_polynomial(np.arange(image.shape[1]), centroids_neighbor, degree=degree)
+
+    red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = assign_fiber_colors(
+        polynomial_initial, polynomial_neighbor, centroids_initial, centroids_neighbor, reference_column)
+
+    plot_first_polynomial(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
+                          debug_plots=debug_plots)
+    plot_first_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
+                                    debug_plots=debug_plots)
+
+    red_peak = get_peak_flux(image, red_polynomials, reference_column, column_halfwidth)
+    order_separation_initial = get_initial_order_separation(image, red_peak, blue_polynomials, reference_column,
+                                                            column_halfwidth)
+
+    red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = find_other_orders(
+        image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
+        blue_polynomials, reference_column, column_halfwidth, degree, n_orders, verbose)
+
+    plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials,
+                         debug_plots=debug_plots)
+    plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
+                                  debug_plots=debug_plots)
+
+    make_ascii(output_file_path, red_polynomials, blue_polynomials, image_name, header, every)
+
+    return red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials
+
+
+def find_first_neighbor_fiber(image, centroids_initial, reference_column, column_halfwidth):
+    """
+    Executes a blind searches for the neighbor fiber (i.e., within the same order) to the initial fiber.
+
+    Parameters
+    ----------
+    image : 2D array
+    centroids_initial : 1D array
+    reference_column : int
+    column_halfwidth : int
+
+    Returns
+    -------
+    neighbor_fiber_row_indices : 1D array
+    neighbor_fiber_intensities : 1D array
+    """
     fiber_hunt_offset = 2 + column_halfwidth
     fiber_hunt_column_length = 20
     centroid_initial = centroids_initial[reference_column]
@@ -131,72 +178,44 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
         warnings.warn('The fluxes in the candidate slices while hunting for the neighboring slice were '
                       '{flux1} and {flux2} after median filtering and background removal. At least one needed to '
                       'be positive and one should be more than twice the other. This was not the case, '
-                      'so it is unclear which is the real neighbor fiber.'.format(flux1=flux1, flux2=flux2))
+                      'so it is not fully clear which is the real neighbor fiber.'.format(flux1=flux1, flux2=flux2))
 
-    if flux1 > flux2:
+    if flux1 >= flux2:
         neighbor_fiber_row_indices = candidate_1_indices
         neighbor_fiber_intensities = candidate_1_intensities
     else:
         neighbor_fiber_row_indices = candidate_2_indices
         neighbor_fiber_intensities = candidate_2_intensities
 
-    guess_row_indices, guess_column_intensities = guess_point(neighbor_fiber_row_indices,
-                                                              neighbor_fiber_intensities, percentile=guess_percentile)
-    row_indices, intensities = get_slice(image, reference_column, center=guess_row_indices, halfwidth=column_halfwidth)
-    centroid = get_centroid(row_indices, intensities)
-    row_indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=column_halfwidth)
-    centroid = get_centroid(row_indices, intensities)
-
-    centroids_neighbor = follow_fiber(image, centroid, reference_column, column_halfwidth)
-    polynomial_neighbor = fit_polynomial(np.arange(image.shape[1]), centroids_neighbor, degree=degree)
-
-    # Create lists to hold fiber centroids.
-    if polynomial_neighbor(reference_column) > polynomial_initial(reference_column):
-        red_fiber_centroids = [centroids_initial]
-        blue_fiber_centroids = [centroids_neighbor]
-        red_polynomials = [polynomial_initial]
-        blue_polynomials = [polynomial_neighbor]
-    else:
-        red_fiber_centroids = [centroids_neighbor]
-        blue_fiber_centroids = [centroids_initial]
-        red_polynomials = [polynomial_neighbor]
-        blue_polynomials = [polynomial_initial]
-
-    plot_first_polynomial(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
-                          debug_plots=debug_plots)
-    plot_first_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
-                                    debug_plots=debug_plots)
-
-    red_peak = get_peak_flux(image, red_polynomials, reference_column, column_halfwidth)
-
-    order_separation_initial = get_initial_order_separation(image, red_peak, blue_polynomials, reference_column,
-                                                            column_halfwidth)
-
-    red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = find_other_orders(
-        image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
-        blue_polynomials, reference_column, column_halfwidth, degree, n_orders, verbose)
-
-    plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials,
-                         debug_plots=debug_plots)
-
-    plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
-                                  debug_plots=debug_plots)
-
-    make_ascii(output_file_path, red_polynomials, blue_polynomials, image_name, header, every)
-
-    return red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials
+    return neighbor_fiber_row_indices, neighbor_fiber_intensities
 
 
 def find_other_orders(image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
                       blue_polynomials, reference_column, column_halfwidth, degree, n_orders, verbose):
     """
+    Starting with a known pair of fibers, this function locates and traces other pairs of fibers throughout the image.
+
+    Parameters
+    ----------
     image : 2D array
-        Reduced 2D image with two fibers illuminated by tungsten/halogen lamp. It is assumed that higher row indices
-        correspond to bluer orders.
     order_separation_initial: int
         First guess at the distance between the nearest two fibers in a pair of adjacent orders.
-    red_fiber_centroids :
-    :return:
+    red_fiber_centroids : list of 1D arrays
+    blue_fiber_centroids : list of 1D arrays
+    red_polynomials : list of 1D polynomials
+    blue_polynomials : list of 1D polynomials
+    reference_column : int
+    column_halfwidth : int
+    degree : int
+    n_orders : int
+    verbose : bool
+
+    Returns
+    -------
+    red_fiber_centroids : list of 1D arrays
+    blue_fiber_centroids : list of 1D arrays
+    red_polynomials : list of 1D polynomials
+    blue_polynomials : list of 1D polynomials
     """
     n_found = 1
     direction = 'blue'
@@ -262,22 +281,18 @@ def find_next_order(image, previous_polynomial, direction, reference_column, fib
     Parameters
     ----------
     image: 2D array
-        The full frame image.
     previous_polynomial: 1D polynomial
         Polynomial function tracing the fiber on the `direction`-side of the previous order.
     direction: str
         'blue' or 'red' are the acceptable values. Determines in which direction we search for the next order.
     reference_column: int
-        The column at which the first centroid of the new orders will be determined.
     fiber_separation: int
         A guess of the pixels between the center of the two fiber in an order.
     order_separation: int
         A guess of the pixels between the center of a previous fiber and the center of the closest fiber in the
         neighboring order.
     halfwidth: int
-        The halfwidth of the slices through the next order. Fullwidth will be 1+(halfwidth*2).
     degree: int
-        Degree of the polynomial fit.
 
     Returns
     -------
@@ -316,20 +331,16 @@ def find_next_fiber(image, reference_polynomial, direction, reference_column, se
     Parameters
     ----------
     image: 2D array
-        The full frame image.
     reference_polynomial: 1D polynomial
         Polynomial function tracing the fiber on the `direction`-side of the previous order.
     direction: str
         'blue' or 'red' are the acceptable values. Determines in which direction we search for the next order.
     reference_column: int
-        The column at which the first centroid of the new orders will be determined.
     separation: int
         Guess of the pixels between the center of a previous fiber and the center of the next closest fiber in the
-        given direction.
+        given direction. Could be the separation between fibers or orders, depending on context.
     halfwidth: int
-        The halfwidth of the slices through the next order. Fullwidth will be 1 + (halfwidth *2).
     degree: int
-        Degree of the polynomial fit.
 
     Returns
     -------
@@ -346,10 +357,10 @@ def find_next_fiber(image, reference_polynomial, direction, reference_column, se
 
     try:
         guess = reference_polynomial(reference_column) + separation * sign
-        idx, slc = get_slice(image, reference_column, center=guess, halfwidth=halfwidth)
-        centroid = get_centroid(idx, slc)
-        idx, slc = get_slice(image, reference_column, center=centroid, halfwidth=halfwidth)
-        centroid = get_centroid(idx, slc)
+        indices, intensities = get_slice(image, reference_column, center=guess, halfwidth=halfwidth)
+        centroid = get_centroid(indices, intensities)
+        indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=halfwidth)
+        centroid = get_centroid(indices, intensities)
         centroids = follow_fiber(image, centroid, reference_column, halfwidth)
         poly = fit_polynomial(np.arange(image.shape[1]), centroids, degree=degree)
     except TypeError:
@@ -358,22 +369,53 @@ def find_next_fiber(image, reference_polynomial, direction, reference_column, se
     return centroids, poly
 
 
-def guess_point(row_indices, slc, percentile=90.):
+def assign_fiber_colors(polynomial_initial, polynomial_neighbor, centroids_initial, centroids_neighbor,
+                        reference_column):
     """
-    Identify a point that is on an order within the slice.
-
-    METHODOLOGY:
-        Sorts indices and intensities by the intensities, then returns the idx and inten
-        at the requested percentile.
+    Initializes a list for the red and blue fiber centroids and polynomials.
 
     Parameters
     ----------
-        row_indices: 1D array
-            Indices for the slice within the original full-frame image.
-        slc: 1D array
-            Intensity values within the slice.
-        percentile: float
-            Percentile of the intensities represented in the slice that will be returned as the guess.
+    polynomial_initial : 1D polynomial
+    polynomial_neighbor : 1D polynomial
+    centroids_initial : 1D array
+    centroids_neighbor : 1D array
+    reference_column : int
+
+    Returns
+    -------
+    red_fiber_centroids : list of 1D arrays
+    blue_fiber_centroids : list of 1D arrays
+    red_polynomials : list of 1D polynomials
+    blue_polynomials : list of 1D polynomials
+    """
+
+    if polynomial_neighbor(reference_column) > polynomial_initial(reference_column):
+        red_fiber_centroids = [centroids_initial]
+        blue_fiber_centroids = [centroids_neighbor]
+        red_polynomials = [polynomial_initial]
+        blue_polynomials = [polynomial_neighbor]
+    else:
+        red_fiber_centroids = [centroids_neighbor]
+        blue_fiber_centroids = [centroids_initial]
+        red_polynomials = [polynomial_neighbor]
+        blue_polynomials = [polynomial_initial]
+
+    return red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials
+
+
+def guess_point(indices, intensities, percentile=90.):
+    """
+    Identify a point that is on an order within the slice.
+
+    Parameters
+    ----------
+    indices : 1D array
+        Row indices for the column within the original full-frame image.
+    intensities : 1D array
+        Intensity values within the slice.
+    percentile : float
+        Percentile of the intensities represented in the slice that will be returned as the guess.
 
     Returns
     -------
@@ -381,10 +423,14 @@ def guess_point(row_indices, slc, percentile=90.):
         Index of the guess position.
     guess_intensity : 1D array
         Intensity of the guessed pixel.
+
+    Notes
+    -----
+    Sorts indices and intensities by the intensities, then returns the index and intensity at the requested percentile.
     """
 
-    vals = [[x, y] for y, x in sorted(zip(slc, row_indices))]
-    guess_row_index, guess_intensity = vals[int(len(vals) * percentile / 100.)]
+    values = [[x, y] for y, x in sorted(zip(intensities, indices))]
+    guess_row_index, guess_intensity = values[int(len(values) * percentile / 100.)]
     return guess_row_index, guess_intensity
 
 
@@ -413,7 +459,7 @@ def fit_polynomial(column_indices, row_indices, degree=4):
     return poly
 
 
-def follow_fiber(image, start_row, start_col, halfwidth,
+def follow_fiber(image, start_row, start_column, halfwidth,
                  queue_length=20, snr_threshold=20, baffle_clip=150):
     """
     Finds all the centroids of one fiber along an entire order.
@@ -421,8 +467,7 @@ def follow_fiber(image, start_row, start_col, halfwidth,
     Parameters
     ----------
     image : 2D array
-        The full frame image.
-    start_col : int or float
+    start_column : int or float
         Index of the column for the first starting position along the fiber.
     start_row : int or float
         Index of the row for the first starting position along the fiber.
@@ -451,30 +496,30 @@ def follow_fiber(image, start_row, start_col, halfwidth,
     removed to account for defects due to the baffle). Then it does the same thing to the right.
     """
 
-    ncols = image.shape[1]
-    cols = np.arange(ncols)
+    n_columns = image.shape[1]
+    cols = np.arange(n_columns)
     centroids = np.array([np.nan for _ in cols])
     snr_thresh_sq = snr_threshold * snr_threshold
     for sign in np.array([-1, 1]):  # Goes left for -1, right for +1
-        col = start_col
+        column = start_column
         try:
             centroid = int(np.round(start_row))
         except AttributeError:
             centroids = None
             break
         recent_fluxes = collections.deque(queue_length * [np.inf], maxlen=queue_length)
-        while (0 <= col < ncols) and (np.mean(recent_fluxes) > snr_thresh_sq):
-            idx, slc = get_slice(image, col, center=centroid, halfwidth=halfwidth)
-            centroid = get_centroid(idx, slc)
-            centroids[col] = centroid
-            recent_fluxes.append(get_total_flux(slc))
-            col += 1 * sign
+        while (0 <= column < n_columns) and (np.mean(recent_fluxes) > snr_thresh_sq):
+            indices, intensities = get_slice(image, column, center=centroid, halfwidth=halfwidth)
+            centroid = get_centroid(indices, intensities)
+            centroids[column] = centroid
+            recent_fluxes.append(get_total_flux(intensities))
+            column += 1 * sign
         if not (np.mean(recent_fluxes) > snr_thresh_sq):
             # Erase recent saved centroids if the recent flux values have been poor
             if sign == 1:
-                centroids[col - queue_length - baffle_clip:col] = np.nan
+                centroids[column - queue_length - baffle_clip:column] = np.nan
             else:  # sign==-1
-                centroids[col + 1:col + 1 + queue_length + baffle_clip] = np.nan
+                centroids[column + 1:column + 1 + queue_length + baffle_clip] = np.nan
     return centroids
 
 
@@ -517,7 +562,6 @@ def get_slice(image, column,
     Parameters
     ----------
     image : 2D array
-        The full frame image
     column : int
         Index of the column that will contain the slice.
     center : (opt) int or float = None
@@ -536,13 +580,12 @@ def get_slice(image, column,
         Median-smoothing is performed over the slice, with a kernel size of `smooth`. If 0, no smoothing. If not 0,
         `smooth` must be an odd number. Occurs before background removal, if applicable.
     remove_background : (opt) bool
-        If true, removes the background.
 
     Returns
     -------
-    idx : 1D array
+    indices : 1D array
         Indices for the slice within the original full-frame image.
-    slc : 1D array
+    intensities : 1D array
         Intensity values within the slice.
     """
 
@@ -552,30 +595,30 @@ def get_slice(image, column,
 
     if center is not None and halfwidth is not None:
         center = int(np.round(center))
-        idx = np.arange(center - halfwidth, center + halfwidth + 1)
+        indices = np.arange(center - halfwidth, center + halfwidth + 1)
     elif lower_limit is not None and upper_limit is not None:
         lower_limit = int(np.round(lower_limit))
         upper_limit = int(np.round(upper_limit))
-        idx = np.arange(lower_limit, upper_limit)
+        indices = np.arange(lower_limit, upper_limit)
     else:
-        idx = None
+        indices = None
 
-    if idx is not None:
-        slc = image[idx[0]:idx[-1] + 1, column]
+    if indices is not None:
+        intensities = image[indices[0]:indices[-1] + 1, column]
         if smooth > 0:
-            slc = medfilt(slc, kernel_size=smooth)
+            intensities = medfilt(intensities, kernel_size=smooth)
 
         if remove_background:
-            slc = get_remove_background(slc)
+            intensities = get_remove_background(intensities)
     else:
-        slc = None
+        intensities = None
 
-    return idx, slc
+    return indices, intensities
 
 
 def get_centroid(row_indices, column_intensities):
     """
-    Find the centroid of a slice.
+    Find the centroid of a columnar slice.
 
     Parameters
     ----------
@@ -662,14 +705,23 @@ def get_peak_flux(image, polynomial, reference_column, column_halfwidth, n_colum
 
 def get_initial_order_separation(image, red_peak, blue_polynomials, reference_column, column_halfwidth):
     """
+    Determine the initial distance between a red fiber and the blue fiber in the next adjacent order to its blue side.
+
+    Parameters
+    ----------
     image : 2D array
     red_peak : float
-    blue_polynomials
-    reference_column
-    column_halfwidth :
+        Peak flux value within a chunk of the red fiber.
+    blue_polynomials : list of 1D polynomials
+    reference_column : int
+    column_halfwidth : int
 
-    :return:
+    Returns
+    -------
+    order_separation_initial : int
+        Distance between the nearest two fibers in adjacent orders.
     """
+
     order_separation = 2 + column_halfwidth
     order_search_column_length = 100
     lower_limit = blue_polynomials[0](reference_column) + order_separation
@@ -775,6 +827,7 @@ def get_date(header):
     Returns
     -------
     date_formatted : str
+        Date string formatted to the form: 01 Jan 2001. Or else 'unknown' if no header provided.
     """
     if header is not None:
         date_str = header['DAY-OBS']
@@ -886,6 +939,10 @@ def make_ascii(output_file_path, red_polynomials, blue_polynomials, image_name, 
 
 def plot_guess(image, row_indices, initial_column_intensities, guess_row_indices, guess_column_intensities,
                reference_column, blind_search_column_length, debug_plots=False):
+    """
+    Plots the position of the initial guess on the 1D column, and in the 2D image. This should land within an order,
+    or else nothing may work!
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 1 in debug_plots):
         # The order guess should land clearly on an order. Doesn't need to be well-centered.
         plt.figure()
@@ -905,7 +962,7 @@ def plot_guess(image, row_indices, initial_column_intensities, guess_row_indices
         v_max = np.max(image[y_min:y_max, x_min:x_max])
 
         plt.figure()
-        plt.imshow(image, origin='lower', vmin=v_min, vmax=v_max)
+        plt.imshow(image, vmin=v_min, vmax=v_max, origin='lower')
         plt.plot([reference_column for _ in row_indices], row_indices, color='white')
         plt.plot(reference_column, guess_row_indices, 'o', color='orange')
         plt.xlim(x_min, x_max)
@@ -918,8 +975,12 @@ def plot_guess(image, row_indices, initial_column_intensities, guess_row_indices
         plt.show()
 
 
-def plot_column(row_indices, intensities, guess_row_indices, guess_column_intensities, centroid,
+def plot_column(row_indices, intensities, guess_row_index, guess_column_intensity, centroid,
                 fig=None, ax=None, debug_plots=False):
+    """
+    Plots the columnar slice centered on the initial and second centroid. This will show how much the centroid moved on
+    the refined (second) guess.
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 2 in debug_plots):
         if fig is ax is None:
             fig, ax = plt.subplots(1)
@@ -930,7 +991,7 @@ def plot_column(row_indices, intensities, guess_row_indices, guess_column_intens
         else:
             ax.plot(row_indices, intensities, '^', color='C1', label='2nd pass slice')
             ax.axvline(centroid, color='C4', label='2nd pass centroid', linestyle='dashed')
-            ax.plot(guess_row_indices, guess_column_intensities, '*', color='C5', label='order guess')
+            ax.plot(guess_row_index, guess_column_intensity, '*', color='C5', label='order guess')
             ax.set_xlabel('Row')
             ax.set_ylabel('Flux')
             ax.legend()
@@ -943,6 +1004,9 @@ def plot_column(row_indices, intensities, guess_row_indices, guess_column_intens
 
 def plot_first_polynomial(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
                           debug_plots=False):
+    """
+    Plots the trace of the first polynomial fit on top of the 2D image for the red and blue fiber.
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 3 in debug_plots):
         cols = np.arange(image.shape[1])
         plt.figure()
@@ -961,6 +1025,9 @@ def plot_first_polynomial(image, red_fiber_centroids, red_polynomials, blue_fibe
 
 def plot_first_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
                                     debug_plots=False):
+    """
+    Plots the residuals of centroid - polynomial for the red and blue fibers in the first order found.
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 4 in debug_plots):
         cols = np.arange(image.shape[1])
         plt.figure()
@@ -976,9 +1043,12 @@ def plot_first_polynomial_residuals(image, red_fiber_centroids, red_polynomials,
 
 def plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials,
                          debug_plots=False):
+    """
+    Plots the traces of every fiber and order over the 2D image.
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 5 in debug_plots):
         plt.figure()
-        plt.imshow(np.log10(image - np.min(image) + 0.01))
+        plt.imshow(np.log10(image - np.min(image) + 0.01), origin='lower')
         cols = np.arange(image.shape[1])
         for c_r, c_b, p_r, p_b in zip(red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials):
             plt.plot(cols, c_r, color='white')
@@ -989,6 +1059,10 @@ def plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_p
 
 def plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
                                   debug_plots=False):
+    """
+    Plots the residuals of centroid - polynomial for every fiber and order found. Each set of residuals is offset from
+    the last order by +1. So the blue orders are on the bottom and red are on the top.
+    """
     if (type(debug_plots) is bool and debug_plots) or (type(debug_plots) is list and 6 in debug_plots):
         plt.figure()
         cols = np.arange(image.shape[1])
