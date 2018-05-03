@@ -16,7 +16,7 @@ import datetime
 
 def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
           reference_row=3500, reference_column=2000, blind_search_column_length=300, guess_percentile=90.,
-          column_halfwidth=8, degree=4, every=16, debug_plots=False, verbose=False):
+          column_halfwidth=8, baffle_clip=150, degree=4, every=16, debug_plots=False, verbose=False):
     """
     Generate polynomial fits for two fibers across each order.
 
@@ -48,6 +48,9 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
         bright pixel, but not quite 100 because then you could get a cosmic ray.
     column_halfwidth : int (opt)
         The halfwidth of targeted sliced through an order. Fullwidth will be 1 + (column_halfwidth * 2).
+    baffle_clip : int (opt)
+        If the stop condition is that the SNR is too low, this parameter controls how many previously-fit centroids
+        will be rejected on that end.
     degree : int (opt)
         Degree of the polynomial fits to the order centroids.
     every : int (opt)
@@ -101,7 +104,7 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
     plot_column(row_indices, intensities, guess_row_index, guess_column_intensity, centroid, fig=fig, ax=ax,
                 debug_plots=debug_plots)
 
-    centroids_initial = follow_fiber(image, centroid, reference_column, column_halfwidth)
+    centroids_initial = follow_fiber(image, centroid, reference_column, column_halfwidth, baffle_clip)
     polynomial_initial = fit_polynomial(np.arange(image.shape[1]), centroids_initial, degree=degree)
 
     neighbor_fiber_row_indices, neighbor_fiber_intensities = find_first_neighbor_fiber(
@@ -114,7 +117,7 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
     row_indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=column_halfwidth)
     centroid = get_centroid(row_indices, intensities)
 
-    centroids_neighbor = follow_fiber(image, centroid, reference_column, column_halfwidth)
+    centroids_neighbor = follow_fiber(image, centroid, reference_column, column_halfwidth, baffle_clip=baffle_clip)
     polynomial_neighbor = fit_polynomial(np.arange(image.shape[1]), centroids_neighbor, degree=degree)
 
     red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = assign_fiber_colors(
@@ -131,7 +134,7 @@ def trace(image, image_name='', header=None, output_file_path='', n_orders=67,
 
     red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = find_other_orders(
         image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
-        blue_polynomials, reference_column, column_halfwidth, degree, n_orders, verbose)
+        blue_polynomials, reference_column, column_halfwidth, baffle_clip, degree, n_orders, verbose)
 
     plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials,
                          debug_plots=debug_plots)
@@ -191,7 +194,7 @@ def find_first_neighbor_fiber(image, centroids_initial, reference_column, column
 
 
 def find_other_orders(image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
-                      blue_polynomials, reference_column, column_halfwidth, degree, n_orders, verbose):
+                      blue_polynomials, reference_column, column_halfwidth, baffle_clip, degree, n_orders, verbose):
     """
     Starting with a known pair of fibers, this function locates and traces other pairs of fibers throughout the image.
 
@@ -206,6 +209,7 @@ def find_other_orders(image, order_separation_initial, red_fiber_centroids, blue
     blue_polynomials : list of 1D polynomials
     reference_column : int
     column_halfwidth : int
+    baffle_clip : int
     degree : int
     n_orders : int
     verbose : bool
@@ -235,7 +239,7 @@ def find_other_orders(image, order_separation_initial, red_fiber_centroids, blue
 
         cent_red, cent_blue, p_red, p_blue = find_next_order(
             image, previous_polynomial, direction, reference_column, fiber_separation, order_separation,
-            column_halfwidth, degree)
+            column_halfwidth, baffle_clip, degree)
 
         if p_red is None or p_blue is None:
             if not switched_direction:
@@ -274,42 +278,43 @@ def find_other_orders(image, order_separation_initial, red_fiber_centroids, blue
 
 
 def find_next_order(image, previous_polynomial, direction, reference_column, fiber_separation, order_separation,
-                    halfwidth, degree):
+                    halfwidth, baffle_clip, degree):
     """
     Trace the centroids of the two fibers in an adjacent order.
 
     Parameters
     ----------
-    image: 2D array
-    previous_polynomial: 1D polynomial
+    image : 2D array
+    previous_polynomial : 1D polynomial
         Polynomial function tracing the fiber on the `direction`-side of the previous order.
-    direction: str
+    direction : str
         'blue' or 'red' are the acceptable values. Determines in which direction we search for the next order.
-    reference_column: int
-    fiber_separation: int
+    reference_column : int
+    fiber_separation : int
         A guess of the pixels between the center of the two fiber in an order.
-    order_separation: int
+    order_separation : int
         A guess of the pixels between the center of a previous fiber and the center of the closest fiber in the
         neighboring order.
-    halfwidth: int
-    degree: int
+    halfwidth : int
+    baffle_clip : int
+    degree : int
 
     Returns
     -------
-    centroids_red: 1D array
+    centroids_red : 1D array
         Sub-pixel row indices for centroids of the next order's red fiber.
-    centroids_blue: 1D array
+    centroids_blue : 1D array
         Sub-pixel row indices for centroids of the next order's blue fiber.
-    poly_red: 1D polynomial
+    poly_red : 1D polynomial
         Polynomial function fitted to centroids_red(col).
-    poly_blue: 1D polynomial
+    poly_blue : 1D polynomial
         Polynomial function fitted to centroids_red(col).
     """
 
     centroids_1, polynomial_1 = find_next_fiber(image, previous_polynomial, direction, reference_column,
-                                                order_separation, halfwidth, degree)
+                                                order_separation, halfwidth, baffle_clip, degree)
     centroids_2, polynomial_2 = find_next_fiber(image, polynomial_1, direction, reference_column,
-                                                fiber_separation, halfwidth, degree)
+                                                fiber_separation, halfwidth, baffle_clip, degree)
     if direction == 'blue':
         centroids_red = centroids_1
         centroids_blue = centroids_2
@@ -324,29 +329,31 @@ def find_next_order(image, previous_polynomial, direction, reference_column, fib
     return centroids_red, centroids_blue, poly_red, poly_blue
 
 
-def find_next_fiber(image, reference_polynomial, direction, reference_column, separation, halfwidth, degree):
+def find_next_fiber(image, reference_polynomial, direction, reference_column, separation, halfwidth, baffle_clip,
+                    degree):
     """
     Trace the centroids of one fibers in the adjacent order.
 
     Parameters
     ----------
-    image: 2D array
-    reference_polynomial: 1D polynomial
+    image : 2D array
+    reference_polynomial : 1D polynomial
         Polynomial function tracing the fiber on the `direction`-side of the previous order.
-    direction: str
+    direction : str
         'blue' or 'red' are the acceptable values. Determines in which direction we search for the next order.
-    reference_column: int
-    separation: int
+    reference_column : int
+    separation : int
         Guess of the pixels between the center of a previous fiber and the center of the next closest fiber in the
         given direction. Could be the separation between fibers or orders, depending on context.
-    halfwidth: int
-    degree: int
+    halfwidth : int
+    baffle_clip : int
+    degree : int
 
     Returns
     -------
-    centroids: 1D array
+    centroids : 1D array
         Sub-pixel row indices for centroids of the next fiber.
-    poly: 1D polynomial
+    poly : 1D polynomial
         Polynomial function fitted to centroids(col).
     """
 
@@ -361,7 +368,7 @@ def find_next_fiber(image, reference_polynomial, direction, reference_column, se
         centroid = get_centroid(indices, intensities)
         indices, intensities = get_slice(image, reference_column, center=centroid, halfwidth=halfwidth)
         centroid = get_centroid(indices, intensities)
-        centroids = follow_fiber(image, centroid, reference_column, halfwidth)
+        centroids = follow_fiber(image, centroid, reference_column, halfwidth, baffle_clip=baffle_clip)
         poly = fit_polynomial(np.arange(image.shape[1]), centroids, degree=degree)
     except TypeError:
         centroids = poly = None
@@ -751,6 +758,39 @@ def get_initial_order_separation(image, red_peak, blue_polynomials, reference_co
     # assert order_separation_initial > 0, 'order_separation_initial must be positive.'   ### MOVE TO UNIT TEST
 
     return order_separation_initial
+
+
+def get_extremal_valid_index(array, side):
+    """
+    Finds the index for the left-most or right-most non-nan value in an array.
+
+    Parameters
+    ----------
+    array : 1D array
+    side : str
+        Valid values are 'left' and 'right'.
+
+    Returns
+    -------
+    extremal_index : int
+    """
+    if side == 'left':
+        i_start = 0
+        i_step = 1
+    elif side == 'right':
+        i_start = len(array) - 1
+        i_step = -1
+    else:
+        warnings.warn("Unrecognized value for `side`: {side}. Should be 'left' or 'right'.".format(side=side))
+        return None
+
+    extremal_index = i_start
+    value = array[extremal_index]
+    while not value == value:
+        extremal_index += i_step
+        value = array[extremal_index]
+
+    return extremal_index
 
 
 def print_progress(i, last_printed, n_tot, report=10, msg='', verbose=False):
