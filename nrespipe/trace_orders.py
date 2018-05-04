@@ -46,7 +46,8 @@ def trace(in_file, out_file, n_orders=67, reference_row=3500, reference_column=2
     column_halfwidth : int (opt)
         The halfwidth of targeted sliced through an order. Fullwidth will be 1 + (column_halfwidth * 2).
     baffle_clip : int (opt)
-        Controls how many previously-fit centroids will be rejected once a stop condition is met.
+        Controls how many previously-fit centroids will be rejected once a stop condition is met. Currently, this must
+        be >= 1.
     degree : int (opt)
         Degree of the polynomial fits to the order centroids.
     every : int (opt)
@@ -491,7 +492,8 @@ def follow_fiber(image, start_row, start_column, halfwidth,
         Threshold SNR value (i.e., sqrt(sum(slice))) which must be met to continue following an order towards on
         edge of the chip.
     baffle_clip : int (opt)
-        Controls how many previously-fit centroids will be rejected once a stop condition is met.
+        Controls how many previously-fit centroids will be rejected once a stop condition is met. Currently, this must
+        be >= 1.
 
 
     Returns
@@ -527,10 +529,19 @@ def follow_fiber(image, start_row, start_column, halfwidth,
             column += 1 * sign
 
         # Erase recent saved centroids to avoid the baffle
-        if sign == 1:
-            centroids[column - queue_length - baffle_clip:column] = np.nan
-        else:  # sign==-1
-            centroids[column + 1:column + 1 + queue_length + baffle_clip] = np.nan
+        if not (np.mean(recent_fluxes) > snr_thresh_sq):
+            # Include queue_length//2, since these are low-count pixels.
+            if sign == 1:
+                centroids[column - queue_length // 2 - baffle_clip:column] = np.nan
+            else:  # sign==-1
+                centroids[column + 1:column + 1 + queue_length // 2 + baffle_clip] = np.nan
+        else:
+            # Only trim the edges off to avoid baffle/edge effects.
+            if sign == 1:
+                centroids[column - baffle_clip:column] = np.nan
+            else:  # sign==-1
+                centroids[column + 1:column + 1 + baffle_clip] = np.nan
+
     return centroids
 
 
@@ -1055,6 +1066,7 @@ def plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_p
             plt.plot(cols, p_r(cols), color='red', linestyle='dashed')
             plt.plot(cols, c_b, color='white')
             plt.plot(cols, p_b(cols), color='blue', linestyle='dashed')
+        plt.show()
 
 
 def plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids, blue_polynomials,
@@ -1069,9 +1081,10 @@ def plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, b
         i = 0
         for c_r, c_b, p_r, p_b in zip(red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials):
             plt.axhline(i, color='k', linewidth=0.7, linestyle='dashed')
-            plt.plot(cols, (c_r-p_r(cols))+i, color='C1', linewidth=0.7)
-            plt.plot(cols, (c_b-p_b(cols))+i, color='C0', linewidth=0.7)
+            plt.plot(cols, (c_r - p_r(cols)) + i, color='C1', linewidth=0.7)
+            plt.plot(cols, (c_b - p_b(cols)) + i, color='C0', linewidth=0.7)
             plt.xlabel('Column')
             plt.ylabel('Residuals (offset by 1 for each order)')
             plt.title('All residuals: centroids-poly')
             i += 1
+        plt.show()
