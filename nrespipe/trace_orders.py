@@ -46,8 +46,7 @@ def trace(in_file, out_file, n_orders=67, reference_row=3500, reference_column=2
     column_halfwidth : int (opt)
         The halfwidth of targeted sliced through an order. Fullwidth will be 1 + (column_halfwidth * 2).
     baffle_clip : int (opt)
-        If the stop condition is that the SNR is too low, this parameter controls how many previously-fit centroids
-        will be rejected on that end.
+        Controls how many previously-fit centroids will be rejected once a stop condition is met.
     degree : int (opt)
         Degree of the polynomial fits to the order centroids.
     every : int (opt)
@@ -492,8 +491,8 @@ def follow_fiber(image, start_row, start_column, halfwidth,
         Threshold SNR value (i.e., sqrt(sum(slice))) which must be met to continue following an order towards on
         edge of the chip.
     baffle_clip : int (opt)
-        If the stop condition is that the SNR is too low, this parameter controls how many previously-fit centroids
-        will be rejected on that end.
+        Controls how many previously-fit centroids will be rejected once a stop condition is met.
+
 
     Returns
     -------
