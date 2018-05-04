@@ -526,12 +526,12 @@ def follow_fiber(image, start_row, start_column, halfwidth,
             centroids[column] = centroid
             recent_fluxes.append(get_total_flux(intensities))
             column += 1 * sign
-        if not (np.mean(recent_fluxes) > snr_thresh_sq):
-            # Erase recent saved centroids if the recent flux values have been poor
-            if sign == 1:
-                centroids[column - queue_length - baffle_clip:column] = np.nan
-            else:  # sign==-1
-                centroids[column + 1:column + 1 + queue_length + baffle_clip] = np.nan
+
+        # Erase recent saved centroids to avoid the baffle
+        if sign == 1:
+            centroids[column - queue_length - baffle_clip:column] = np.nan
+        else:  # sign==-1
+            centroids[column + 1:column + 1 + queue_length + baffle_clip] = np.nan
     return centroids
 
 
