@@ -34,13 +34,13 @@ pipeline {
 					branch 'PR-*'
 					expression { return params.forceEndToEnd }
 				}
-				environment {
-					DEV_CREDS = credentials('rancher-cli-dev')
-				}
-				script {
+			}
+			environment {
+				DEV_CREDS = credentials('rancher-cli-dev')
+			}
+			script {
 					sh('''echo $DEV_CREDS
                        #rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
-				}
 			}
 		}
 	}
