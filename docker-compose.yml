@@ -1,0 +1,32 @@
+services:
+  NRESPipelineTest:
+    image: ${DOCKER_IMAGE}
+    environment:
+      BOSUN_HOSTNAME: alertsdev.lco.gtn
+      BROKER_PASSWORD: guest
+      BROKER_URL: amqp://guest:guest@nresceleryrabbitmq:5672/
+      BROKER_USERNAME: guest
+      DB_URL: sqlite:////scratch/nres-test/test.db
+      FITS_BROKER: amqp://guest:guest@nrestestfitsexchange:5672/
+      NRES_DATA_ROOT: /scratch/nres-test/
+      RABBITMQ_HOST: nresceleryrabbitmq
+      OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'
+    volumes:
+    - /mnt/docker/nres-test:/scratch/nres-test
+    links:
+    - CeleryRabbitmq:nresceleryrabbitmq
+    - NRESPipelineTestFitsExchange:nrestestfitsexchange
+    labels:
+      io.rancher.container.pull_image: always
+  CeleryRabbitmq:
+    image: rabbitmq:3-management
+    ports:
+    - 15673:15672/tcp
+    labels:
+      io.rancher.container.pull_image: always
+  NRESPipelineTestFitsExchange:
+    image: rabbitmq:3-management
+    ports:
+    - 15674:15672/tcp
+    labels:
+      io.rancher.container.pull_image: always
