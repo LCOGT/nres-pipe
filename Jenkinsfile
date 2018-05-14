@@ -40,8 +40,7 @@ pipeline {
 			}
 			steps {
 				script {
-					sh('''echo $DEV_CREDS
-        	               #rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
+					sh('''rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
 
 				}
 			}

@@ -1,6 +1,6 @@
 services:
   NRESPipelineTest:
-    image: ${DOCKER_IMAGE}
+    image: ${DOCKER_IMG}
     environment:
       BOSUN_HOSTNAME: alertsdev.lco.gtn
       BROKER_PASSWORD: guest
