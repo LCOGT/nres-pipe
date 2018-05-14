@@ -38,9 +38,12 @@ pipeline {
 			environment {
 				DEV_CREDS = credentials('rancher-cli-dev')
 			}
-			script {
+			steps {
+				script {
 					sh('''echo $DEV_CREDS
-                       #rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
+        	               #rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
+
+				}
 			}
 		}
 	}
