@@ -40,8 +40,23 @@ pipeline {
 			}
 			steps {
 				script {
-					sh('''rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d''')
-
+					sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+				}
+			}
+		}
+		stage('Test') {
+			when {
+				anyOf {
+					branch 'PR-*'
+					expression { return params.forceEndToEnd }
+				}
+			}
+			environment {
+				DEV_CREDS = credentials('rancher-cli-dev')
+			}
+			steps {
+				script {
+					sh('script --return -f --command "rancher -c ${DEV_CREDS} exec -i NRESPipelineTest-NRESPipelineTest-1 /bin/true" /dev/null')
 				}
 			}
 		}

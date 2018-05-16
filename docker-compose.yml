@@ -23,6 +23,7 @@ services:
       io.rancher.container.start_once: 'true'
   NRESPipelineTest:
     image: ${DOCKER_IMG}
+    tty: true
     environment:
       BOSUN_HOSTNAME: alertsdev.lco.gtn
       BROKER_PASSWORD: guest
