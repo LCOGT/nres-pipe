@@ -1,5 +1,26 @@
 version: '2'
 services:
+  NRESCeleryRabbitmq:
+    image: rabbitmq:3-management
+    ports:
+    - 15673:15672/tcp
+    labels:
+      io.rancher.container.pull_image: always
+  NRESPipelineTestFitsExchange:
+    image: rabbitmq:3-management
+    ports:
+    - 15674:15672/tcp
+    labels:
+      io.rancher.container.pull_image: always
+  NRESPipelineE2EData:
+    image: docker.lco.global/nres-pipeline-e2e-data:1.0.0
+    entrypoint:
+    - /bin/true
+    volumes:
+    - nrese2e:/archive
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
   NRESPipelineTest:
     image: ${DOCKER_IMG}
     environment:
@@ -12,22 +33,11 @@ services:
       NRES_DATA_ROOT: /scratch/nres-test/
       RABBITMQ_HOST: nresceleryrabbitmq
       OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'
-    volumes:
-    - /mnt/docker/nres-test:/scratch/nres-test
+    volumes_from:
+    - NRESPipelineE2EData
     links:
-    - CeleryRabbitmq:nresceleryrabbitmq
+    - NRESCeleryRabbitmq:nresceleryrabbitmq
     - NRESPipelineTestFitsExchange:nrestestfitsexchange
     labels:
       io.rancher.container.pull_image: always
-  CeleryRabbitmq:
-    image: rabbitmq:3-management
-    ports:
-    - 15673:15672/tcp
-    labels:
-      io.rancher.container.pull_image: always
-  NRESPipelineTestFitsExchange:
-    image: rabbitmq:3-management
-    ports:
-    - 15674:15672/tcp
-    labels:
-      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: NRESPipelineE2EData,NRESPipelineTestFitsExchange,NRESCeleryRabbitmq
