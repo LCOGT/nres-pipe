@@ -25,11 +25,11 @@ services:
     image: ${DOCKER_IMG}
     environment:
       BOSUN_HOSTNAME: alertsdev.lco.gtn
-      BROKER_PASSWORD: guest
-      BROKER_URL: amqp://guest:guest@nresceleryrabbitmq:5672/
-      BROKER_USERNAME: guest
+      BROKER_PASSWORD: ${RABBIT_PASSWORD}
+      BROKER_URL: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nresceleryrabbitmq:5672/
+      BROKER_USERNAME: ${RABBITMQ_USER}
       DB_URL: sqlite:////archive/engineering/test.db
-      FITS_BROKER: amqp://guest:guest@nrestestfitsexchange:5672/
+      FITS_BROKER: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nrestestfitsexchange:5672/
       NRES_DATA_ROOT: /archive/engineering/
       RABBITMQ_HOST: nresceleryrabbitmq
       OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'

@@ -40,7 +40,12 @@ pipeline {
 			}
 			steps {
 				script {
-					sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+					withCredentials([usernamePassword(
+							credentialsId: 'rabbit-mq',
+							usernameVariable: 'RABBITMQ_USER',
+							passwordVariable: 'RABBITMQ_PASSWORD')]) {
+						sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+					}
 				}
 			}
 		}
