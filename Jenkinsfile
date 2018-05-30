@@ -45,6 +45,7 @@ pipeline {
 							usernameVariable: 'RABBITMQ_USER',
 							passwordVariable: 'RABBITMQ_PASSWORD')]) {
 						sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+						sh('echo "Got here".')
 					}
 				}
 			}
