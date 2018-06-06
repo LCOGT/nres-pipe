@@ -1,4 +1,4 @@
-How to Interpret NRES Diagnostic Plots 20 Apr 2018
+How to Interpret NRES Diagnostic Plots 30 Apr 2018
 
 The NRES pipeline produces two diagnostic plots of 3 pp each.   These two
 plots are produced for every spectrum of type TARGET that is processed.
@@ -13,6 +13,22 @@ and PLQCsssyyyyddd.nnnn_f.ps.  In these names
   f = 0 or 2, identifying the fiber displayed in the diagnostic plot.
       When we are able to make them, spectra with both sky fibers illuminated 
       by astronomical targets will generate two sets of diagnostic plots.
+
+When these plots are packaged for inclusion in standard output tar.gz files,
+they are merged and converted to a single 6-page pdf file.  This file is given
+a name derived from the name of the original input file, eg
+elpnrs02-fl17-20180427-0016-e91.pdf, where
+"elpnrs02-fl17" encodes the site (elp), the spectrograph (nrs02), and the CCD
+detector (fl17).
+"20180427" is the data date, which is arranged so that all observations from
+a given site for a given (local) night have the same data date.
+"0016" is a sequential image number for the night.
+"e91" encodes the observation type and reduction level.  
+  "e" means observation type = TARGET, ie a combined Star + ThAr spectrum.
+  "91" means calibrated and reduced with the Banzai pipeline.  Since diagnostic
+      files are produced only by the Banzai pipeline, this field should always
+      be "e91".
+"pdf" means what it says.
 
 PLOT*.ps
 The first (PLOT*.ps) plot is intended as a near-duplicate of the "quick" plots
@@ -48,7 +64,11 @@ finds various catalog information about the target (RA, Dec, Teff, log(g),
 [m/H], V_rot (km/s)).  At the bottom left are slots, currently unpopulated, 
 for the number of spectra averaged to make the displayed spectrum (currently 
 always 1), and the name or ID number of the observing program that requested 
-the data.  
+the data.  Presently target V magnitude, Teff, and log(g) are taken from
+an evolving database of targets we have looked at.  If the target name is
+not found in this database, then defaults are used, namely Vmag = 6.0,
+Teff = 5500 K, log(g)=4.0.  In this case, one usually sees a mismatched 
+template spectrum.
 
 p. 1, 2 leftmost panels:  These panels show the cross-correlation between the
 target and template spectra, plotted against redshift (km/s).  The amplitude
@@ -59,12 +79,11 @@ with a stellar rotation profile, but this is not yet done.  Sorry.
 
 The vertical blue line indicates zero redshift, the vertical black line shows
 the estimated cross-correlation peak position.  In the upper right area of the
-panel one finds the correlation peak height, BC = the calculated barycentric
-redshift of the target at the flux-weighted mean time of the exposure (km/s),
-and RV = the estimated redshift of the correlation peak (ie, the redshift
-of spectrum features relative to the same features in the template).  The
-estimated barycentric redshift of the target is therefore RV-BC.  No noise
-estimates yet.
+panel one finds (reading from the bottom up) the correlation peak height, 
+CCshft = the estimated shift between object and template spectra (km/s),
+BC = the calculated barycentric redshift of the target at the flux-weighted 
+mean time of the exposure (km/s), and RV = the estimated barycentric redshift 
+of the target spectrum, ie, CCshft + BC.  No noise estimates yet.
 
 p. 1, rightmost panel:  This panel shows the raw extracted spectrum (EXTR
 format) for the same order as plotted above.  The vertical scale is kilo-ADU.
@@ -73,7 +92,6 @@ p.2, all panels:  These panels show other spectrum orders, containing
 interesting stellar lines: Ca II H, H-alpha, Li6707, and Na D.  In each case,
 Extracted signal (k ADU) are plotted against Wavelength (AA).  Vertical blue
 lines show the wavelengths of the expected features, assuming zero redshift.
-(nm).
 
 p. 3:  This plot shows the Mb b order once again, this time divided by the
 normalized flat-field spectrum (SPEC format).  Often, this plot is most useful
@@ -86,12 +104,11 @@ software performance than about astronomy.  Note that wavelengths on these
 plots are shown in nm.
 
 Data filenames that appear in these plots use an internal naming convention 
-that reflects the UT date on which the observation was started.  The name 
-format is
+that reflects the data date for the observation.  The name format is
 sssyyyyddd.fffff    where
 sss = site name, eg "lsc".
-yyy = UT year on which observation was started.
-ddd = UT cumulative day number (range 001-365) of observation
+yyy = data date year of observation.
+ddd = data date cumulative day number (range 001-365) of observation
 .fffff = fractional day number (range .00000-.99999) on which the observation
     was started.
 
@@ -137,7 +154,7 @@ The number of identified lines is printed in the bottom left corner.
 p. 2, bottom panel:  Besides the cross-correlation of the Mg b order, the
 pipeline estimates redshifts for each of nblock contiguous segments across
 each of the orders (for current testing nblock = 12).  The estimation fits
-a few-parameter (shift, scale, tilt) transformation of each block in the
+a few-parameter (x-shift, scale, offset) transformation of each block in the
 template spectrum to the corresponding observed block.  This panel shows the
 transformation redshift parameter (km/s) plotted as a function of block
 index number.  The block index changes fastest with order number, and slowest
