@@ -2,6 +2,8 @@
 
 @Library('lco-shared-libs@0.0.2') _
 
+import groovy.json.JsonSlurper
+
 def runRancherCommand(String serviceName, String command) {
 
     def DEV_CREDS = credentials('rancher-cli-dev')
