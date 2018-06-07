@@ -270,16 +270,16 @@ rmsgoodo=tharred.rmsgood(1)
 mgbdispo=tharred.mgbdisp(1)
 lammido=tharred.lammid(1)
 for i=0,1 do begin       ; loop over targets
-  if(nfib eq 2) then begin
-    findx=2
-  endif else begin
-    findx=2*i
-  endelse
+; if(nfib eq 2) then begin
+;   findx=i
+; endif else begin
+;   findx=i
+; endelse
   atargname=strupcase(strtrim(targnames(i),2))
   if(atargname ne 'NULL') then begin
     orgname=echdat.origname
     rvkmps=c*rcco(i)
-    rv_addline,atargname,mjdd,bjdtdb_c(findx),site,exptime,orgname,speco,$
+    rv_addline,atargname,mjdd,bjdtdb_c(i),site,exptime,orgname,speco,$
       nmatcho,amoerro,rmsgoodo,$
       mgbdispo,rvkmps,ampcco(i),widcco(i),lammido,baryshifts(i),$
       rroa(i),rrom(i),rroe(i)

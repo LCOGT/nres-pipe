@@ -1,4 +1,4 @@
-FORMAT OF NRES PIPELINE OUTPUT FILES    20 Apr 2018
+FORMAT OF NRES PIPELINE OUTPUT FILES    30 Apr 2018
 
 
 Stellar spectrum output data files produced by the NRES reduction pipeline
@@ -51,7 +51,7 @@ Extn #,name     Data contents             Header keywords
                                  tracting from the raw extracted spectrum.
                                  Wavelength solution parameters (SINALP, FL,
                                  Y0, Z0), polynomial correction coeffs
-                                 C0 to C14, between-fiber correctopm coeffs
+                                 C0 to C14, between-fiber correction coeffs
                                  FIBC0 to FIBC9, name of ThAr line catalog file.
                                  Cross-correl peak width (km/s) and height,
                                  RCC = redshift of peak relative to template
