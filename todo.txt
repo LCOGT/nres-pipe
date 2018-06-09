@@ -1,4 +1,4 @@
-x put nord into common directly, rather than in  specdat.nord 
+x put nord into common directly, rather than in  specdat.nord
 x write get_specdat routine
 write obs2txt.pro to write metadata to a text file
 x in calib_extract, read trace array into common
