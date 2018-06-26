@@ -28,28 +28,7 @@ pipeline {
 				}
 			}
 		}
-		stage('Deploy') {
-			when {
-				anyOf {
-					branch 'PR-*'
-					expression { return params.forceEndToEnd }
-				}
-			}
-			environment {
-				DEV_CREDS = credentials('rancher-cli-dev')
-			}
-			steps {
-				script {
-					withCredentials([usernamePassword(
-							credentialsId: 'rabbit-mq',
-							usernameVariable: 'RABBITMQ_USER',
-							passwordVariable: 'RABBITMQ_PASSWORD')]) {
-						sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
-					}
-				}
-			}
-		}
-		stage('Test'){
+		stage('Test') {
 			when {
 				anyOf {
 					branch 'PR-*'
@@ -62,12 +41,28 @@ pipeline {
 				CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
 				CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
 			}
-			steps {
-				sshagent(credentials: ['jenkins-rancher-ssh']) {
-				    executeOnRancher('/bin/true', CONTAINER_HOST, CONTAINER_ID)
+			lock('IDLLock'){
+				steps {
+					script {
+						withCredentials([usernamePassword(
+								credentialsId: 'rabbit-mq',
+								usernameVariable: 'RABBITMQ_USER',
+								passwordVariable: 'RABBITMQ_PASSWORD')]) {
+							sh('rancher -c ${RANCHERDEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+						}
+					}
+					sshagent(credentials: ['jenkins-rancher-ssh']) {
+							executeOnRancher('/bin/true', CONTAINER_HOST, CONTAINER_ID)
+					}
+				}
+				post {
+					success {
+						script {
+								sh('rancher -c ${RANCHERDEV_CREDS} rm -f --stop --type stack NRESPipelineTest ')
+						}
+					}
 				}
 			}
 		}
 	}
 }
-
