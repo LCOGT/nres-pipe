@@ -1,22 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('lco-shared-libs@0.0.2') _
-
-import groovy.json.JsonSlurper
-
-def runRancherCommand(String serviceName, String command) {
-
-    def DEV_CREDS = credentials('rancher-cli-dev')
-    String container_json = sh(script: 'rancher -c '+ DEV_CREDS + ' inspect --format json ' + serviceName, returnStdout: true).trim()
-    JsonSlurper slurper = new JsonSlurper()
-    def container_info = slurper.parseText(container_json)
-    def hostId = container_info.hostId
-    String host_json = sh(script: 'rancher -c ${DEV_CREDS} inspect --format json --type host ' + hostId, returnStdout: true).trim()
-    def host_info = slurper.parseText(host_json)
-    def hostname = host_info.hostname
-
-    sh('ssh ' + hostname + ' docker exec -i ' + container_info.externalID + ' ' + command)
-}
+@Library('lco-shared-libs@0.0.6') _
 
 pipeline {
 	agent any
@@ -66,22 +50,25 @@ pipeline {
 				}
 			}
 		}
-	    stage('Test'){
+		stage('Test'){
 			when {
 				anyOf {
 					branch 'PR-*'
 					expression { return params.forceEndToEnd }
 				}
 			}
+			environment {
+				RANCHERDEV_CREDS = credentials('rancher-cli-dev')
+				SSH_CREDS = credentials('jenkins-rancher-ssh-userpass')
+				CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
+				CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
+			}
 			steps {
-				script {
-
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						runRancherCommand('NRESPipelineTest', '/bin/true')
-					}
-
+				sshagent(credentials: ['jenkins-rancher-ssh']) {
+				    executeOnRancher('/bin/true', CONTAINER_HOST, CONTAINER_ID)
 				}
 			}
-	    }
+		}
 	}
 }
+
