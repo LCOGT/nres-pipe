@@ -6,7 +6,7 @@ pipeline {
 	agent any
 	environment {
 		dockerImage = null
-		PROJ_NAME = projName("${JOB_NAME}")
+		PROJ_NAME = projName()
 		GIT_DESCRIPTION = gitDescription()
 		DOCKER_IMG = dockerImageName("${LCO_DOCK_REG}", "${PROJ_NAME}", "${GIT_DESCRIPTION}")
 	}
@@ -45,7 +45,6 @@ pipeline {
 							usernameVariable: 'RABBITMQ_USER',
 							passwordVariable: 'RABBITMQ_PASSWORD')]) {
 						sh('rancher -c ${DEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
-						sh('echo "Got here".')
 					}
 				}
 			}
