@@ -73,7 +73,7 @@ pipeline {
 			post {
 				success {
 					script {
-						sh('rancher -c ${RANCHERDEV_CREDS} rm -f --stop --type stack NRESPipelineTest ')
+						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest ')
 					}
 				}
 			}
