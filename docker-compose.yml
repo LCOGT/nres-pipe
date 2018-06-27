@@ -6,12 +6,20 @@ services:
     - 15673:15672/tcp
     labels:
       io.rancher.container.pull_image: always
+    logging:
+      options:
+        max-size: 100m
+        max-file: 3
   NRESPipelineTestFitsExchange:
     image: rabbitmq:3-management
     ports:
     - 15674:15672/tcp
     labels:
       io.rancher.container.pull_image: always
+    logging:
+      options:
+        max-size: 100m
+        max-file: 3
   NRESPipelineE2EData:
     image: docker.lco.global/nres-pipeline-e2e-data:1.0.0
     entrypoint:
@@ -21,6 +29,10 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
+    logging:
+      options:
+        max-size: 100m
+        max-file: 3
   NRESPipelineTest:
     image: ${DOCKER_IMG}
     environment:
@@ -41,3 +53,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.sidekicks: NRESPipelineE2EData,NRESPipelineTestFitsExchange,NRESCeleryRabbitmq
+    logging:
+      options:
+        max-size: 100m
+        max-file: 3
