@@ -101,3 +101,6 @@ ENV/
 test.db
 
 exofast
+
+.pytest_cache
+
