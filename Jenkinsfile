@@ -66,7 +66,7 @@ pipeline {
 			steps {
 				script {
 					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('/bin/true', CONTAINER_HOST, CONTAINER_ID)
+						executeOnRancher('pytest -m e2e /nres/code/', CONTAINER_HOST, CONTAINER_ID)
 					}
 				}
 			}
