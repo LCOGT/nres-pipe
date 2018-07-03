@@ -1,12 +1,33 @@
 import pytest
+import os
+from glob import glob
+
+sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
+instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
+               for instrument_path in glob(os.path.join(os.path.join(os.environ['NRES_DATA_ROOT'], site, '*')))]
+
+days_obs = [os.path.join(instrument, os.path.basename(dayobs_path)) for instrument in instruments
+            for dayobs_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, '*'))]
+
+
+nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', 'dark', 'dble', 'diag', 'expm',
+                             'extr', 'flat', 'plot', 'rv', 'spec', 'tar', 'temp', 'thar', 'trace', 'trip', 'zero']
 
 
 def setup_directory_tree():
-    pass
+    for instrument in instruments:
+        reduced_path = os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced')
+
+        for nres_pipeline_directory in nres_pipeline_directories:
+            full_pipline_directory_path = os.path.join(reduced_path.join(nres_pipeline_directory))
+            if not os.path.exists(full_pipline_directory_path):
+                os.makedirs(full_pipline_directory_path)
 
 
 def copy_config_files():
-    pass
+    import sys
+    print(sys.argv)
+    raise Exception
 
 
 def copy_csv_files():
