@@ -1,6 +1,11 @@
 import pytest
 import os
 from glob import glob
+import shutil
+from nrespipe.dbs import create_db
+from nrespipe.utils import post_to_fits_exchange
+from nrespipe import tasks
+import time
 
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
@@ -14,6 +19,17 @@ nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', '
                              'extr', 'flat', 'plot', 'rv', 'spec', 'tar', 'temp', 'thar', 'trace', 'trip', 'zero']
 
 
+def wait_for_celery_is_finished():
+    still_running = True
+    celery_inspector = tasks.app.control.inspect()
+    while still_running:
+        if celery_inspector.active() is None and celery_inspector.scheduled() is None \
+                and celery_inspector.reserved() in None:
+            still_running = False
+        else:
+            time.sleep(1)
+
+
 def setup_directory_tree():
     for instrument in instruments:
         reduced_path = os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced')
@@ -25,17 +41,17 @@ def setup_directory_tree():
 
 
 def copy_config_files():
-    import sys
-    print(sys.argv)
-    raise Exception
+    for instrument in instruments:
+        config_dir = os.path.join(pytest.config.rootdir, 'config')
+        for config_file in glob(os.path.join(config_dir, '*')):
+            shutil.copy(config_file, os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'config'))
 
 
 def copy_csv_files():
-    pass
-
-
-def make_db():
-    pass
+    for instrument in instruments:
+        csv_dir = os.path.join(pytest.config.rootdir, 'csv')
+        for csv_file in glob(os.path.join(csv_dir, '*.csv')):
+            shutil.copy(csv_file, os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'csv'))
 
 
 @pytest.fixture(scope='module')
@@ -43,12 +59,16 @@ def init():
     setup_directory_tree()
     copy_config_files()
     copy_csv_files()
-    make_db()
+    create_db(os.environ['DB_URL'])
 
 
 @pytest.fixture(scope='module')
 def process_bias_frames(init):
-    pass
+    for day_obs in days_obs:
+        bias_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*b00.fits*'))
+        for bias_file in bias_files:
+            post_to_fits_exchange(os.environ['FITS_BROKER', bias_file])
+    wait_for_celery_is_finished()
 
 
 @pytest.fixture(scope='module')
@@ -115,10 +135,17 @@ def reduce_science_frames(cleanup_zero_creation):
 @pytest.mark.e2e
 class TestE2E(object):
     def test_if_bias_frames_were_created(self, process_bias_frames):
-        assert 0
+        input_bias_files = []
+        for day_obs in days_obs:
+            input_bias_files += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*b00.fits*'))
+        created_bias_files = []
+        for instrument in instruments:
+            created_bias_files += glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
+                                                    'bias', '*.fits'))
+        assert len(input_bias_files) == len(created_bias_files)
 
     def test_if_stacked_bias_frame_was_created(self, stack_bias_frames):
-        pass
+        assert False
 
     def test_if_dark_frames_were_created(self, process_dark_frames):
         pass

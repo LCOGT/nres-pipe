@@ -30,7 +30,6 @@ logger = logging.getLogger('nrespipe')
 idl_logger = logging.getLogger('idl')
 
 
-
 def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
     os.environ['NRESROOT'] = os.path.join(data_reduction_root, site, '')
     os.environ['NRESINST'] = os.path.join(nres_instrument, '')
