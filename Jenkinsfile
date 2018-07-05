@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('lco-shared-libs@0.0.6') _
+@Library('lco-shared-libs@feature/rancher_execute_userid') _
 
 pipeline {
 	agent any
@@ -62,11 +62,12 @@ pipeline {
 				SSH_CREDS = credentials('jenkins-rancher-ssh-userpass')
 				CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
 				CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
+				ARCHIVE_UID = credentials('archive-userid')
 			}
 			steps {
 				script {
 					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest -m e2e /nres/code/', CONTAINER_HOST, CONTAINER_ID)
+						executeOnRancher('pytest -m e2e /nres/code/', CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
 					}
 				}
 			}
