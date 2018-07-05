@@ -1,6 +1,4 @@
 version: '2'
-volumes:
-  nrese2e:
 services:
   NRESCeleryRabbitmq:
     image: rabbitmq:3-management
@@ -54,7 +52,6 @@ services:
     - NRESPipelineTestFitsExchange:nrestestfitsexchange
     labels:
       io.rancher.container.pull_image: always
-      io.rancher.sidekicks: NRESPipelineE2EData,NRESPipelineTestFitsExchange,NRESCeleryRabbitmq
     logging:
       options:
         max-size: '100m'
