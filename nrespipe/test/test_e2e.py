@@ -35,7 +35,7 @@ def setup_directory_tree():
         reduced_path = os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced')
 
         for nres_pipeline_directory in nres_pipeline_directories:
-            full_pipline_directory_path = os.path.join(reduced_path.join(nres_pipeline_directory))
+            full_pipline_directory_path = os.path.join(reduced_path, nres_pipeline_directory)
             if not os.path.exists(full_pipline_directory_path):
                 os.makedirs(full_pipline_directory_path)
 
