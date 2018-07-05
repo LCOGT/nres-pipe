@@ -43,7 +43,7 @@ services:
       BROKER_URL: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nresceleryrabbitmq:5672/
       BROKER_USERNAME: ${RABBITMQ_USER}
       DB_URL: sqlite:////archive/engineering/test.db
-      FITS_BROKER: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nrestestfitsexchange:5672/
+      FITS_BROKER: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@nrestestfitsexchange:5672/
       NRES_DATA_ROOT: /archive/engineering/
       RABBITMQ_HOST: nresceleryrabbitmq
       OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'
