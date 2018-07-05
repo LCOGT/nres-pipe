@@ -67,7 +67,7 @@ def process_bias_frames(init):
     for day_obs in days_obs:
         bias_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*b00.fits*'))
         for bias_file in bias_files:
-            post_to_fits_exchange(os.environ['FITS_BROKER', bias_file])
+            post_to_fits_exchange(os.environ['FITS_BROKER'], bias_file)
     wait_for_celery_is_finished()
 
 
