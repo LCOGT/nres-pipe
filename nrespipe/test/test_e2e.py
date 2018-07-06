@@ -23,8 +23,8 @@ def wait_for_celery_is_finished():
     still_running = True
     celery_inspector = tasks.app.control.inspect()
     while still_running:
-        if celery_inspector.active() is None and celery_inspector.scheduled() is None \
-                and celery_inspector.reserved() in None:
+        if len(celery_inspector.active()['celery@worker']) == 0 and len(celery_inspector.scheduled()['celery@worker']) == 0 \
+                and len(celery_inspector.reserved()['celery@worker']) == 0:
             still_running = False
         else:
             time.sleep(1)
