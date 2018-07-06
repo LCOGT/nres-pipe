@@ -52,6 +52,7 @@ services:
     - NRESPipelineTestFitsExchange:nrestestfitsexchange
     labels:
       io.rancher.container.pull_image: always
+      io.rancher.sidekicks: NRESPipelineE2EData
     logging:
       options:
         max-size: '100m'
