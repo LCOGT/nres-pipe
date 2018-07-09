@@ -19,6 +19,8 @@ from nrespipe.utils import  warp_coordinates, send_email, make_summary_pdf, get_
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
+import trace_orders_utils
+
 import numpy as np
 
 import tempfile
@@ -273,6 +275,148 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
 
     # Run trace refine on a set of flats
     refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root)
+
+
+@app.task
+def trace(in_file, out_file, n_orders=67, reference_row=3500, reference_column=2000, blind_search_column_length=300,
+          guess_percentile=90., column_halfwidth=8, baffle_clip=150, degree=4, every=16,
+          return_objects=False, debug_plots=False, verbose=False):
+    """
+    Generate polynomial fits for two fibers across each order. Subroutines are in trace_orders_utils.py.
+
+    Parameters
+    ----------
+    in_file : str
+        Full file path and name for the image fits file you want to trace. Image should have its higher row indices
+        corresponding to bluer orders.
+    out_file : str
+        Full file path and name of the output ascii file.
+    n_orders : int (opt)
+        Number of orders to be traced. Effectively controls how far into the red will be traced.
+    reference_row : int (opt)
+        Central row of the initial columnar slice used to find the first science-order pixel. Must be near the
+        blue end of the chip to ensure the orders are well-separated.
+    reference_column : int (opt)
+        Column index of the initial columnar slice used to find the first science-order pixel. This column must run
+        through all valid orders/fibers.
+    blind_search_column_length : int (opt)
+        Length of the initial cut along the reference_column used to locate a position along the first order.
+        Should be long enough to definitely hit a couple orders.
+    guess_percentile : float (opt)
+        Determines which point within a blind slice is guessed to be on an order. Should be close to 100 to obtain a
+        bright pixel, but not quite 100 because then you could get a cosmic ray.
+    column_halfwidth : int (opt)
+        The halfwidth of targeted sliced through an order. Fullwidth will be 1 + (column_halfwidth * 2).
+    baffle_clip : int (opt)
+        Controls how many previously-fit centroids will be rejected once a stop condition is met. Currently, this must
+        be >= 1.
+    degree : int (opt)
+        Degree of the polynomial fits to the order centroids.
+    every : int (opt)
+        In the ascii file, positions are output every `every` columns.
+    return_objects : bool (opt)
+        If true, returns the centroids and polynomial fits.
+    debug_plots: bool or list (opt)
+        If true, makes all plots useful for debugging. If False, none are made. If list, elements should be the
+        numbers of the desired plots. E.g., [1,4,5] would create plots 1, 4, and 5.
+        1 : plot_guess: position of the guess on the 1D column, and in the 2D image
+        2 : plot_column: shows the column centered on the initial and second centroid.
+        3 : plot_first_polynomial: shows first polynomial fit on top of the 2D image
+        4 : plot_first_polynomial_residuals: shows residuals for the first fit's centroids-polynomial
+        5 : plot_all_polynomials: shows all polynomial fits on top of the 2D image
+        6 : plot_all_polynomial_residuals: shows residuals for the each fit's centroids-polynomial
+    verbose: bool (opt)
+        If true, reports progress as orders are traced.
+
+    Returns
+    -------
+    red_fiber_centroids: 1D array (opt)
+        Sub-pixel row indices for centroids of the red fibers for each order.
+    blue_fiber_centroids: 1D array (opt)
+        Sub-pixel row indices for centroids of the blue fibers for each order.
+    red_polynomials: 1D array (opt)
+        Polynomial functions fitted to red_fiber_centroids(col).
+    blue_polynomials: 1D array (opt)
+        Polynomial functions fitted to blue_fiber_centroids(col).
+
+    Notes
+    -----
+    Identifies an initial pixel on an order. Follows the centroid of slices through that order along the dispersion
+    direction, terminating when it reaches the edge of the chip or gets too faint. Then it searches for neighbor fiber
+    to the initial fiber, following it across the dispersion direction. Polynomials are fit to the identified centroids.
+    Then the next blueward fiber/order is found and traced, along with its neighbor. This continues until it hits the
+    blue edge of the chip. It returns to the first order, and then proceeds redward. Continues until the desired number
+    of orders are found.
+    """
+
+    image, header = trace_orders_utils.get_data(in_file)
+
+    initial_row_indices, initial_column_intensities = trace_orders_utils.\
+        get_column(image, reference_column, center=reference_row, halfwidth=blind_search_column_length // 2, smooth=7)
+    guess_row_index, guess_column_intensity = trace_orders_utils.\
+        guess_point(initial_row_indices, initial_column_intensities, percentile=guess_percentile)
+    trace_orders_utils.plot_guess(image, initial_row_indices, initial_column_intensities, guess_row_index,
+                                  guess_column_intensity, reference_column, blind_search_column_length,
+                                  debug_plots=debug_plots)
+
+    row_indices, intensities = trace_orders_utils.get_column(image, reference_column, center=guess_row_index,
+                                                             halfwidth=column_halfwidth)
+    centroid = trace_orders_utils.get_centroid(row_indices, intensities)
+    fig, ax = trace_orders_utils.plot_column(row_indices, intensities, guess_row_index, guess_column_intensity,
+                                             centroid, debug_plots=debug_plots)
+    row_indices, intensities = trace_orders_utils.get_column(image, reference_column, center=centroid,
+                                                             halfwidth=column_halfwidth)
+    centroid = trace_orders_utils.get_centroid(row_indices, intensities)
+    trace_orders_utils.plot_column(row_indices, intensities, guess_row_index, guess_column_intensity, centroid,
+                                   fig=fig, ax=ax, debug_plots=debug_plots)
+
+    centroids_initial = trace_orders_utils.follow_fiber(image, centroid, reference_column, column_halfwidth,
+                                                        baffle_clip)
+    polynomial_initial = trace_orders_utils.fit_polynomial(np.arange(image.shape[1]), centroids_initial, degree=degree)
+
+    neighbor_fiber_row_indices, neighbor_fiber_intensities = trace_orders_utils.\
+        find_first_neighbor_fiber(image, centroids_initial, reference_column, column_halfwidth)
+    guess_row_index, guess_column_intensity = trace_orders_utils.\
+        guess_point(neighbor_fiber_row_indices, neighbor_fiber_intensities, percentile=guess_percentile)
+
+    row_indices, intensities = trace_orders_utils.get_column(image, reference_column, center=guess_row_index,
+                                                             halfwidth=column_halfwidth)
+    centroid = trace_orders_utils.get_centroid(row_indices, intensities)
+    row_indices, intensities = trace_orders_utils.get_column(image, reference_column, center=centroid,
+                                                             halfwidth=column_halfwidth)
+    centroid = trace_orders_utils.get_centroid(row_indices, intensities)
+
+    centroids_neighbor = trace_orders_utils.follow_fiber(image, centroid, reference_column, column_halfwidth,
+                                                         baffle_clip=baffle_clip)
+    polynomial_neighbor = trace_orders_utils.\
+        fit_polynomial(np.arange(image.shape[1]), centroids_neighbor, degree=degree)
+
+    red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = trace_orders_utils.\
+        assign_fiber_colors(polynomial_initial, polynomial_neighbor, centroids_initial, centroids_neighbor,
+                            reference_column)
+
+    trace_orders_utils.plot_first_polynomial(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids,
+                                             blue_polynomials, debug_plots=debug_plots)
+    trace_orders_utils.plot_first_polynomial_residuals(image, red_fiber_centroids, red_polynomials,
+                                                       blue_fiber_centroids, blue_polynomials, debug_plots=debug_plots)
+
+    red_peak = trace_orders_utils.get_peak_flux(image, red_polynomials, reference_column, column_halfwidth)
+    order_separation_initial = trace_orders_utils.\
+        get_initial_order_separation(image, red_peak, blue_polynomials, reference_column, column_halfwidth)
+
+    red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials = trace_orders_utils.\
+        find_other_orders(image, order_separation_initial, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
+                          blue_polynomials, reference_column, column_halfwidth, baffle_clip, degree, n_orders, verbose)
+
+    trace_orders_utils.plot_all_polynomials(image, red_fiber_centroids, blue_fiber_centroids, red_polynomials,
+                                            blue_polynomials, debug_plots=debug_plots)
+    trace_orders_utils.plot_all_polynomial_residuals(image, red_fiber_centroids, red_polynomials, blue_fiber_centroids,
+                                                     blue_polynomials, debug_plots=debug_plots)
+
+    trace_orders_utils.make_ascii(out_file, in_file, header, red_polynomials, blue_polynomials, every)
+
+    if return_objects:
+        return red_fiber_centroids, blue_fiber_centroids, red_polynomials, blue_polynomials
 
 
 @app.task

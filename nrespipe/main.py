@@ -68,7 +68,7 @@ def run_trace_orders():
 
     args = parser.parse_args()
 
-    tasks.run_trace_orders.delay(args.infile, args.outfile)
+    tasks.trace.delay(args.infile, args.outfile)
 
 
 def run_nres_trace0():
