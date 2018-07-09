@@ -63,8 +63,8 @@ def stack_nres_calibrations():
 
 def run_trace_orders():
     parser = argparse.ArgumentParser(description='Trace two fibers across all orders of a reduced 2D flat field image.')
-    parser.add_argument('--infile', dest='infile', required=True, help='Full path to reduced input file.'
-    parser.add_argument('--outfile', dest='outfile', required=True, help='Full path for ascii output file.'
+    parser.add_argument('--infile', dest='infile', required=True, help='Full path to reduced input file.')
+    parser.add_argument('--outfile', dest='outfile', required=True, help='Full path for ascii output file.')
 
     args = parser.parse_args()
 
