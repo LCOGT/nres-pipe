@@ -871,25 +871,26 @@ def get_date(header):
 
 def get_data(file_name):
     """
-    Gets data and header objects from a fits file.
+    Gets data and header objects from a fits file, or a compressed fits file (.fits.fz).
 
     Parameters
     ----------
     file_name : str
+        Must end with '.fits' or '.fits.fz'
 
     Returns
     -------
     data : 2D array
-    header : header object
-
-    Notes
-    -----
-    Does not work on raw (fits.fz) images, which store the relevant data in hdulist[1], not [0].
+    header : fits header object
     """
 
     hdulist = fits.open(file_name)
-    data = hdulist[0].data
-    header = hdulist[0].header
+    if file_name[-3:] == '.fz':
+        index = 1
+    else:  # uncompressed .fits file
+        index = 0
+    data = hdulist[index].data
+    header = hdulist[index].header
     return data, header
 
 
