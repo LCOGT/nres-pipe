@@ -191,6 +191,14 @@ fpack_stacked_calibration,filout, sxpar(output_header, 'OUTNAME')
 
 ; add line to standards.csv
 if(nfib eq 2) then cflg='0010' else cflg='0030' 
+; test flat for quality, if bad, set cflg character 1 = 1 = "do not use"
+cf=check_flat(datout)
+if(cf le 0) then begin
+  strput,cflg,'1',1
+  logstring='Bad Flat!  Setting '+branch+fout+' to DO NOT USE status.'
+  logo_nres2,rutname,'WARNING',logstring
+  print,'check_flat = ',cf 
+endif
 stds_addline,'FLAT',branch+fout,nfile,strtrim(site,2),strtrim(camera,2),jdd,cflg
 
 ; print description of what was done
