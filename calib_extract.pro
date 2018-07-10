@@ -45,17 +45,6 @@ if(err ne 0) then begin
   goto,fini
 endif
 
-; make needed arrays to allow wavelength computation
-; make a tentative lambda array for all 3 fibers
-xx=(findgen(nx)-nx/2.)*specdat.pixsiz
-mm=specdat.ord0+lindgen(nord)
-lam03=dblarr(nx,nord,3)
-for i=0,2 do begin
-  lambda3ofx,xx,mm,i,specdat,lamt,y0t
-  lam03(*,*,i)=lamt
-endfor
-mk_badlamwts,lam03
-
 ; locate suitable bias, dark, flat and trace data
 errsum=0
 get_calib,'BIAS',biasfile,bias,biashdr,gerr  ; find bias via the default method
@@ -65,7 +54,27 @@ get_calib,'DARK',darkfile,dark,darkhdr,gerr
 logo_nres2,rutname,'INFO','READ '+darkfile
 errsum=errsum+gerr
 if(not keyword_set(flatk)) then begin
-  get_calib,'FLAT',flatfile,flat,flathdr,gerr
+
+; bad flat data files appear fairly often.  Therefore, when we get a flat,
+; first test it for known quality failures.  If it fails, rewrite the
+; standards.csv file with this flat marked as "do not use", and retry.
+; Continue until success or until gerr ne 0.
+  noflat=1             ; means we have no good flat yet
+  gerr=0
+  while(noflat eq 1) do begin
+    get_calib,'FLAT',flatfile,flat,flathdr,gerr
+    print,flatfile
+    cf=check_flat(flat)
+    if(cf le 0) then begin
+      noflat=1
+      logstring='Bad Flat!  Setting '+flatfile+' to DO NOT USE status.'
+      logo_nres2,rutname,'WARNING',logstring
+      setbadflat,flatfile
+    endif else begin
+      if(gerr eq 0) then noflat=0 else setbadflat  ; keep looking if gerr is set
+    endelse
+  endwhile
+
   logo_nres2,rutname,'INFO','READ '+flatfile
   flatdat={flat:flat,flatfile:flatfile,flathdr:flathdr}
   tarlist=[nresrooti+'reduced/'+flatfile]
@@ -99,11 +108,33 @@ if(cnfib eq 3) then begin
   endif
 endif
 
-;stop
-
 ; debias
 cordat=dat-bias
 mk_variance              ; compute variance map and hold it in common, too
+
+
+ord_wid=sxpar(tracehdr,'ORDWIDTH')   ; width of band to be considered for
+                                     ; extraction
+medboxsz=sxpar(tracehdr,'MEDBOXSZ')
+npoly=sxpar(tracehdr,'NPOLY')
+cowid=sxpar(tracehdr,'COWID')
+nblock=sxpar(tracehdr,'NBLOCK')
+trace=reform(tracprof(0:npoly-1,*,*,0))
+prof=tracprof(0:cowid-1,*,*,1:nblock)
+order_cen,trace,ord_vectors
+tracedat={trace:trace,npoly:npoly,ord_vectors:ord_vectors,ord_wid:ord_wid,$
+          medboxsz:medboxsz,tracefile:tracefile,prof:prof}
+
+; make needed arrays to allow wavelength computation
+; make a tentative lambda array for all 3 fibers
+xx=(findgen(nx)-nx/2.)*specdat.pixsiz
+mm=specdat.ord0+lindgen(nord)
+lam03=dblarr(nx,nord,3)
+for i=0,2 do begin
+  lambda3ofx,xx,mm,i,specdat,lamt,y0t
+  lam03(*,*,i)=lamt
+endfor
+mk_badlamwts,lam03
 
 ; subtract dark
 exptime=sxpar(dathdr,'EXPTIME')
@@ -119,17 +150,6 @@ if(nxu gt nx) then begin
 endif
 
 ; remove background
-ord_wid=sxpar(tracehdr,'ORDWIDTH')   ; width of band to be considered for 
-                                     ; extraction
-medboxsz=sxpar(tracehdr,'MEDBOXSZ')
-nleg=sxpar(tracehdr,'NLEG')
-cowid=sxpar(tracehdr,'COWID')
-nblock=sxpar(tracehdr,'NBLOCK')
-trace=reform(tracprof(0:nleg-1,*,*,0))
-prof=tracprof(0:cowid-1,*,*,1:nblock)
-order_cen,trace,ord_vectors
-tracedat={trace:trace,npoly:nleg,ord_vectors:ord_vectors,ord_wid:ord_wid,$
-          medboxsz:medboxsz,tracefile:tracefile,prof:prof}
 objs=sxpar(dathdr,'OBJECTS')
 backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
 ; cordat is left in common: bias, dark, background-subtracted data,
@@ -242,10 +262,10 @@ if(~keyword_set(flatk)) then begin
   endelse
   objects=sxpar(dathdr,'OBJECTS')
   sxaddpar,hdr,'OBJECTS',objects
-  sxaddpar,hdr,'TEL1_RA',tel1dat.ra,'[deg] RA where Telescope 1 is pointing'
-  sxaddpar,hdr,'TEL2_RA',tel2dat.ra,'[deg] RA where Telescope 2 is pointing'
-  sxaddpar,hdr,'TEL1_DEC',tel1dat.dec,'[deg] DEC where Telescope 1 is pointing'
-  sxaddpar,hdr,'TEL2_DEC',tel2dat.dec,'[deg] DEC where Telescope 2 is pointing'
+  sxaddpar,hdr,'TEL1_RA',tel1dat.ra
+  sxaddpar,hdr,'TEL2_RA',tel2dat.ra
+  sxaddpar,hdr,'TEL1_DEC',tel1dat.dec
+  sxaddpar,hdr,'TEL2_DEC',tel2dat.dec
   sxaddpar,hdr,'NBLOCK',specdat.nblock
   sxaddpar,hdr,'NFIB',specdat.nfib
   sxaddpar,hdr,'NORD',specdat.nord
@@ -253,7 +273,7 @@ if(~keyword_set(flatk)) then begin
   sxaddpar,hdr,'NX',specdat.nx
   sxaddpar,hdr,'DATESTRD',datestrd
   sxaddpar,hdr,'L1IDTRAC',tracefile,'TRACE file'
-  sxaddpar,hdr,'RADESYS',sxpar(tel1hdr,'RADESYS'),'[ICRS] Fundamental coord. system of the object'
+  sxaddpar,hdr,'RADESYS',sxpar(tel1hdr,'RADESYS'),'[FK5] Fundamental coord. system of the object'
   tarlist=[tarlist,nresrooti+'reduced/'+tracefile]
 
   writefits,specout,corspec,hdr
