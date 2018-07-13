@@ -46,18 +46,17 @@ for i=0,nfib-1 do begin
 endfor
 
 sb=where(mad ge thrsh,nsb)
-if(nsb gt nbad) then good=0
+if(nsb gt nbad) then good=-1
 
 ; look for values ge 2. in flat(1,*,*)
 sb=where(flat(1,*,*) ge 2.0,nsb)
-if(nsb gt nbad) then good=0
+if(nsb gt nbad) then good=-2
 
 ; look for fraction of values > 0.985 greater than 0.05
 sbig=where(flat ge 0.985,nsbig)
-if(nsbig gt 0.05) then good=0
+if(float(nsbig)/n_elements(flat) gt 0.1) then good=-3
 
 fini:
 return,good
 
 end
-    
