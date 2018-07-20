@@ -21,6 +21,7 @@ pro thar_xdisp,xp0,io0,ll0,er0,xp1,io1,ll1,er1,fibc,rms
 ; constants
 lamthrsh=0.005   ; max wavelength difference for a match (nm)
 thrsig=5.         ; outliers at least this many sigma from mean
+svdmin=0.01      ; in lstsqr.pro, zero singular values smaller than this
 
 ; identify and list matching lines
 dx=[0.]
@@ -79,20 +80,20 @@ err=(err > err10)
 wts=(err10/err)^2
 
 ; do the fit
-cc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov)
+cc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svdmin)
 
 ; pitch outliers, do it again
 quartile,outp,med,q,dq
 thrq=dq*thrsig/1.35              ; more than thrsig sigma from zero
 sb=where(abs(outp) ge thrq,nsb)
 if(nsb gt 0) then wts(sb)=0.
-fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov)
+fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svdmin)
 
 ; and once more
 quartile,outp,med,q,dq
 thrq=dq*thrsig/1.35              ; more than thrsig sigma from zero
 sb=where(abs(outp) ge thrq,nsb)
 if(nsb gt 0) then wts(sb)=0.
-fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov)
+fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svdmin)
 
 end

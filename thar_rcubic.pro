@@ -26,6 +26,8 @@ thrshm=3.                  ; threshold dif for retaining data, median-sigma
 tiny=1.e-10
 radian=180.d0/!pi
 ncoefs_c=15                ; number of coeffs to be fit
+svdmin=1.e-2               ; threshold for zeroing svd vectors, relative to 
+                           ; biggest singular value
 
 ; check for sufficient data
 if(nmatch_c le ncoefs_c) then begin
@@ -95,7 +97,9 @@ funs(*,13)=lx3*lo1
 funs(*,14)=lx4
 
 ; do the first fit
-coefs_0=lstsqr(matchdif_c,funs,matchwts_0,ncoefs_c,rms,chisq,outp0,1,cov)
+print,'Running SVD Version ^^^^^^^^^^^^^^^^^^'
+coefs_0=lstsqr(matchdif_c,funs,matchwts_0,ncoefs_c,rms,chisq,outp0,1,cov,$
+          svdminrat=svdmin)
 
 ; compute scatter over points with non-tiny weights, do the fit again
 sg=where(matchwts_0 ge 1.5*tiny,nsg)
@@ -120,7 +124,7 @@ endelse
 ;    outp_c,1,cov)
 
 coefs_incr_c=lstsqr(matchdif_c,funs,matchwts_c,ncoefs_c,rms,chisq,$
-    outp_c,1,cov)
+    outp_c,1,cov,svdminrat=svdmin)
 ;
 ;  End test  ###########
 
@@ -143,6 +147,7 @@ fibno=fibindx_c
 sinalp=sin(grinc_c/radian)
 specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
    grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
+;  ex0:ex0_c,ex1:ex1_c,ex2:ex2_c,$
    coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
 lambda3ofx,xx,mm_c,fibno,specstruc,lam_c,y0m_c,air=0    ; always vacuum lam
 
