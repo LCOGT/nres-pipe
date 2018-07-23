@@ -62,7 +62,7 @@ def get_instrument_meta_data(file_path):
 
 def get_stack_time_range(filenames, day_obs):
     dates_of_observations = [fits.getdata(filename, header=True)[1]['DATE-OBS']
-                             for filename in glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', filenames]
+                             for filename in glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', filenames))]
     return min(dates_of_observations), max(dates_of_observations)
 
 
