@@ -78,13 +78,14 @@ def get_stack_time_range(filenames):
 def stack_calibrations(filenames, calibration_type):
     for day_obs in days_obs:
         calibration_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', filenames))
-        start, end = get_stack_time_range(calibration_files)
-        site, nres_instrument, camera = get_instrument_meta_data(calibration_files[0])
-        cmd = "nres_stack_calibrations --site {site} --camera {camera} --nres-instrument {nres_instrument} "
-        cmd += "--calibration-type {caltype} --start {start} --end {end}"
-        cmd = cmd.format(site=site, camera=camera, nres_instrument=nres_instrument, caltype=calibration_type,
-                         start=start, end=end)
-        os.system(cmd)
+        if len(calibration_files) > 0:
+            start, end = get_stack_time_range(calibration_files)
+            site, nres_instrument, camera = get_instrument_meta_data(calibration_files[0])
+            cmd = "nres_stack_calibrations --site {site} --camera {camera} --nres-instrument {nres_instrument} "
+            cmd += "--calibration-type {caltype} --start {start} --end {end}"
+            cmd = cmd.format(site=site, camera=camera, nres_instrument=nres_instrument, caltype=calibration_type,
+                             start=start, end=end)
+            os.system(cmd)
     wait_for_celery_to_finish()
 
 
@@ -107,12 +108,15 @@ def test_if_internal_files_were_created(input_filenames, expected_internal_filen
     assert len(input_files) == len(created_files)
 
 
-def test_if_stacked_calibrations_were_created(calibration_type):
+def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
+    number_of_stacks_that_should_have_been_created = 0
     created_stacked_calibrations = []
     for day_obs in days_obs:
-         created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
-                                                           calibration_type + '*.fits*'))
-    assert len(days_obs) ==len(created_stacked_calibrations)
+        if len(glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', raw_filenames))) > 0:
+            number_of_stacks_that_should_have_been_created += 1
+        created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
+                                                          calibration_type + '*.fits*'))
+    assert len(days_obs) == len(created_stacked_calibrations)
 
 
 @pytest.fixture(scope='module')
