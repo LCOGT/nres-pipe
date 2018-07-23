@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 from astropy.io import fits
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 from astropy.io import ascii
+from dateutil import parser
 
 import pkg_resources
 
@@ -98,8 +99,8 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
     """
     Stack the calibration files taken on a given night (BIAS, DARK, FLAT, ARC, TEMPLATE)
     """
-    date_range = [datetime.datetime.strptime(date_range[0], settings.date_format),
-                  datetime.datetime.strptime(date_range[1], settings.date_format)]
+    date_range = [parser.parse(date_range[0]),
+                  parser.parse(date_range[1])]
     logger.info('Stacking Calibration frames', extra={'tags': {'site': site, 'instrument': camera,
                                                                'caltype': calibration_type,
                                                                'start': date_range[0].strftime(settings.date_format),
