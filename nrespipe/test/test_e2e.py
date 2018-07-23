@@ -7,6 +7,8 @@ from nrespipe.utils import post_to_fits_exchange
 from nrespipe import tasks
 import time
 from astropy.io import fits
+from nrespipe.settings import date_format
+import datetime
 
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
@@ -60,10 +62,16 @@ def get_instrument_meta_data(file_path):
     return header['SITEID'], header['TELESCOP'], header['INSTRUME']
 
 
-def get_stack_time_range(filenames, day_obs):
+def get_stack_time_range(filenames):
     dates_of_observations = [fits.getdata(filename, header=True)[1]['DATE-OBS']
-                             for filename in glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', filenames))]
-    return min(dates_of_observations), max(dates_of_observations)
+                             for filename in filenames]
+    start = datetime.datetime.strptime(min(dates_of_observations), date_format)
+    # Pad the start and end times by a minute to deal with round-off errors
+    start -= datetime.timedelta(seconds=60)
+
+    end = datetime.datetime.strptime(max(dates_of_observations), date_format)
+    end += datetime.timedelta(seconds=60)
+    return start.strftime(date_format), end.strftime(date_format)
 
 
 def stack_calibrations(filenames, calibration_type):
