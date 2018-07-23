@@ -153,7 +153,7 @@ def make_tracefile(stack_dark_frames):
 
 
 @pytest.fixture(scope='module')
-def process_flat_frames(self, make_tracefile):
+def process_flat_frames(make_tracefile):
     pass
 
 
