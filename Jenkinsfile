@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('lco-shared-libs@feature/rancher_execute_userid') _
+@Library('lco-shared-libs@0.0.8') _
 
 pipeline {
 	agent any
