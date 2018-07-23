@@ -202,31 +202,31 @@ class TestE2E(object):
         test_if_stacked_calibrations_were_created('*b00.fits', 'bias')
 
     def test_if_dark_frames_were_created(self, process_dark_frames):
-        assert False
+        test_if_internal_files_were_created('*d00.fits*', os.path.join('dark', '*.fits'))
 
     def test_if_stacked_dark_frame_was_created(self, stack_dark_frames):
-        pass
+        test_if_stacked_calibrations_were_created('*d00.fits', 'dark')
 
     def test_if_flat_frames_were_created(self, process_flat_frames):
-        pass
+        assert False
 
     def test_if_stacked_flat_frame_was_created(self, stack_flat_frames):
-        pass
+        assert False
 
     def test_if_arc_frames_were_created(self, process_arc_frames):
-        pass
+        assert False
 
     def test_if_stacked_arc_frame_was_created(self, stack_arc_frames):
-        pass
+        assert False
 
     def test_if_zero_frame_was_created(self, cleanup_zero_creation):
-        pass
+        assert False
 
     def test_if_science_frames_were_extracted(self, reduce_science_frames):
-        pass
+        assert False
 
     def test_if_science_tar_files_were_created(self, reduce_science_frames):
-        pass
+        assert False
 
     def test_if_science_tar_files_have_fits_file_and_pdf_file(self, reduce_science_frames):
-        pass
+        assert False
