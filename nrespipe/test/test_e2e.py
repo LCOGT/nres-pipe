@@ -115,7 +115,7 @@ def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
         if len(glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', raw_filenames))) > 0:
             number_of_stacks_that_should_have_been_created += 1
         created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
-                                                          calibration_type + '*.fits*'))
+                                                          calibration_type.lower() + '*.fits*'))
     assert len(days_obs) == len(created_stacked_calibrations)
 
 
@@ -199,7 +199,7 @@ class TestE2E(object):
         test_if_internal_files_were_created('*b00.fits*', os.path.join('bias', '*.fits'))
 
     def test_if_stacked_bias_frame_was_created(self, stack_bias_frames):
-        test_if_stacked_calibrations_were_created('bias')
+        test_if_stacked_calibrations_were_created('*b00.fits', 'bias')
 
     def test_if_dark_frames_were_created(self, process_dark_frames):
         assert False
