@@ -77,7 +77,7 @@ def get_stack_time_range(filenames):
 def stack_calibrations(filenames, calibration_type):
     for day_obs in days_obs:
         calibration_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', filenames))
-        start, end = get_stack_time_range(calibration_files, day_obs)
+        start, end = get_stack_time_range(calibration_files)
         site, nres_instrument, camera = get_instrument_meta_data(calibration_files[0])
         cmd = "nres_stack_calibrations --site {site} --camera {camera} --nres-instrument {nres_instrument} "
         cmd += "--calibration-type {caltype} --start {start} --end {end}"
