@@ -8,8 +8,10 @@ from nrespipe import tasks
 import time
 from astropy.io import fits
 from nrespipe.settings import date_format
+from nrespipe.test.zero_files import zero_files
 import datetime
 from dateutil import parser
+from nrespipe import dbs
 
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
@@ -82,11 +84,8 @@ def stack_calibrations(filenames, calibration_type):
         if len(calibration_files) > 0:
             start, end = get_stack_time_range(calibration_files)
             site, nres_instrument, camera = get_instrument_meta_data(calibration_files[0])
-            cmd = "nres_stack_calibrations --site {site} --camera {camera} --nres-instrument {nres_instrument} "
-            cmd += "--calibration-type {caltype} --start {start} --end {end}"
-            cmd = cmd.format(site=site, camera=camera, nres_instrument=nres_instrument, caltype=calibration_type,
-                             start=start, end=end)
-            os.system(cmd)
+            tasks.make_stacked_calibrations.delay(site, camera, calibration_type, [start, end],
+                                                  os.environ['NRES_DATA_ROOT'], nres_instrument)
     wait_for_celery_to_finish()
 
 
@@ -118,6 +117,24 @@ def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
         created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
                                                           calibration_type.lower() + '*.fits*'))
     assert len(days_obs) == len(created_stacked_calibrations)
+
+
+def set_images_to_unprocessed_in_db(filenames):
+    db_session = dbs.get_session(os.environ['DB_ADDRESS'])
+    files_to_remove = db_session.Query(dbs.ProcessingState).filter(dbs.ProcessingState.filename.like(filenames)).all()
+    for file_to_remove in files_to_remove:
+        file_to_remove.processed = False
+        db_session.add(file_to_remove)
+    db_session.commit()
+    db_session.close()
+
+
+def remove_blaze_files_from_csv(csv_file):
+    with open(csv_file) as file_stream:
+        csv_rows = file_stream.readlines()
+    cleaned_csv_rows = [row for row in csv_rows if 'blaz' not in row.lower()]
+    with open(csv_file, 'w') as file_stream:
+        file_stream.writelines(cleaned_csv_rows)
 
 
 @pytest.fixture(scope='module')
@@ -156,6 +173,7 @@ def make_tracefiles(stack_dark_frames):
         [site, nres_instrument, day_obs] = site_day_obs.split(os.sep)
         tasks.refine_trace_from_night.delay(site, cameras[site], nres_instrument,
                                             os.environ['NRES_DATA_ROOT'], night=day_obs)
+    wait_for_celery_to_finish()
 
 
 @pytest.fixture(scope='module')
@@ -180,17 +198,30 @@ def stack_arc_frames(process_arc_frames):
 
 @pytest.fixture(scope='module')
 def extract_zero_frames(stack_arc_frames):
-    reduce_individual_frames('*e00.fits*')
+    for site in ['elp', 'lsc']:
+        for file_to_process in zero_files[site]['files']:
+            post_to_fits_exchange(os.environ['FITS_BROKER'],
+                                  os.path.join(os.environ['NRES_DATA_ROOT'], file_to_process))
+    wait_for_celery_to_finish()
 
 
 @pytest.fixture(scope='module')
 def make_zero_frames(extract_zero_frames):
-    pass
+    for site in zero_files:
+        files_to_stack = [os.path.join(os.environ['NRES_DATA_ROOT'], f) for f in zero_files[site]['files']]
+        start, end = get_stack_time_range(files_to_stack)
+        tasks.make_stacked_calibrations.delay(site, zero_files[site]['camera'], 'TEMPLATE', [start, end],
+                                              os.environ['NRES_DATA_ROOT'], zero_files[site]['nres_instrument'],
+                                              target=zero_files[site]['target'])
+    wait_for_celery_to_finish()
 
 
 @pytest.fixture(scope='module')
 def cleanup_zero_creation(make_zero_frames):
-    pass
+    for instrument in instruments:
+        remove_blaze_files_from_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
+                                                 'csv', 'standards.csv'))
+    set_images_to_unprocessed_in_db('%e00.fits%')
 
 
 @pytest.fixture(scope='module')
@@ -226,10 +257,12 @@ class TestE2E(object):
         test_if_stacked_calibrations_were_created('*a00.fits', 'arc')
 
     def test_if_zero_frame_was_created(self, cleanup_zero_creation):
-        assert False
+        for instrument in instruments:
+            created_zero_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'zero', '*.fits'))
+            assert len(created_zero_files) > 0
 
     def test_if_science_frames_were_extracted(self, reduce_science_frames):
-        assert False
+        test_if_internal_files_were_created('*e00.fits*', os.path.join('extr', '*.fits'))
 
     def test_if_science_tar_files_were_created(self, reduce_science_frames):
         assert False

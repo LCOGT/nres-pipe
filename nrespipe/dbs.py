@@ -42,7 +42,6 @@ def create_db(db_address):
     Base.metadata.create_all(engine)
 
 
-
 def get_session(db_address):
     """
     Get a connection to the database.
