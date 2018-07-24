@@ -18,6 +18,7 @@ instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in
 days_obs = [os.path.join(instrument, os.path.basename(dayobs_path)) for instrument in instruments
             for dayobs_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, '*'))]
 
+cameras = {'lsc': 'fl09', 'elp': 'fl17'}
 
 nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', 'dark', 'dble', 'diag', 'expm',
                              'extr', 'flat', 'plot', 'rv', 'spec', 'tar', 'temp', 'thar', 'trace', 'trip', 'zero']
@@ -148,13 +149,18 @@ def stack_dark_frames(process_dark_frames):
 
 
 @pytest.fixture(scope='module')
-def make_tracefile(stack_dark_frames):
-    pass
+def make_tracefiles(stack_dark_frames):
+    tasks.run_trace0.delay('/nres/code/config/lsc_trace.2017a.txt', 'lsc', 'fl09', 'nres01', os.environ['NRES_DATA_ROOT'])
+    tasks.run_trace0.delay('/nres/code/config/nres02_trace.2017a.txt', 'elp', 'fl17', 'nres02', os.environ['NRES_DATA_ROOT'])
+    for site_day_obs in days_obs:
+        [site, nres_instrument, day_obs] = os.path.split(site_day_obs)
+        tasks.refine_trace_from_night.delay(site, cameras[site], nres_instrument,
+                                            os.environ['NRES_DATA_ROOT'], night=day_obs)
 
 
 @pytest.fixture(scope='module')
-def process_flat_frames(make_tracefile):
-    pass
+def process_flat_frames(make_tracefiles):
+    reduce_individual_frames('*w00.fits*')
 
 
 @pytest.fixture(scope='module')
@@ -164,12 +170,12 @@ def stack_flat_frames(process_flat_frames):
 
 @pytest.fixture(scope='module')
 def process_arc_frames(stack_flat_frames):
-    pass
+    reduce_individual_frames('*a00.fits*')
 
 
 @pytest.fixture(scope='module')
 def stack_arc_frames(process_arc_frames):
-    pass
+    stack_calibrations('*a00.fits*', 'ARC')
 
 
 @pytest.fixture(scope='module')
@@ -208,16 +214,16 @@ class TestE2E(object):
         test_if_stacked_calibrations_were_created('*d00.fits', 'dark')
 
     def test_if_flat_frames_were_created(self, process_flat_frames):
-        assert False
+        test_if_internal_files_were_created('*w00.fits*', os.path.join('flat', '*.fits'))
 
     def test_if_stacked_flat_frame_was_created(self, stack_flat_frames):
-        assert False
+        test_if_stacked_calibrations_were_created('*w00.fits', 'flat')
 
     def test_if_arc_frames_were_created(self, process_arc_frames):
-        assert False
+        test_if_internal_files_were_created('*a00.fits*', os.path.join('dble', '*.fits'))
 
     def test_if_stacked_arc_frame_was_created(self, stack_arc_frames):
-        assert False
+        test_if_stacked_calibrations_were_created('*a00.fits', 'arc')
 
     def test_if_zero_frame_was_created(self, cleanup_zero_creation):
         assert False

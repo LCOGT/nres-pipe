@@ -230,7 +230,7 @@ def get_last_night():
     return yesterday.strftime('%Y%m%d')
 
 
-def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instrument):
+def get_files_from_night(filename_pattern, raw_data_root, site, nres_instrument, night=None):
     """
     Get a list of files matching a pattern from last night for a given NRES
 
@@ -245,6 +245,8 @@ def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instru
     nres_instrument : str
                     NRES instance, e.g. nres01
 
+    night : str
+            day-obs to get files from, default is last night
     Returns
     -------
     file_list : list
@@ -254,9 +256,10 @@ def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instru
     -----
     File names will be sorted in the output list.
     """
-    last_night = get_last_night()
+    if night is None:
+        night = get_last_night()
 
-    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, last_night, 'raw')
+    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, night, 'raw')
     file_names = glob(os.path.join(raw_data_path, filename_pattern))
     file_names.sort()
     return file_names

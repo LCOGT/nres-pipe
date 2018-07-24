@@ -14,7 +14,7 @@ from dateutil import parser
 import pkg_resources
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
 from nrespipe.utils import  warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
@@ -148,9 +148,9 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
 
 
 @app.task
-def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
+def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=None):
     # Get all the lamp flats from last night and which fibers were illuminated
-    flat_files =get_files_from_last_night('*w00.fits*', raw_data_root, site, nres_instrument)
+    flat_files = get_files_from_night('*w00.fits*', raw_data_root, site, nres_instrument, night=night)
 
     if len(flat_files) == 0:
         # Short circuit
@@ -166,18 +166,17 @@ def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
         else:
             flats_2.append(f)
 
-
     # If there are observations from both telescopes
     if len(flats_1) > 0 and len(flats_2) > 0:
         # Get the middle of each
-        flat1 = flats_1[(len(flats_1) + 1) //  2]
-        flat2 = flats_2[(len(flats_2) + 1) //  2]
+        flat1 = flats_1[(len(flats_1) + 1) // 2]
+        flat2 = flats_2[(len(flats_2) + 1) // 2]
     elif len(flats_1) > 0:
-    # Otherwise get the middle lamp flat
-        flat1 = flats_1[(len(flats_1) + 1) //  2]
+        # Otherwise get the middle lamp flat
+        flat1 = flats_1[(len(flats_1) + 1) // 2]
         flat2 = ''
     else:
-        flat1 = flats_2[(len(flats_2) + 1) //  2]
+        flat1 = flats_2[(len(flats_2) + 1) // 2]
         flat2 = ''
 
     # run refine_trace on the main task queue
@@ -193,7 +192,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
 
     if arc_file is None:
         # Take an input of a raw double frame
-        arc_files = get_files_from_last_night('*a00.fits*', raw_data_root, site, nres_instrument)
+        arc_files = get_files_from_night('*a00.fits*', raw_data_root, site, nres_instrument)
 
         # Short circuit
         if not arc_files:
@@ -269,7 +268,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
                            queue='celery')
 
     # Run trace refine on a set of flats
-    refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root)
+    refine_trace_from_night(site, camera, nres_instrument, raw_data_root)
 
 
 @app.task
