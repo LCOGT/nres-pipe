@@ -153,7 +153,7 @@ def make_tracefiles(stack_dark_frames):
     tasks.run_trace0.delay('/nres/code/config/lsc_trace.2017a.txt', 'lsc', 'fl09', 'nres01', os.environ['NRES_DATA_ROOT'])
     tasks.run_trace0.delay('/nres/code/config/nres02_trace.2017a.txt', 'elp', 'fl17', 'nres02', os.environ['NRES_DATA_ROOT'])
     for site_day_obs in days_obs:
-        [site, nres_instrument, day_obs] = os.path.split(site_day_obs)
+        [site, nres_instrument, day_obs] = site_day_obs.split(os.sep)
         tasks.refine_trace_from_night.delay(site, cameras[site], nres_instrument,
                                             os.environ['NRES_DATA_ROOT'], night=day_obs)
 
@@ -180,7 +180,7 @@ def stack_arc_frames(process_arc_frames):
 
 @pytest.fixture(scope='module')
 def extract_zero_frames(stack_arc_frames):
-    pass
+    reduce_individual_frames('*e00.fits*')
 
 
 @pytest.fixture(scope='module')
@@ -195,7 +195,7 @@ def cleanup_zero_creation(make_zero_frames):
 
 @pytest.fixture(scope='module')
 def reduce_science_frames(cleanup_zero_creation):
-    pass
+    reduce_individual_frames('*e00.fits*')
 
 
 @pytest.mark.incremental
