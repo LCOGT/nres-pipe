@@ -236,25 +236,25 @@ class TestE2E(object):
         test_if_internal_files_were_created('*b00.fits*', os.path.join('bias', '*.fits'))
 
     def test_if_stacked_bias_frame_was_created(self, stack_bias_frames):
-        test_if_stacked_calibrations_were_created('*b00.fits', 'bias')
+        test_if_stacked_calibrations_were_created('*b00.fits*', 'bias')
 
     def test_if_dark_frames_were_created(self, process_dark_frames):
         test_if_internal_files_were_created('*d00.fits*', os.path.join('dark', '*.fits'))
 
     def test_if_stacked_dark_frame_was_created(self, stack_dark_frames):
-        test_if_stacked_calibrations_were_created('*d00.fits', 'dark')
+        test_if_stacked_calibrations_were_created('*d00.fits*', 'dark')
 
     def test_if_flat_frames_were_created(self, process_flat_frames):
         test_if_internal_files_were_created('*w00.fits*', os.path.join('flat', '*.fits'))
 
     def test_if_stacked_flat_frame_was_created(self, stack_flat_frames):
-        test_if_stacked_calibrations_were_created('*w00.fits', 'flat')
+        test_if_stacked_calibrations_were_created('*w00.fits*', 'flat')
 
     def test_if_arc_frames_were_created(self, process_arc_frames):
         test_if_internal_files_were_created('*a00.fits*', os.path.join('dble', '*.fits'))
 
     def test_if_stacked_arc_frame_was_created(self, stack_arc_frames):
-        test_if_stacked_calibrations_were_created('*a00.fits', 'arc')
+        test_if_stacked_calibrations_were_created('*a00.fits*', 'arc')
 
     def test_if_zero_frame_was_created(self, cleanup_zero_creation):
         for instrument in instruments:
