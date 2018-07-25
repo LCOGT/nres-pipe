@@ -27,14 +27,16 @@ nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', '
 
 
 def wait_for_celery_to_finish():
-    still_running = True
     celery_inspector = tasks.app.control.inspect()
-    while still_running:
-        if len(celery_inspector.active()['celery@worker']) == 0 and len(celery_inspector.scheduled()['celery@worker']) == 0 \
-                and len(celery_inspector.reserved()['celery@worker']) == 0:
-            still_running = False
-        else:
-            time.sleep(1)
+    while True:
+        queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
+        time.sleep(1)
+        if any([queue is None for queue in queues]):
+            # Reset the celery connection
+            celery_inspector = tasks.app.control.inspect()
+            continue
+        if all([len(queue['celery@worker']) == 0 for queue in queues]):
+            break
 
 
 def setup_directory_tree():
