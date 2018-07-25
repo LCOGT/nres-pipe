@@ -68,11 +68,13 @@ pipeline {
 			steps {
 				script {
 					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest -m e2e /nres/code/', CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+						executeOnRancher('pytest --durations=0 --junitxml=pytest.xml -m e2e /nres/code/',
+						    CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
 					}
 				}
 			}
 			post {
+                always { junit 'pytest.xml' }
 				success {
 					script {
 						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest ')

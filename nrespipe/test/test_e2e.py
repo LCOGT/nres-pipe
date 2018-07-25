@@ -116,7 +116,7 @@ def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
             number_of_stacks_that_should_have_been_created += 1
         created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
                                                           calibration_type.lower() + '*.fits*'))
-    assert len(days_obs) == len(created_stacked_calibrations)
+    assert len(created_stacked_calibrations) == number_of_stacks_that_should_have_been_created
 
 
 def set_images_to_unprocessed_in_db(filenames):
