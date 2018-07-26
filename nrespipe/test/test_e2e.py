@@ -31,7 +31,7 @@ def wait_for_celery_to_finish():
     while True:
         queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
         time.sleep(1)
-        if any([queue is None for queue in queues]):
+        if any([queue is None or 'celery@worker' not in queue for queue in queues]):
             # Reset the celery connection
             celery_inspector = tasks.app.control.inspect()
             continue

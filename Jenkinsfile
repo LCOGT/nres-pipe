@@ -70,7 +70,7 @@ pipeline {
 					sshagent(credentials: ['jenkins-rancher-ssh']) {
 						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest.xml -m e2e /nres/code/',
 						    CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
-					    copyFromRancherContainer('/nres/code/pytest.xml', './', CONTAINER_HOST, CONTAINER_ID)
+					    copyFromRancherContainer('/nres/code/pytest.xml', 'pytest.xml', CONTAINER_HOST, CONTAINER_ID)
 					}
 				}
 			}
