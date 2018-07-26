@@ -12,6 +12,7 @@ from nrespipe.test.zero_files import zero_files
 import datetime
 from dateutil import parser
 from nrespipe import dbs
+import tarfile
 
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
@@ -267,7 +268,18 @@ class TestE2E(object):
         test_if_internal_files_were_created('*e00.fits*', os.path.join('extr', '*.fits'))
 
     def test_if_science_tar_files_were_created(self, reduce_science_frames):
-        assert False
+        for day_obs in days_obs:
+            input_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*e00.fits*'))
+            for input_file in input_files:
+                expected_filename = os.path.basename(input_file).replace('e00', 'e91').replace('.fits.fz', '.tar.gz')
+                assert os.path.exists(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', expected_filename))
 
     def test_if_science_tar_files_have_fits_file_and_pdf_file(self, reduce_science_frames):
-        assert False
+        for day_obs in days_obs:
+            processed_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', '*.tar.gz'))
+            for processed_file in processed_files:
+                processed_tarfile = tarfile.open(processed_file)
+                tarfile_contents = processed_tarfile.getnames()
+                assert len(tarfile_contents) == 2
+                assert any(['.pdf' in filename for filename in tarfile_contents])
+                assert any(['.fits' in filename for filename in tarfile_contents])
