@@ -21,7 +21,7 @@ services:
         max-size: '100m'
         max-file: '3'
   NRESPipelineE2EData:
-    image: docker.lco.global/nres-pipeline-e2e-data:1.0.1
+    image: docker.lco.global/nres-pipeline-e2e-data:1.0.2
     entrypoint:
     - /bin/true
     labels:
