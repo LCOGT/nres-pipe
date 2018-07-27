@@ -123,8 +123,8 @@ def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
 
 
 def set_images_to_unprocessed_in_db(filenames):
-    db_session = dbs.get_session(os.environ['DB_ADDRESS'])
-    files_to_remove = db_session.Query(dbs.ProcessingState).filter(dbs.ProcessingState.filename.like(filenames)).all()
+    db_session = dbs.get_session(os.environ['DB_URL'])
+    files_to_remove = db_session.query(dbs.ProcessingState).filter(dbs.ProcessingState.filename.like(filenames)).all()
     for file_to_remove in files_to_remove:
         file_to_remove.processed = False
         db_session.add(file_to_remove)
@@ -138,6 +138,15 @@ def remove_blaze_files_from_csv(csv_file):
     cleaned_csv_rows = [row for row in csv_rows if 'blaz' not in row.lower()]
     with open(csv_file, 'w') as file_stream:
         file_stream.writelines(cleaned_csv_rows)
+
+
+def fix_flags_in_zeros_csv(csv_file):
+    with open(csv_file) as file_stream:
+        csv_rows = file_stream.readlines()
+
+    csv_rows = [row.replace("\"00", "\"01") for row in csv_rows]
+    with open(csv_file, 'w') as output_file_stream:
+        output_file_stream.writelines(csv_rows)
 
 
 @pytest.fixture(scope='module')
@@ -222,6 +231,8 @@ def make_zero_frames(extract_zero_frames):
 @pytest.fixture(scope='module')
 def cleanup_zero_creation(make_zero_frames):
     for instrument in instruments:
+        fix_flags_in_zeros_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
+                                                 'csv', 'zeros.csv'))
         remove_blaze_files_from_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
                                                  'csv', 'standards.csv'))
     set_images_to_unprocessed_in_db('%e00.fits%')

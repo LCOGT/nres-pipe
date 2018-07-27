@@ -77,7 +77,7 @@ pipeline {
 				always {
 					script{
 						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest.xml', 'pytest.xml', CONTAINER_HOST, CONTAINER_ID)
+							copyFromRancherContainer('/nres/code/pytest.xml', '.', CONTAINER_HOST, CONTAINER_ID)
 						}
 						junit 'pytest.xml'
 					}

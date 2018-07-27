@@ -79,7 +79,7 @@ pro mk_supercal,type,site,camera,dateran,object=object
         endif
         objectlist = [objectlist, object]
       endforeach
-      files = files[where(objectlist eq objectt, nsg)]
+      files = files[where(strcompress(strlowcase(objectlist),/remove_all) eq strcompress(strlowcase(objectt), /remove_all), nsg)]
       if n_elements(files) lt 2 then begin
         print,'Not enough files with matching objects found to make ZERO file'
         goto,fini
