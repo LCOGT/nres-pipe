@@ -291,6 +291,5 @@ class TestE2E(object):
             for processed_file in processed_files:
                 processed_tarfile = tarfile.open(processed_file)
                 tarfile_contents = processed_tarfile.getnames()
-                assert len(tarfile_contents) == 2
                 assert any(['.pdf' in filename for filename in tarfile_contents])
                 assert any(['.fits' in filename for filename in tarfile_contents])
