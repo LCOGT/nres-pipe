@@ -51,7 +51,7 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                                'kwargs': {'site': 'lsc', 'camera': 'fl09', 'nres_instrument': 'nres01'},
                                                'options': {'queue': 'periodic'}
                                                },
-                 'lsc_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                 'lsc_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
                                                 'schedule': crontab(minute=1, hour=16),
                                                 'kwargs': {'site': 'lsc', 'camera': 'fl09',
                                                            'nres_instrument': 'nres01',
@@ -64,7 +64,7 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                                                'nres_instrument': 'nres02'},
                                                     'options': {'queue': 'periodic'}
                                                     },
-                 'elp_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                 'elp_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
                                               'schedule': crontab(minute=1, hour=18),
                                               'kwargs': {'site': 'elp', 'camera': 'fl17',
                                                          'nres_instrument': 'nres02',
@@ -77,7 +77,7 @@ beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_q
                                                                'nres_instrument': 'nres03'},
                                                     'options': {'queue': 'periodic'}
                                                     },
-                 'cpt_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_last_night',
+                 'cpt_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
                                               'schedule': crontab(minute=1, hour=11),
                                               'kwargs': {'site': 'cpt', 'camera': 'fl13',
                                                          'nres_instrument': 'nres03',

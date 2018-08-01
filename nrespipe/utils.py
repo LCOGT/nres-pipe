@@ -30,6 +30,7 @@ import re
 
 logger = logging.getLogger('nrespipe')
 
+
 def get_md5(filepath):
     """
     Calculate the MD% checksum of a file
@@ -223,12 +224,13 @@ def copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_inst
     shutil.move(file_to_upload, output_directory)
     return os.path.join(output_directory, os.path.basename(file_to_upload))
 
+
 def get_last_night():
     yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
     return yesterday.strftime('%Y%m%d')
 
 
-def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instrument):
+def get_files_from_night(filename_pattern, raw_data_root, site, nres_instrument, night=None):
     """
     Get a list of files matching a pattern from last night for a given NRES
 
@@ -243,6 +245,8 @@ def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instru
     nres_instrument : str
                     NRES instance, e.g. nres01
 
+    night : str
+            day-obs to get files from, default is last night
     Returns
     -------
     file_list : list
@@ -252,9 +256,10 @@ def get_files_from_last_night(filename_pattern, raw_data_root, site, nres_instru
     -----
     File names will be sorted in the output list.
     """
-    last_night = get_last_night()
+    if night is None:
+        night = get_last_night()
 
-    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, last_night, 'raw')
+    raw_data_path = os.path.join(raw_data_root, site, nres_instrument, night, 'raw')
     file_names = glob(os.path.join(raw_data_path, filename_pattern))
     file_names.sort()
     return file_names
@@ -318,7 +323,6 @@ def parse_region_keyword(keyword_value):
     return pixel_slices
 
 
-
 def measure_sources_from_raw(filename, threshold=50):
     """
     Measure the photometry for an input raw image with a given SEP detection threshold
@@ -372,6 +376,7 @@ def measure_sources_from_raw(filename, threshold=50):
     # return the catalog of source positions and fluxes
     return Table({'x': sources['x'], 'xerr2': (sources['errx2']) ** 0.5, 'y': sources['y'],
                   'yerr2': (sources['erry2']) ** 0.5, 'covxy': sources['errxy'], 'flux': flux, 'fluxerr': fluxerr})
+
 
 def coordinate_variance(x, y, xerr2, yerr2):
     return (x * x * xerr2 + y * y * yerr2) / (x * x + y * y)
@@ -427,9 +432,11 @@ def square_offset(x1, y1, x2, y2, ranks=0):
 def offset(source, catalog):
     return np.sqrt((source['x'] - catalog['x']) ** 2.0 + (source['y'] - catalog['y']) ** 2.0)
 
+
 def choose_2(n):
     # np.math.factorial(n) / np.math.factorial(k) / np.math.factorial(n - k)
     return n * (n - 1) // 2
+
 
 def n_poly_coefficients(order):
     # Thank you mathematica. Turns out the number of coefficients for a 2-D polynomial follow:
@@ -486,6 +493,7 @@ def extract_from_pdfs(input_directory, extraction_function):
                 pdf_reader = PdfFileReader(tmp_pdf_filename)
                 extraction_function(pdf_reader)
 
+
 def make_summary_pdf(input_directory, output_pdf_filename):
     pdf_writer = PdfFileWriter()
     extraction_function = lambda pdf_reader: pdf_writer.appendPagesFromReader(pdf_reader)
@@ -536,6 +544,7 @@ target_name_translations = {'PSIPHE' : 'psi Phe',
                             'MUCAS' : 'mu Cas',
                             'KS18C14487' :'TYC 8856-529-1',
                             'BD093070': 'BD-09 3070'}
+
 
 def get_mag_from_simbad(target_name : str):
     try:

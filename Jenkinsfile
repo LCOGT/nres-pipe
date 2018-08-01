@@ -1,17 +1,17 @@
 #!/usr/bin/env groovy
 
-@Library('lco-shared-libs@0.0.6') _
+@Library('lco-shared-libs@0.0.9') _
 
 pipeline {
 	agent any
 	environment {
 		dockerImage = null
 		PROJ_NAME = projName()
-		GIT_DESCRIPTION = gitDescription()
+		GIT_DESCRIPTION = gitDescribe()
 		DOCKER_IMG = dockerImageName("${LCO_DOCK_REG}", "${PROJ_NAME}", "${GIT_DESCRIPTION}")
 	}
 	options {
-		timeout(time: 3, unit: 'HOURS')
+		timeout(time: 12, unit: 'HOURS')
 		lock resource: 'IDLLock'
 	}
 	stages {
@@ -45,6 +45,7 @@ pipeline {
 							credentialsId: 'rabbit-mq',
 							usernameVariable: 'RABBITMQ_USER',
 							passwordVariable: 'RABBITMQ_PASSWORD')]) {
+						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest ')
 						sh('rancher -c ${RANCHERDEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
 					}
 				}
@@ -62,15 +63,25 @@ pipeline {
 				SSH_CREDS = credentials('jenkins-rancher-ssh-userpass')
 				CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
 				CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
+				ARCHIVE_UID = credentials('archive-userid')
 			}
 			steps {
 				script {
 					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('/bin/true', CONTAINER_HOST, CONTAINER_ID)
+						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest.xml -m e2e /nres/code/',
+						    CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
 					}
 				}
 			}
 			post {
+				always {
+					script{
+						sshagent(credentials: ['jenkins-rancher-ssh']) {
+							copyFromRancherContainer('/nres/code/pytest.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+						}
+						junit 'pytest.xml'
+					}
+				}
 				success {
 					script {
 						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest ')
