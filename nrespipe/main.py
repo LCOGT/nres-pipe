@@ -1,6 +1,6 @@
 import logging
 import sys
-
+#DRH token change; remove this line
 from kombu import Exchange, Connection, Queue
 
 from nrespipe import settings
