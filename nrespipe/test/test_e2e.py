@@ -158,27 +158,7 @@ def init():
 
 
 @pytest.fixture(scope='module')
-def process_bias_frames(init):
-    reduce_individual_frames('*b00.fits*')
-
-
-@pytest.fixture(scope='module')
-def stack_bias_frames(process_bias_frames):
-    stack_calibrations('*b00.fits*', 'BIAS')
-
-
-@pytest.fixture(scope='module')
-def process_dark_frames(stack_bias_frames):
-    reduce_individual_frames('*d00.fits*')
-
-
-@pytest.fixture(scope='module')
-def stack_dark_frames(process_dark_frames):
-    stack_calibrations('*d00.fits*', 'DARK')
-
-
-@pytest.fixture(scope='module')
-def make_tracefiles(stack_dark_frames):
+def make_tracefiles():
     tasks.run_trace0.delay('/nres/code/config/lsc_trace.2017a.txt', 'lsc', 'fl09', 'nres01', os.environ['NRES_DATA_ROOT'])
     tasks.run_trace0.delay('/nres/code/config/nres02_trace.2017a.txt', 'elp', 'fl17', 'nres02', os.environ['NRES_DATA_ROOT'])
     for site_day_obs in days_obs:
@@ -189,27 +169,7 @@ def make_tracefiles(stack_dark_frames):
 
 
 @pytest.fixture(scope='module')
-def process_flat_frames(make_tracefiles):
-    reduce_individual_frames('*w00.fits*')
-
-
-@pytest.fixture(scope='module')
-def stack_flat_frames(process_flat_frames):
-    stack_calibrations('*w00.fits*', 'FLAT')
-
-
-@pytest.fixture(scope='module')
-def process_arc_frames(stack_flat_frames):
-    reduce_individual_frames('*a00.fits*')
-
-
-@pytest.fixture(scope='module')
-def stack_arc_frames(process_arc_frames):
-    stack_calibrations('*a00.fits*', 'ARC')
-
-
-@pytest.fixture(scope='module')
-def extract_zero_frames(stack_arc_frames):
+def extract_zero_frames():
     for site in ['elp', 'lsc']:
         for file_to_process in zero_files[site]['files']:
             post_to_fits_exchange(os.environ['FITS_BROKER'],
@@ -228,64 +188,120 @@ def make_zero_frames(extract_zero_frames):
     wait_for_celery_to_finish()
 
 
-@pytest.fixture(scope='module')
-def cleanup_zero_creation(make_zero_frames):
-    for instrument in instruments:
-        fix_flags_in_zeros_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
-                                                 'csv', 'zeros.csv'))
-        remove_blaze_files_from_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
-                                                 'csv', 'standards.csv'))
-    set_images_to_unprocessed_in_db('%e00.fits%')
+@pytest.mark.bias_ingestion
+class TestBiasIngestion:
+    @pytest.fixture(autouse='true')
+    def process_bias_frames(self, init):
+        reduce_individual_frames('*b00.fits*')
 
-
-@pytest.fixture(scope='module')
-def reduce_science_frames(cleanup_zero_creation):
-    reduce_individual_frames('*e00.fits*')
-
-
-@pytest.mark.incremental
-@pytest.mark.e2e
-class TestE2E(object):
-    def test_if_bias_frames_were_created(self, process_bias_frames):
+    def test_if_bias_frames_were_created(self):
         test_if_internal_files_were_created('*b00.fits*', os.path.join('bias', '*.fits'))
 
-    def test_if_stacked_bias_frame_was_created(self, stack_bias_frames):
+
+@pytest.mark.master_bias
+class TestMasterBiasCreation:
+    @pytest.fixture(autouse=True)
+    def stack_bias_frames(self):
+        stack_calibrations('*b00.fits*', 'BIAS')
+
+    def test_if_stacked_bias_frame_was_created(self):
         test_if_stacked_calibrations_were_created('*b00.fits*', 'bias')
 
-    def test_if_dark_frames_were_created(self, process_dark_frames):
+
+@pytest.mark.dark_ingestion
+class TestDarkIngestion:
+    @pytest.fixture(autouse=True)
+    def process_dark_frames(self):
+        reduce_individual_frames('*d00.fits*')
+
+    def test_if_dark_frames_were_created(self):
         test_if_internal_files_were_created('*d00.fits*', os.path.join('dark', '*.fits'))
 
-    def test_if_stacked_dark_frame_was_created(self, stack_dark_frames):
+
+@pytest.mark.master_dark
+class TestMasterDarkCreation:
+    @pytest.fixture(autouse=True)
+    def stack_dark_frames(self):
+        stack_calibrations('*d00.fits*', 'DARK')
+
+    def test_if_stacked_dark_frame_was_created(self):
         test_if_stacked_calibrations_were_created('*d00.fits*', 'dark')
 
-    def test_if_flat_frames_were_created(self, process_flat_frames):
+
+@pytest.mark.flat_ingestion
+class TestFlatIngestion:
+    @pytest.fixture(autouse=True)
+    def process_flat_frames(self, make_tracefiles):
+        reduce_individual_frames('*w00.fits*')
+
+    def test_if_flat_frames_were_created(self):
         test_if_internal_files_were_created('*w00.fits*', os.path.join('flat', '*.fits'))
 
-    def test_if_stacked_flat_frame_was_created(self, stack_flat_frames):
+
+@pytest.mark.master_flat
+class TestMasterFlatCreation:
+    @pytest.fixture(autouse=True)
+    def stack_flat_frames(self):
+        stack_calibrations('*w00.fits*', 'FLAT')
+
+    def test_if_stacked_flat_frame_was_created(self):
         test_if_stacked_calibrations_were_created('*w00.fits*', 'flat')
 
-    def test_if_arc_frames_were_created(self, process_arc_frames):
+
+@pytest.mark.arc_ingestion
+class TestArcIngestion:
+    @pytest.fixture(autouse=True)
+    def process_arc_frames(self):
+        reduce_individual_frames('*a00.fits*')
+
+    def test_if_arc_frames_were_created(self):
         test_if_internal_files_were_created('*a00.fits*', os.path.join('dble', '*.fits'))
 
-    def test_if_stacked_arc_frame_was_created(self, stack_arc_frames):
+
+@pytest.mark.master_arc
+class TestMasterArcCreation:
+    @pytest.fixture(autouse=True)
+    def stack_arc_frames(self):
+        stack_calibrations('*a00.fits*', 'ARC')
+
+    def test_if_stacked_arc_frame_was_created(self):
         test_if_stacked_calibrations_were_created('*a00.fits*', 'arc')
 
-    def test_if_zero_frame_was_created(self, cleanup_zero_creation):
+
+@pytest.mark.zero_file
+class TestZeroFileCreation:
+    @pytest.fixture(autouse=True)
+    def cleanup_zero_creation(self, make_zero_frames):
+        for instrument in instruments:
+            fix_flags_in_zeros_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
+                                                'csv', 'zeros.csv'))
+            remove_blaze_files_from_csv(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced',
+                                                     'csv', 'standards.csv'))
+        set_images_to_unprocessed_in_db('%e00.fits%')
+
+    def test_if_zero_frame_was_created(self):
         for instrument in instruments:
             created_zero_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'zero', '*.fits'))
             assert len(created_zero_files) > 0
 
-    def test_if_science_frames_were_extracted(self, reduce_science_frames):
+
+@pytest.mark.science_files
+class TestScienceFileCreation:
+    @pytest.fixture(autouse=True)
+    def reduce_science_frames(self):
+        reduce_individual_frames('*e00.fits*')
+
+    def test_if_science_frames_were_extracted(self):
         test_if_internal_files_were_created('*e00.fits*', os.path.join('extr', '*.fits'))
 
-    def test_if_science_tar_files_were_created(self, reduce_science_frames):
+    def test_if_science_tar_files_were_created(self):
         for day_obs in days_obs:
             input_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*e00.fits*'))
             for input_file in input_files:
                 expected_filename = os.path.basename(input_file).replace('e00', 'e91').replace('.fits.fz', '.tar.gz')
                 assert os.path.exists(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', expected_filename))
 
-    def test_if_science_tar_files_have_fits_file_and_pdf_file(self, reduce_science_frames):
+    def test_if_science_tar_files_have_fits_file_and_pdf_file(self):
         for day_obs in days_obs:
             processed_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', '*.tar.gz'))
             for processed_file in processed_files:
