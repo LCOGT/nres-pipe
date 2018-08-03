@@ -11,8 +11,6 @@ pipeline {
 		DOCKER_IMG = dockerImageName("${LCO_DOCK_REG}", "${PROJ_NAME}", "${GIT_DESCRIPTION}")
 		RANCHERDEV_CREDS = credentials('rancher-cli-dev')
 		SSH_CREDS = credentials('jenkins-rancher-ssh-userpass')
-		CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
-		CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
 		ARCHIVE_UID = credentials('archive-userid')
 	}
 	options {
@@ -41,18 +39,18 @@ pipeline {
 					expression { return params.forceEndToEnd }
 				}
 			}
-			environment {
-				RANCHERDEV_CREDS = credentials('rancher-cli-dev')
-			}
+
 			steps {
 				script {
 					withCredentials([usernamePassword(
 							credentialsId: 'rabbit-mq',
 							usernameVariable: 'RABBITMQ_USER',
 							passwordVariable: 'RABBITMQ_PASSWORD')]) {
-						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest || true || ' +
-								'rancher -c ${RANCHERDEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
+						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest || true')
+						sh('rancher -c ${RANCHERDEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
 					}
+					CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
+					CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
 				}
 			}
 		}
