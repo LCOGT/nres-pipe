@@ -148,6 +148,8 @@ if(opt eq 3 or opt eq 4) then begin
 endif
 nfilinp=n_elements(filinp)
 
+stop
+
 ; build the output data from an appropriate average over structure elements
 ns=n_elements(outs)
 if(ns eq 1) then begin

@@ -54,24 +54,38 @@ dx=dx(1:*)
 ndx=n_elements(dx)
 if(ndx le 10) then stop
 
-jx=jx(1:*)-nx_c/2.              ; convert x1, jord to centered coordinates
-jord=jord(1:*)-nord_c/2.
+;jx=jx(1:*)-nx_c/2.              ; convert x1, jord to centered coordinates
+;jord=jord(1:*)-nord_c/2.
+jx=2.*(jx(1:*)-nx_c/2.)/nx_c     ; convert x1, jord to range of [-1.,1.]
+jord=2.*(jord(1:*)-nord_c/2.)/nord_c
 err=err(1:*)
 nl=n_elements(dx)
 
 ; fit polynomial coefficients.  First create fitting functions
 nfun=10
 funs=fltarr(nl,nfun)
-funs(*,0)=fltarr(nl)+1.
-funs(*,1)=jord
-funs(*,2)=jx
-funs(*,3)=jx*jord
-funs(*,4)=jord^2
-funs(*,5)=jx*jord^2
-funs(*,6)=jx^2
-funs(*,7)=jord*jx^2
-funs(*,8)=jx^3
-funs(*,9)=jord^3
+;funs(*,0)=fltarr(nl)+1.
+;funs(*,1)=jord
+;funs(*,2)=jx
+;funs(*,3)=jx*jord
+;funs(*,4)=jord^2
+;funs(*,5)=jx*jord^2
+;funs(*,6)=jx^2
+;funs(*,7)=jord*jx^2
+;funs(*,8)=jx^3
+;funs(*,9)=jord^3
+
+; make Legendre polynomial fitting functions
+funs(*,0)=mylegendre(jx,0)
+funs(*,1)=mylegendre(jord,1)
+funs(*,2)=mylegendre(jx,1)
+funs(*,3)=mylegendre(jx,1)*mylegendre(jord,1)
+funs(*,4)=mylegendre(jord,2)
+funs(*,5)=mylegendre(jx,1)*mylegendre(jord,2)
+funs(*,6)=mylegendre(jx,2)
+funs(*,7)=mylegendre(jx,2)*mylegendre(jord,1)
+funs(*,8)=mylegendre(jx,3)
+funs(*,9)=mylegendre(jord,3)
 
 ; make weights.  Max allowed weight corresp to 10th percentile of raw widths.
 so=sort(err)

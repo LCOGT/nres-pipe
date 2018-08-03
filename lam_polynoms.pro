@@ -89,11 +89,16 @@ endfor
 lami=lam_c
 if(ifib eq 0 or ifib eq 2) then begin
   iic=ifib/2
-  dxx=fibcoefs_c(0,iic)+fibcoefs_c(1,iic)*jord+fibcoefs_c(2,iic)*jx+$
-   fibcoefs_c(3,iic)*jx*jord+fibcoefs_c(4,iic)*jord^2+$
-   fibcoefs_c(5,iic)*jx*jord^2+fibcoefs_c(6,iic)*jx^2+$
-   fibcoefs_c(7,iic)*jord*jx^2+fibcoefs_c(8,iic)*jx^3+$
-   fibcoefs_c(9,iic)*jord^3
+; dxx=fibcoefs_c(0,iic)+fibcoefs_c(1,iic)*jord+fibcoefs_c(2,iic)*jx+$
+;  fibcoefs_c(3,iic)*jx*jord+fibcoefs_c(4,iic)*jord^2+$
+;  fibcoefs_c(5,iic)*jx*jord^2+fibcoefs_c(6,iic)*jx^2+$
+;  fibcoefs_c(7,iic)*jord*jx^2+fibcoefs_c(8,iic)*jx^3+$
+;  fibcoefs_c(9,iic)*jord^3
+   dxx=fibcoefs_c(0,iic)+fibcoefs_c(1,iic)*lo1+fibcoefs_c(2,iic)*lx1+$
+   fibcoefs_c(3,iic)*lx1*lo1+fibcoefs_c(4,iic)*lo2+$
+   fibcoefs_c(5,iic)*lx1*lo2+fibcoefs_c(6,iic)*lx2+$
+   fibcoefs_c(7,iic)*lo1*lx2+fibcoefs_c(8,iic)*lx3+$
+   fibcoefs_c(9,iic)*lo3
 endif
 
 dlamdx=fltarr(nx,nord)

@@ -49,6 +49,8 @@ nresrooti=nresroot+nresinst
 reddir=nresrooti+'reduced/'
 tripdir=nresrooti+'reduced/trip/'
 
+stop
+
 ; read input files, decide if we have 2 fibers or 3
 fnam01=reddir+strtrim(fil01,2)
 fnam12=reddir+strtrim(fil12,2)
@@ -120,7 +122,7 @@ io01=matchord_c
 ll01=matchline_c
 er01=matcherr_c
 
-;stop
+stop
 
 ; repeat for fil12
 objects=strupcase(sxpar(hdr12,'OBJECTS'))
@@ -183,7 +185,8 @@ if(nfiba eq 3) then begin
   er12=matcherr_c
 endif
 
-;save,lam00,lam01,lam11,lam12,file='save4lam.idl'
+save,lam00,lam01,lam11,lam12,file='save4lam.idl'
+stop
 
 if(nfiba eq 2) then begin
 ; save wavelength solution for fiber 1
@@ -217,6 +220,8 @@ if(nfiba eq 3) then begin
   fibcoefs(*,0)=fibc0
   fibcoefs(*,1)=fibc1
 endif
+
+stop
 
 ; save all the stuff that needs to be averaged into a returned structure.
 ; the rest of the data (for purposes of writing a fits file) goes to common
