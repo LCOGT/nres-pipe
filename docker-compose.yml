@@ -45,6 +45,7 @@ services:
       NRES_DATA_ROOT: /archive/engineering/
       RABBITMQ_HOST: nresceleryrabbitmq
       OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'
+      CAL_STACK_DELAY: 4
     volumes_from:
     - NRESPipelineE2EData
     links:
