@@ -542,9 +542,9 @@ def get_missing_files(raw_directory, specproc_directory):
 
 def get_calibration_files_taken(raw_directory):
     bias_files = glob(os.path.join(raw_directory, 'b00.fits.fz'))
-    dark_files = glob(os.path.join(raw_directory, 'b00.fits.fz'))
-    flat_files = glob(os.path.join(raw_directory, 'b00.fits.fz'))
-    arc_files = glob(os.path.join(raw_directory, 'b00.fits.fz'))
+    dark_files = glob(os.path.join(raw_directory, 'd00.fits.fz'))
+    flat_files = glob(os.path.join(raw_directory, 'w00.fits.fz'))
+    arc_files = glob(os.path.join(raw_directory, 'a00.fits.fz'))
     return bias_files, dark_files, flat_files, arc_files
 
 
