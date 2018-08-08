@@ -177,8 +177,9 @@ def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=
         flat1 = flats_1[(len(flats_1) + 1) // 2]
         flat2 = ''
     else:
-        flat1 = flats_2[(len(flats_2) + 1) // 2]
-        flat2 = ''
+        # Short circuit if there are only flats from fiber 1,2 and not 0,1
+        # This is a requirement of the idl pipeline.
+        return
 
     # run refine_trace on the main task queue
     # Note that flat1 should have fibers 0,1 illuminated while flat2 should have 1,2
