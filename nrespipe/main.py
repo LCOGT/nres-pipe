@@ -1,6 +1,6 @@
 import logging
 import sys
-
+#DRH token change; remove this line
 from kombu import Exchange, Connection, Queue
 
 from nrespipe import settings
@@ -101,7 +101,9 @@ def run_beats_scheduler():
     beat = celery.bin.beat.beat(app=tasks.app)
     beat.run()
 
+
 instruments = {'lsc': 'nres01', 'elp': 'nres02', 'cpt': 'nres03'}
+
 
 def make_signal_to_noise_plot():
     parser = argparse.ArgumentParser(description='Make a plot of signal-to-noise values.')
