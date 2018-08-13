@@ -436,11 +436,13 @@ tracprof(0:nleg-1,*,*,0)=trace1
 tracprof(0:cowid-1,*,*,1:*)=prof1
 
 ; write out the new trace array
+; as of 2018/08/08, use data date, not creation date, to name output files.
+; Also, in trace_refine, do not set leading digits of year to '00'
 jdc=systime(/julian)      ; file creation time, for sorting similar trace files
 mjdc=jdc-2400000.5d0
-datereald=date_conv(jdc,'R')
+datereald=date_conv(jdd,'R')                ; jdd, not jdc
 datestrd=string(datereald,format='(f13.5)')
-strput,datestrd,'00',0
+;strput,datestrd,'00',0
 datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
 fout='TRAC'+datestrd+'.fits'
 filout=nresrooti+tracedir+fout

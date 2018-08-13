@@ -66,14 +66,14 @@ typlen=strlen(stypeu)
 for i=0,ns-1 do begin
   datpos=strpos(fnames1(i),stypeu)
 ; deal with early filenames that do not contain the instance name,
-; and also with TRACE filenames in which the date 20xx is replaced
+; and (no longer) with TRACE filenames in which the date 20xx is replaced
 ; with 00xx.
   if(not is_digit(strmid(fnames1(i),datpos+typlen,1))) then begin
     datdbl=double(strmid(fnames1(i),datpos+typlen+3,13))
     if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
   endif else begin
     datdbl=double(strmid(fnames1(i),datpos+typlen,13))
-    if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
+;   if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6  
   endelse
   djdates1(i)=date_conv(datdbl,'julian')
 endfor

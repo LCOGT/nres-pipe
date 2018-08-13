@@ -2,7 +2,7 @@ pro setbadflat,flatfile
 ; This routine reads the file standards.csv, and locates the line (if any)
 ; referring to obstype=FLAT, site=site, camera=camera, and mjdd=mjdc +/- .0001,
 ; (all referring to current values in nres_comm.
-; If the line is found, then its flag character 1 (the "do not use" flag) is
+; If the line is found, then its flag character 0 (the "do not use" flag) is
 ; set to 1, and standards.csv is rewritten.
 
 @nres_comm
