@@ -192,7 +192,7 @@ fpack_stacked_calibration,filout, sxpar(output_header, 'OUTNAME')
 ; add line to standards.csv
 if(nfib eq 2) then cflg='0010' else cflg='0030' 
 ; test flat for quality, if bad, set cflg character 1 = 1 = "do not use"
-cf=check_flat(datout)
+cf=check_flat(datout,output_header)
 if(cf le 0) then begin
   strput,cflg,'1',1
   logstring='Bad Flat!  Setting '+branch+fout+' to DO NOT USE status.'

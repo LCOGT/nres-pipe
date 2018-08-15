@@ -64,7 +64,7 @@ if(not keyword_set(flatk)) then begin
   while(noflat eq 1) do begin
     get_calib,'FLAT',flatfile,flat,flathdr,gerr
     print,flatfile
-    cf=check_flat(flat)
+    cf=check_flat(flat,flathdr)
     if(cf le 0) then begin
       noflat=1
       logstring='Bad Flat!  Setting '+flatfile+' to DO NOT USE status.'
