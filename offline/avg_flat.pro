@@ -55,6 +55,8 @@ nord=sxpar(hdr0,'NAXIS2')
 nfib=sxpar(hdr0,'NAXIS3')
 fib0=sxpar(hdr0,'FIB0')
 navgd=sxpar(hdr0,'NFRAVGD')
+date0=sxpar(hdr0,'DATE')
+date=strmid(date0,0,4)+strmid(date0,5,2)+strmid(date0,8,2)
 obty=strtrim(sxpar(hdr0,'OBSTYPE'),2)
 if(~((obty eq 'FLAT') or (obty eq 'LAMPFLAT'))) then begin
   print,'OBSTYPE of '+files(0)+' is not FLAT in avg_flat'
@@ -111,6 +113,8 @@ endelse
 ; Thus fiber 1 output is an average over all times, fiber 0 is an average over
 ; only those times when fib0a=0, and fiber 2 averages only over times when
 ; fib0a=1.
+; 2018/08/15:  With current data formats and sites, nfib=2 should never
+; happen.  Leave this next code block in nevertheless, just to be safe.
 datout=fltarr(nx,nord,nfib)
 if(nfib eq 2) then begin        ; do the nfib=2 case
   for i=0,nord-1 do begin
@@ -176,6 +180,7 @@ branch='flat/'
 fits_read,root+files[-1],data, output_header
 mjdd=sxpar(hdr0,'MJD-OBS')
 jdd=mjdd+2400000.5d0
+sxaddpar,output_header,'DAY-OBS',date
 sxaddpar,output_header,'NFRAVGD',nfile
 sxaddpar,output_header,'L1PUBDAT', sxpar(output_header, 'DATE-OBS')
 sxaddpar,output_header,'RLEVEL', 91
