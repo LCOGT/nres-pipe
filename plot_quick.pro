@@ -124,7 +124,8 @@ for i=0,nplot-1 do begin
   ip2=iplot/2
   specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
      grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
-      coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
+      coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c,ex0:ex0_c,ex1:ex1_c,$
+      ex2:ex2_c}
   xx=pixsiz_c*(findgen(nx_c)-nx_c/2.)
    lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m,/air          ; air wavelengths
 ;  lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m          ; vacuum wavelengths
@@ -174,9 +175,9 @@ sigtyp=ptile(plt8,95)*gg*ppre        ; e- in one resolution element for
 snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
 
 ; make the title string
-  version='2.0'      ; Version of code with 10 extension output, 5 Apr 2018.
+  version='1.2'      ; ###bogus###
   if iplot eq 2 then mag_index = 1 else mag_index = 0
-  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(ist),iord0,exptime,$
+  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
        snr,targvmag[mag_index],version) 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')

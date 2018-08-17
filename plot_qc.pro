@@ -212,7 +212,7 @@ for i=0,nplot-1 do begin
   loadct,coltab,/silent
 
   tit=datestrd
-  tit2=[' Telluric B-band',' Telluric B-band',' Telluric A-band',' Telluric A-band']
+  tit2=[' B-band',' B-band',' A-band',' A-band']
   xtit='Wavelength (nm)'
   ytit='Flux (kADU)'
   lamline=[688.1829d0,688.57326d0,761.82397d0,762.30873d0]  ; line vac wavelengths
@@ -223,7 +223,8 @@ for i=0,nplot-1 do begin
   ip2=iplot/2
   specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
      grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
-      coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
+      coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c,ex0:ex0_c,ex1:ex1_c,$
+      ex2:ex2_c}
   xx=pixsiz_c*(findgen(nx_c)-nx_c/2.)
 ; lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m,/air          ; air wavelengths
   lambda3ofx,xx,mm_c,iplot,specstruc,lam,y0m          ; vacuum wavelengths
@@ -245,12 +246,12 @@ for i=0,nplot-1 do begin
 ; do the plots
   for j=0,1 do begin
     plot,plam0,pdat0,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
-      ytit=ytit,/xsty,/ysty,charsiz=0.9
+      ytit=ytit,/xsty,/ysty,charsiz=1.
     oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
   endfor
   for j=2,3 do begin
     plot,plam1,pdat1,xran=xra(*,j),yran=yra(*,j/2),tit=tit+tit2(j),xtit=xtit,$
-      ytit=ytit,/xsty,/ysty,charsiz=0.9
+      ytit=ytit,/xsty,/ysty,charsiz=1.
     oplot,[lamline(j),lamline(j)],yra(*,j/2),thick=3,color=blue
   endfor
 

@@ -26,7 +26,7 @@ thrshm=3.                  ; threshold dif for retaining data, median-sigma
 tiny=1.e-10
 radian=180.d0/!pi
 ncoefs_c=15                ; number of coeffs to be fit
-svdmin=1.e-2               ; threshold for zeroing svd vectors, relative to 
+svdmin=1.e-4               ; threshold for zeroing svd vectors, relative to 
                            ; biggest singular value
 
 ; check for sufficient data
@@ -147,7 +147,7 @@ fibno=fibindx_c
 sinalp=sin(grinc_c/radian)
 specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
    grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
-;  ex0:ex0_c,ex1:ex1_c,ex2:ex2_c,$
+   ex0:ex0_c,ex1:ex1_c,ex2:ex2_c,$
    coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
 lambda3ofx,xx,mm_c,fibno,specstruc,lam_c,y0m_c,air=0    ; always vacuum lam
 

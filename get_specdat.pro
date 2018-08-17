@@ -14,6 +14,7 @@ radian=180.d0/!pi
 
 ; read the csv file
 nresroot=getenv('NRESROOT')
+nresrooti=nresroot+'/'+getenv('NRESINST')
 filin=nresrooti+'/reduced/csv/spectrographs.csv'
 dats=read_csv(filin,header=spechdr)
 
@@ -62,7 +63,9 @@ specdat={site:dats.field01(ss),mjd:dats.field02(ss),ord0:dats.field03(ss),$
   rot:dats.field16(ss),pixsiz:dats.field17(ss),nx:dats.field18(ss),$
   nord:dats.field19(ss),nblock:dats.field20(ss),nfib:dats.field21(ss),$
   npoly:dats.field22(ss),ordwid:dats.field23(ss),medboxsz:dats.field24(ss),$
-  sinalp:sinalp,coefs:coefs,ncoefs:ncoefs,fibcoefs:fibcoefs}
+  sinalp:sinalp,coefs:coefs,ncoefs:ncoefs,fibcoefs:fibcoefs,$
+  ex0:dats.field60(ss),dex0:dats.field61(ss),ex1:dats.field62(ss),$
+  dex1:dats.field63(ss),ex2:dats.field64(ss),dex2:dats.field65(ss)}
 
 fini:
 

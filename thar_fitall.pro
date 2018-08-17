@@ -16,7 +16,7 @@ pro thar_fitall,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 
 @thar_comm
 
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 
 ; constants
 rutname='thar_fitall'
@@ -30,7 +30,8 @@ minmatch=20    ; must match at least this many lines to run thar_rcubic
 ierr=0
 
 ; get SG parameters, set up massaged input in common block
-thar_setup,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
+;thar_setup,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
+thar_setup2,sgsite,fibindx,ierr,trp=trp,tharlist=tharlist
 ;if(ierr_c ne 0) then stop
 if(ierr_c ne 0) then begin
   logo_nres2,rutname,'ERROR','FATAL ierr='+string(ierr)+' from thar_setup'
@@ -44,12 +45,13 @@ fibindx_c=fibindx
 if(keyword_set(oskip)) then oskip_c=oskip-1 else oskip_c=[-1]
 
 ; run amoeba search to find optimum values of a0,f0,g0,z0
-p0=[5.d-8,0.d0,0.d0,0.d0]      ; [sin(alp), fl (mm), y0 (mm), z0]
-scale=0.3*[dsinalp_c,dfl_c,dy0_c,dz0_c]
+p0=[0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0]+5.d-4 ; [sin(alp), fl (mm), y0 (mm), z0]
+                                              ; ex0, ex1, ex2
+scale=0.3*[dsinalp_c,dfl_c,dy0_c,dz0_c,dex0_c,dex1_c,dex2_c]
 ftol=1.d-4
 ncalls=0L
-nmax=500
-function_val=double([0.,0.,0.,0.])
+nmax=1000
+function_val=double([0.,0.,0.,0.,0.,0.,0.])
 niter_c=0
 
 ; debugging data
@@ -59,6 +61,9 @@ ifl=dblarr(nmax)
 iy0=dblarr(nmax)
 iz0=dblarr(nmax)
 ifun=dblarr(nmax)
+ie0=dblarr(nmax)
+ie1=dblarr(nmax)
+ie2=dblarr(nmax)
 if(ierr_c ne 0) then begin
   logo_nres2,rutname,'ERROR','FATAL err=1'
   goto,fini
@@ -92,30 +97,56 @@ endif
 
 ;
 ; do the fit using mpfit, not amoeba
-vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
-
+;vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
+;##########
+;p0=p0(0:6)
+;parinfo_c=parinfo_c(0:6)
+;;vals=mpfit('thar_mpfit2',p0,parinfo=parinfo_c,ftol=1.d-6,/quiet)
+;      ftol=5.d-6)
 ;fomall=dblarr(201)
 ;dpaa=.01*(findgen(201)-100.)*1.e-5
 ;for j=0,200 do begin
 ;  tvals=thar_mpfit([dpaa(j),0.,0.,0.])
 ;  fomall(j)=total((clip_c*tvals)^2)
 ;endfor
+; do the fit using thar_lsqfit. Iterate niter_thar times.
+; save interesting values for each iteration
+niter_thar=4
+ii_parms=dblarr(7,niter_thar+1)
+ii_coefs=dblarr(15,niter_thar+1)
+ii_lam=dblarr(4096,67,niter_thar+1)
 
-;stop
+ii_parms(*,0)=[sinalp_c,fl_c,y0_c,z0_c,ex0_c,ex1_c,ex2_c]
+ii_coefs(*,0)=coefs_c
+ii_lam(*,*,0)=lam_c
+
+for j=0,niter_thar-1 do begin
+
+print,'thar_iter_j =',j
+
+thar_lsqfit,dvals,dcoefs,rchisq,mchisq,nmatch
+nmatch_c=nmatch
+rchisq_c=rchisq
+mchisq_c=mchisq
 
 ; identify lines with unusually bad fits, set their weights to zero
-sm=where(abs(diff_c) le 0.8*dw,nsm)
-if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
-  normdif=diff_c/xperr_c
-  quartile,normdif(sm),med,q,dq
-  sigq=dq/1.349                ; gaussian sigma estim from interquartile range
-  sf=where(abs(diff_c) le 0.8*dw and abs(normdif) gt 4.*sigq,nsf)  ; points 
-                                                      ; with large dispersion
-  if(nsf gt 0) then begin       ; redo mpfit with weights
-    clip_c(sf)=0.d0
-    vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
-  endif
-endif
+;;
+; this data clipping is now done within thar_lsqfit, hence is not needed here.
+;sm=where(abs(diff_c) le 0.8*dw,nsm)
+;if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
+;  normdif=diff_c/xperr_c
+;  quartile,normdif(sm),med,q,dq
+;  sigq=dq/1.349                ; gaussian sigma estim from interquartile range
+;  sf=where(abs(diff_c) le 0.8*dw and abs(normdif) gt 4.*sigq,nsf)  ; points 
+
+;  if(nsf gt 0) then begin       ; redo mpfit with weights
+;    clip_c(sf)=0.d0
+;    niter_c=0             ; reset so matched line list will be recomputed
+;   vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
+;;    vals=mpfit('thar_mpfit2',p0,parinfo=parinfo_c,ftol=1.d-6,/quiet)
+;  thar_lsqfit,dvals,dcoefs,rchisq,mchisq,nmatch
+;  endif
+;endif
 
 ; ##############
 ;skipfit:
@@ -123,31 +154,44 @@ endif
 
 logo_nres2,rutname,'INFO',{state:'after mpfit',nmatch:nmatch_c,$
      scatter:sqrt(dlam2_c)}
+print,dvals(0)
+stop
 
 ; update the model parameters in common
-sinalp_c=sinalp_c+vals(0)
+sinalp_c=sinalp_c-dvals(0)
 grinc_c=radian*asin(sinalp_c)
-fl_c=fl_c+vals(1)
-y0_c=y0_c+vals(2)
-z0_c=z0_c+vals(3)
+fl_c=fl_c-dvals(1)
+y0_c=y0_c-dvals(2)
+z0_c=z0_c-dvals(3)
+ex0_c=ex0_c-dvals(4)
+ex1_c=ex1_c-dvals(5)
+ex2_c=ex2_c-dvals(6)
+; and update the coefs_c values
+coefs_c=coefs_c-dcoefs
+
+ii_parms(*,j+1+1)=[sinalp_c,fl_c,y0_c,z0_c,ex0_c,ex1_c,ex2_c]
+ii_coefs(*,j+1)=coefs_c
+ii_lam(*,*,0)=lam_c
+
+endfor
+
+stop
 
 ; do weighted least-squares solution to restricted cubic functions of order
 ; to minimize residuals.  Skip this if nmatch_c is too small
-if(nmatch_c ge minmatch) then begin
-  thar_rcubic,cubfrz=cubfrz
-  logo_nres2,rutname,'INFO',{state:'after rcubic',nmatch:nmatch_c,$
-     scatter:sqrt(dlam2_c)}
-endif else begin
-  rms_c=0.
-  lammid_c=0.
-  mgbdisp_c=0.
-endelse
+;if(nmatch_c ge minmatch) then begin
+;  thar_rcubic,cubfrz=cubfrz
+;  logo_nres2,rutname,'INFO',{state:'after rcubic',nmatch:nmatch_c,$
+;     scatter:sqrt(dlam2_c)}
+;endif else begin
+;  rms_c=0.
+;  lammid_c=0.
+;  mgbdisp_c=0.
+;endelse
 
 ; no explicit output from this routine -- everything of interest lives
 ; in the common block thar_am
 
 fini:
-
-;stop
 
 end

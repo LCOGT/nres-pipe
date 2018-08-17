@@ -21,6 +21,9 @@ pro lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,$
 ;  .z0 = refractive index of ambient medium surrounding SG is 1.+z0.
 ;       If keyword air is set, material is assumed to be dry air with
 ;       n(Na D) = 1.+z0
+;  .ex0 = coefficient of cubic distortion
+;  .ex1 = coefficient of lateral chromatic aberration
+;  .ex2 = coefficient of rotation
 ;  .coefs =  a vector of float or double
 ;  coefficients in a restricted cubic polynomial that accounts for non-ideal
 ;  behavior in the wavelength solution.  The number of elements must be
@@ -55,10 +58,13 @@ sinalp=specstruc.sinalp
 fl=specstruc.fl
 y0=specstruc.y0
 z0=specstruc.z0
+ex0=specstruc.ex0
+ex1=specstruc.ex1
+ex2=specstruc.ex2
 rcubic=specstruc.coefs(0:specstruc.ncoefs-1)
 fibcoefs=specstruc.fibcoefs
 
-;print,'lambda3ofx parms:',sinalp,fl,y0,z0
+print,'lambda3ofx parms:',sinalp,fl,y0,z0,ex0,ex1,ex2
 
 ; get sizes of things
 nx=n_elements(xx)
@@ -127,6 +133,10 @@ endelse
 
 ; convert lam to nm
 lam=lam*1.d3
+
+; compute corrections for distortion, lat chrom aberration, rotation, add them
+aberrcor,xo,fibno,lam,specstruc,cubcorr,chromcorr,rotcorr
+lam=lam+ex0*cubcorr+ex1*chromcorr+ex2*rotcorr
 
 ; add restricted cubic correction
 ;print,'In lambda3ofx'
@@ -213,18 +223,10 @@ skip:
 lami=lam
 if(fibno eq 0 or fibno eq 2) then begin
   iic=fibno/2
-; dx=fibcoefs(0,iic)+fibcoefs(1,iic)*jord+fibcoefs(2,iic)*jx+$
-;  fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
-;  fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
-;  fibcoefs(9,iic)*jord^3
-
-; replace raw polynoms with Legendre same, re-using appropriate funs arrays.
-  dx=fibcoefs(0,iic)+fibcoefs(1,iic)*funs(*,*,1)+fibcoefs(2,iic)*funs(*,*,4)+$
-   fibcoefs(3,iic)*funs(*,*,5)+fibcoefs(4,iic)*funs(*,*,2)+$
-   fibcoefs(5,iic)*funs(*,*,6)+fibcoefs(6,iic)*funs(*,*,7)+$
-   fibcoefs(7,iic)*funs(*,*,8)+fibcoefs(8,iic)*funs(*,*,9)+$
-   fibcoefs(9,iic)*funs(*,*,3)
-
+  dx=fibcoefs(0,iic)+fibcoefs(1,iic)*jord+fibcoefs(2,iic)*jx+$
+   fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
+   fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
+   fibcoefs(9,iic)*jord^3
   dx=-dx
 ; dx=dx*(1.-fibno)
  for i=0,nord-1 do begin

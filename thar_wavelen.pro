@@ -28,7 +28,7 @@ pro thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,$
 
 @thar_comm
 
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 
 ; constants, header data
 rutname='thar_wavelen'
@@ -67,6 +67,9 @@ sinalp_all=dblarr(nfib)
 fl_all=dblarr(nfib)
 y0_all=dblarr(nfib)
 z0_all=dblarr(nfib)
+ex0_all=dblarr(nfib)
+ex1_all=dblarr(nfib)
+ex2_all=dblarr(nfib)
 lam_all=dblarr(nx,nord,nfib)
 coefs_all=fltarr(ncoefs_c,nfib)
 sgsite=strtrim(strupcase(site),2)
@@ -98,6 +101,9 @@ for ifib=0,nsth-1 do begin
   fl_all(fibindx)=fl_c
   y0_all(fibindx)=y0_c
   z0_all(fibindx)=z0_c
+  ex0_all(fibindx)=ex0_c
+  ex1_all(fibindx)=ex1_c
+  ex2_all(fibindx)=ex2_c
   coefs_all(*,fibindx)=coefs_c
   nmatch_all(fibindx)=nmatch_c
   amoerr_all(fibindx)=sqrt(dlam2_c)
@@ -108,7 +114,8 @@ for ifib=0,nsth-1 do begin
 ; fill lam_all with wavelengths for all fibers.
 specstruc={gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,grinc:grinc_c,$
    grspc:grspc_c,rot:rot_c,sinalp:sinalp_c,fl:fl_c,y0:y0_c,z0:z0_c,$
-    coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c}
+    coefs:coefs_c,ncoefs:ncoefs_c,fibcoefs:fibcoefs_c,ex0:ex0_c,ex1:ex1_c,$
+    ex2:ex2_c}
 xx=pixsiz_c*(dindgen(nx_c)-nx_c/2.)
 for i=0,nfib-1 do begin
   if(sinalp_all(i) eq 0.) then begin
@@ -225,7 +232,8 @@ endfor
 ; make the output structure
 
 tharred={fibth:sth,lam:lam_all,sinalp:sinalp_all,fl:fl_all,y0:y0_all,$
-      z0:z0_all,coefs:coefs_all,nmatch:nmatch_all,amoerr:amoerr_all,$
+      z0:z0_all,ex0:ex0_all,ex1:ex1_all,ex2:ex2_all,$
+      coefs:coefs_all,nmatch:nmatch_all,amoerr:amoerr_all,$
       rmsgood:rmsgood_all,mgbdisp:mgbdisp_all,lammid:lammid_all,$
       site:site,jd:jdd}
 
@@ -243,11 +251,14 @@ lamranb=lam_all(nx*ibhi,iordblue) - lam_all(nx*iblo,iordblue)
 ; with lam(nx,nord,nfib) as the main table, sgparms(4,nfib) as the first
 ; binary table, and sgcoefs(ncoef,nfib) as the 2nd binary table.`
 
-sgparms=dblarr(4,nfib)
+sgparms=dblarr(7,nfib)
 sgparms(0,0:nfib-1)=reform(sinalp_all,1,nfib)
 sgparms(1,0:nfib-1)=reform(fl_all,1,nfib)
 sgparms(2,0:nfib-1)=reform(y0_all,1,nfib)
 sgparms(3,0:nfib-1)=reform(z0_all,1,nfib)
+sgparms(4,0:nfib-1)=reform(ex0_all,1,nfib)
+sgparms(5,0:nfib-1)=reform(ex1_all,1,nfib)
+sgparms(6,0:nfib-1)=reform(ex2_all,1,nfib)
 
 sz=size(coefs_all)
 ncoefs=sz(1)
@@ -270,30 +281,33 @@ fxaddpar,hdr,'L1IDTRIP',tripfile_short_c,'TRIPLE filename'
 fxaddpar,hdr,'THARLIST',tharlist,'Name of ThAr lines catalog file'
 
 ; Add keywords relating to fiber=1 wavelength solution
-fxaddpar,hdr,'SINALP',sgparms(0,1),'Sine of echelle incidence angle'
+fxaddpar,hdr,'SINALP',sgparms(0,1),'Sin of echelle incidence angle'
 fxaddpar,hdr,'FL',sgparms(1,1),'[mm] Camera focal length'
 fxaddpar,hdr,'Y0',sgparms(2,1),'[mm] y-position on CCD where gamma=0'
 fxaddpar,hdr,'Z0',sgparms(3,1),'Air (n-1) refractive index in spectrograph'
+fxaddpar,hdr,'EX0',sgparms(4,1),'Spectrograph distortion correction'
+fxaddpar,hdr,'EX1',sgparms(5,1),'Spectrograph lat chrom aberrarion correction'
+fxaddpar,hdr,'EX2',sgparms(6,1),'Spectrograph rotation correction'
 
-fxaddpar,hdr,'C00',sgcoefs(0,1),'Fiber 1 coefs00   Legendre coefficients'
-fxaddpar,hdr,'C01',sgcoefs(1,1),'Fiber 1 coefs01   for wavelength solution'
-fxaddpar,hdr,'C02',sgcoefs(2,1),'Fiber 1 coefs02   correction.'
-fxaddpar,hdr,'C03',sgcoefs(3,1),'Fiber 1 coefs03'
-fxaddpar,hdr,'C04',sgcoefs(4,1),'Fiber 1 coefs04'
-fxaddpar,hdr,'C05',sgcoefs(5,1),'Fiber 1 coefs05'
-fxaddpar,hdr,'C06',sgcoefs(6,1),'Fiber 1 coefs06'
-fxaddpar,hdr,'C07',sgcoefs(7,1),'Fiber 1 coefs07'
-fxaddpar,hdr,'C08',sgcoefs(8,1),'Fiber 1 coefs08'
-fxaddpar,hdr,'C09',sgcoefs(9,1),'Fiber 1 coefs09'
-fxaddpar,hdr,'C10',sgcoefs(10,1),'Fiber 1 coefs10'
-fxaddpar,hdr,'C11',sgcoefs(11,1),'Fiber 1 coefs11'
-fxaddpar,hdr,'C12',sgcoefs(12,1),'Fiber 1 coefs12'
-fxaddpar,hdr,'C13',sgcoefs(13,1),'Fiber 1 coefs13'
-fxaddpar,hdr,'C14',sgcoefs(14,1),'Fiber 1 coefs14'
+fxaddpar,hdr,'C00',sgcoefs(0,1),'Fiber 1 coefs(0)'
+fxaddpar,hdr,'C01',sgcoefs(1,1),'Fiber 1 coefs(1)'
+fxaddpar,hdr,'C02',sgcoefs(2,1),'Fiber 1 coefs(2)'
+fxaddpar,hdr,'C03',sgcoefs(3,1),'Fiber 1 coefs(3)'
+fxaddpar,hdr,'C04',sgcoefs(4,1),'Fiber 1 coefs(4)'
+fxaddpar,hdr,'C05',sgcoefs(5,1),'Fiber 1 coefs(5)'
+fxaddpar,hdr,'C06',sgcoefs(6,1),'Fiber 1 coefs(6)'
+fxaddpar,hdr,'C07',sgcoefs(7,1),'Fiber 1 coefs(7)'
+fxaddpar,hdr,'C08',sgcoefs(8,1),'Fiber 1 coefs(8)'
+fxaddpar,hdr,'C09',sgcoefs(9,1),'Fiber 1 coefs(9)'
+fxaddpar,hdr,'C10',sgcoefs(10,1),'Fiber 1 coefs(10)'
+fxaddpar,hdr,'C11',sgcoefs(11,1),'Fiber 1 coefs(11)'
+fxaddpar,hdr,'C12',sgcoefs(12,1),'Fiber 1 coefs(12)'
+fxaddpar,hdr,'C13',sgcoefs(13,1),'Fiber 1 coefs(13)'
+fxaddpar,hdr,'C14',sgcoefs(14,1),'Fiber 1 coefs(14)'
 
-fxaddpar,hdr,'FIBC0',fibcoefs_c(0,fib0),'Star fiber fibcoef0   Legendre coeffs'
-fxaddpar,hdr,'FIBC1',fibcoefs_c(1,fib0),'Star fiber fibcoef1   for fiber 2-0'
-fxaddpar,hdr,'FIBC2',fibcoefs_c(2,fib0),'Star fiber fibcoef2   separation' 
+fxaddpar,hdr,'FIBC0',fibcoefs_c(0,fib0),'Star fiber fibcoef0'
+fxaddpar,hdr,'FIBC1',fibcoefs_c(1,fib0),'Star fiber fibcoef1'
+fxaddpar,hdr,'FIBC2',fibcoefs_c(2,fib0),'Star fiber fibcoef2'
 fxaddpar,hdr,'FIBC3',fibcoefs_c(3,fib0),'Star fiber fibcoef3'
 fxaddpar,hdr,'FIBC4',fibcoefs_c(4,fib0),'Star fiber fibcoef4'
 fxaddpar,hdr,'FIBC5',fibcoefs_c(5,fib0),'Star fiber fibcoef5'
@@ -302,9 +316,9 @@ fxaddpar,hdr,'FIBC7',fibcoefs_c(7,fib0),'Star fiber fibcoef7'
 fxaddpar,hdr,'FIBC8',fibcoefs_c(8,fib0),'Star fiber fibcoef8'
 fxaddpar,hdr,'FIBC9',fibcoefs_c(9,fib0),'Star fiber fibcoef9'
 
-fxaddpar,hdr,'LAMCENR',lamcenr,'[nm] Center lambda of red order'
-fxaddpar,hdr,'LAMCENG',lamceng,'[nm] Center lambda of green order'
-fxaddpar,hdr,'LAMCENB',lamcenb,'[nm] Center lambda of blue order'
+fxaddpar,hdr,'LAMCENR',lamcenr,'[nm] Center lam of red order'
+fxaddpar,hdr,'LAMCENG',lamceng,'[nm] Center lam of green order'
+fxaddpar,hdr,'LAMCENB',lamcenb,'[nm] Center lam of blue order'
 fxaddpar,hdr,'LAMRANR',lamranr,'[nm] Lambda range of red order'
 fxaddpar,hdr,'LAMRANG',lamrang,'[nm] Lambda range of green order'
 fxaddpar,hdr,'LAMRANB',lamranb,'[nm] Lambda range of blue order'
@@ -325,9 +339,10 @@ fxbaddcol,ind3,hdr,dum(0),'Y0','Y0 (mm)'
 fxbaddcol,ind4,hdr,dum(0),'Z0','Z0 - 1.'
 
 fxbcreate,unit,tharout,hdr,ext1
-fxbwritm,unit,['SINALP','FL','Y0','Z0'],reform(sgparms(0,*),nfib),$
-  reform(sgparms(1,*),nfib),reform(sgparms(2,*),nfib),$
-  reform(sgparms(3,*),nfib)
+fxbwritm,unit,['SINALP','FL','Y0','Z0','EX0','EX1','EX2'],$
+  reform(sgparms(0,*),nfib), reform(sgparms(1,*),nfib),reform(sgparms(2,*),$
+  nfib), reform(sgparms(3,*),nfib), reform(sgparms(4,*),nfib),$
+  reform(sgparms(5,*),nfib),reform(sgparms(6,*),nfib)
 
 fxbfinish,unit
 

@@ -1,4 +1,4 @@
-pro thar_setup,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
+pro thar_setup2,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
 ; This routine accepts identifiers for the spectrograph being modeled,
 ; for a list of (possibly only one) extracted ThAr input spectra,
 ; and for the fiber index (0,1,2) being used.
@@ -79,17 +79,43 @@ dex2_c=specdat.dex2
 
 ; make parinfo structure array for use with mpfit
 ; parameters are fixed if corresponding dparameter is set to zero
-pritempl={value:0.d0,fixed:1,parname:'NULL',tied:''}
-parinfo_c=[pritempl,pritempl,pritempl,pritempl] ; initlze array of structures
+pritempl={value:0.d0,fixed:1,parname:'NULL',tied:'',step:0.d0}
+parinfo_c=[pritempl,pritempl,pritempl,pritempl,pritempl,pritempl,pritempl] 
+; initlze array of structures
 parinfo_c[0].parname='sinalp'
 parinfo_c[1].parname='fl'
 parinfo_c[2].parname='y0'
 parinfo_c[3].parname='z0'
+parinfo_c[4].parname='ex0'
+parinfo_c[5].parname='ex1'
+parinfo_c[6].parname='ex2'
+
+parinfo_c[0].step=.00001d0
+parinfo_c[1].step=.0001d0
+parinfo_c[2].step=.0001d0
+parinfo_c[3].step=.0001d-3
+parinfo_c[4].step=.001d0
+;parinfo_c[4].step=double(dex0_c)
+parinfo_c[5].step=.001d0
+parinfo_c[6].step=.001d0
+
+;parinfo_c[0].step=double(dsinalp_c)
+;parinfo_c[1].step=double(dfl_c)
+;parinfo_c[2].step=double(dy0_c)
+;parinfo_c[3].step=double(dz0_c)
+;parinfo_c[4].step=double(dex0_c)
+;parinfo_c[5].step=double(dex1_c)
+;parinfo_c[6].step=double(dex2_c)
 if(dsinalp_c ne 0.) then parinfo_c[0].fixed=0
 if(dfl_c ne 0.) then parinfo_c[1].fixed=0
 if(dy0_c ne 0.) then parinfo_c[2].fixed=0
-if(dz0_c ne 0.) then parinfo_c[3].fixed=0
-p3tied='P[1]*0.00015751'
+;if(dz0_c ne 0.) then parinfo_c[3].fixed=0
+if(dex0_c ne 0.) then parinfo_c[4].fixed=0
+if(dex1_c ne 0.) then parinfo_c[5].fixed=0
+;if(dex2_c ne 0.) then parinfo_c[6].fixed=0  
+
+;p3tied='P[1]*0.00015751'
+p3tied=''
 parinfo_c[3].tied=p3tied
 
 ; make the first-guess wavelength array based on specdat structure.
@@ -199,6 +225,9 @@ endif else begin
      and lchi2 le 1.8 and lchi2 gt (-2.999) and siga gt thrshamp,nsg)
  ; if(nsg le 0) then stop
 endelse
+
+; Make lists of observed (not "lab") line properties.  The lines listed here
+; are all observed lines that pass significance and width cutoffs.
 iord_c=iord_c(sg)
 xpos_c=xpos_c(sg)
 amp_c=amp_c(sg)
@@ -206,6 +235,10 @@ wid_c=wid_c(sg)
 diff_c=diff_c(sg)
 xperr_c=xperr_c(sg)
 clip_c=dblarr(nsg)+1.d0       ; weight array used to clip bad lines
+
+; make arrays to keep track of which observed lines are matched to lab lines.
+match_c=lonarr(nsg)            ; will be set = 1 for matched lines
+matchindx_c=[]                 ; will be filled with indices of matched lines
 
 ; read the ThAr standard line list
 openr,iun,linelist,/get_lun
@@ -263,5 +296,4 @@ g0=0.
 fini:
 ierr=ierr_c
 
-;stop
 end
