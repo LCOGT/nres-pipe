@@ -111,9 +111,9 @@ endif
 ;endfor
 ; do the fit using thar_lsqfit. Iterate niter_thar times.
 ; save interesting values for each iteration
-niter_thar=4
-ii_parms=dblarr(7,niter_thar+1)
-ii_coefs=dblarr(15,niter_thar+1)
+niter_thar=2
+ii_parms=dblarr(7,niter_thar+2)
+ii_coefs=dblarr(15,niter_thar+2)
 ii_lam=dblarr(4096,67,niter_thar+1)
 
 ii_parms(*,0)=[sinalp_c,fl_c,y0_c,z0_c,ex0_c,ex1_c,ex2_c]
@@ -122,10 +122,8 @@ ii_lam(*,*,0)=lam_c
 
 for j=0,niter_thar-1 do begin
 
-print,'thar_iter_j =',j
-
-thar_lsqfit,dvals,dcoefs,rchisq,mchisq,nmatch
-nmatch_c=nmatch
+thar_lsqfit,dvals,dcoefs,rchisq,mchisq
+;nmatch_c=nmatch
 rchisq_c=rchisq
 mchisq_c=mchisq
 
@@ -154,8 +152,7 @@ mchisq_c=mchisq
 
 logo_nres2,rutname,'INFO',{state:'after mpfit',nmatch:nmatch_c,$
      scatter:sqrt(dlam2_c)}
-print,dvals(0)
-stop
+;print,dvals(0)
 
 ; update the model parameters in common
 sinalp_c=sinalp_c-dvals(0)
@@ -173,9 +170,18 @@ ii_parms(*,j+1+1)=[sinalp_c,fl_c,y0_c,z0_c,ex0_c,ex1_c,ex2_c]
 ii_coefs(*,j+1)=coefs_c
 ii_lam(*,*,0)=lam_c
 
+;stop
+
 endfor
 
-stop
+; fill in some diagnostic values
+mgbord=38               ; order containing Mg b lines
+dlamnom=10.5777         ; nominal wavelength span of mgbord, in nm
+mgbdisp_c=lam_c(nx_c-1,mgbord)-lam_c(0,mgbord)-dlamnom
+lammid_c=total(lam_c(2000,mgbord-5:mgbord+5))/11.
+matchbest_c=matchlam_c - (matchdif_c-outp_c)
+
+;stop
 
 ; do weighted least-squares solution to restricted cubic functions of order
 ; to minimize residuals.  Skip this if nmatch_c is too small

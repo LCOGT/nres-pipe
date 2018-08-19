@@ -1,4 +1,4 @@
-pro thar_lsqfit,dvals,dcoefs,rchisq,mchisq,nmatch
+pro thar_lsqfit,dvals,dcoefs,rchisq,mchisq
 ; this routine computes dvals = desired perturbations to the main parmeters
 ; defining the wavelength solution, and to the restricted quartic fit coefs
 ; using an SVD-based least squares fit to the wavelength differences of all
@@ -250,7 +250,7 @@ jx=matchxpos_c-nx_c/2.
 
 ; make functions to be fit, for all orders and x positions
 ; These are the functions multiplying the fitting parameters
-dlamdparm3,site,lam,dlamdparms,dparmnorm,dlamdcoefs,dcoefnorm,/gotsp
+dlamdparm3,site,lam,dlamdparms,dlamdcoefs,/gotsp
 
 ; interpolate these onto the x positions & orders of the observed lines. 
 dblx=dindgen(nx_c)
@@ -268,9 +268,7 @@ endfor
 
 ; fit the observed wavelength differences
 cc0=lstsqr(dat,funs,matchwts_0,nfuns,rms0,chisq0,outp0,1,cov0,ierr,$
-  svdminrat=1.e-8)
-
-stop
+  svdminrat=1.e-9)
 
 ; identify lines with unreasonably large deviations, adjust their weights
 quartile,outp0,med,q,dq
@@ -281,7 +279,7 @@ if(nsg gt 0) then matchwts_1(sc)=0.
 
 ; and fit again
 cc1=lstsqr(dat,funs,matchwts_1,nfuns,rms1,chisq1,outp1,1,cov1,ierr,$
-  svdminrat=1.e-8)
+  svdminrat=1.e-9)
 
 ; and again
 quartile,outp1,med,q,dq
@@ -291,20 +289,19 @@ matchwts_2=matchwts_1
 if(nsc gt 0) then matchwts_2(sc)=0.
 
 cc2=lstsqr(dat,funs,matchwts_2,nfuns,rms2,chisq2,outp2,1,cov2,ierr,$
-  svdminrat=1.e-82)
+  svdminrat=1.e-9)
 
 ; funs are normalized versions of derivatives of the model parameters;
 ; undo the normalization to yield dvals, dcoefs
-dvals=cc2(0:6)/dparmnorm
-dcoefs=cc2(7:*)/dcoefnorm
-
-;stop
+dvals=cc2(0:6)
+dcoefs=cc2(7:*)
+outp_c=outp2
+;nmatch_c=nmatch
 
 schi=where(matchwts_2 gt 2*tiny,nmatch)
 rchisq=total((outp2(schi)/matcherr_c(schi))^2)/nmatch
 mchisq=median((outp2(schi)/matcherr_c)^2)
-
-;stop
+rms_c=rms2
 
 ; return vector diff_c, normalized by uncertainties in matcherr
 ; and perhaps sigma clipped to exclude bad lines

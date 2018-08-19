@@ -177,10 +177,11 @@ for i=0,nplot-1 do begin
   ytit='lambda Mismatch (nm)'
   xran=[380,880]
   yran=[-.02,.02]
-  if keyword_set(newdif_c) then begin
-    plot,matchlam_c,newdif_c,psym=4,xran=xran,yran=yran,/xsty,/ysty,$
+  stop
+  ;if keyword_set(newdif_c) then begin
+  plot,matchlam_c,matchdif_c,psym=4,xran=xran,yran=yran,/xsty,/ysty,$
          xtit=xtit,ytit=ytit,tit=tit,charsiz=cs1,thick=2
-  endif
+  ;endif
   
   xyouts,390,-0.015,'nMatch='+strtrim(string(nmatch_c,format='(i4)'),2)
   

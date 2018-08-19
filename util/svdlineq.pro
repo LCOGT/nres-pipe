@@ -19,8 +19,8 @@ if(keyword_set(numc)) then begin
   if(numc lt nx) then w(numc:nx-1)=0.
 endif
 
-print,'Zeroed w vals =',ns
-print,'w = ',w
+;print,'Zeroed w vals =',ns
+;print,'w = ',w
 
 x=svsol(u,w,v,b,/double)
 

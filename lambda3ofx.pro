@@ -64,7 +64,7 @@ ex2=specstruc.ex2
 rcubic=specstruc.coefs(0:specstruc.ncoefs-1)
 fibcoefs=specstruc.fibcoefs
 
-print,'lambda3ofx parms:',sinalp,fl,y0,z0,ex0,ex1,ex2
+;print,'lambda3ofx parms:',sinalp,fl,y0,z0,ex0,ex1,ex2
 
 ; get sizes of things
 nx=n_elements(xx)

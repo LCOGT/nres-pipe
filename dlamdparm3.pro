@@ -1,12 +1,10 @@
-pro dlamdparm3,site0,lam,dlamdparms,dparmnorm,dlamdcoefs,dcoefnorm,gotsp=gotsp
+pro dlamdparm3,site0,lam,dlamdparms,dlamdcoefs,gotsp=gotsp
 ; This routine accepts a site name site0 (to allow reading spectrograph physical
 ; data). 
 ; It then computes lam(nx,nord), 
 ; dlam/dparms(nx,nord,7) giving wavelength derivs wrt the parms7 parameters,
 ; and dlam/dcoefs(nx,nord,ncoefs) giving wavelength derivs wrt the ncoefs
 ; coefs values.
-; The max(abs(dlamdparms)) and max(abs(dlamdcoefs)) are returned in
-; dparmnorm(7) and in dcoefnorm(ncoefs), resp.
 ; The computed derivative functions are then divided by the normalization
 ; constants, so that max(abs(dlamdparms(*,*,-)))=1.0, and
 ; likewise for max(abs(dlamdcoefs)).
@@ -105,13 +103,6 @@ dlamdparms(*,*,4)=(lam5-lam)/dex0
 dlamdparms(*,*,5)=(lam6-lam)/dex1
 dlamdparms(*,*,6)=(lam7-lam)/dex2
 
-; normalize derivatives wrt parms so max(abs(deriv)))=1.  Save norm constants.
-for i=0,6 do begin
-  mxa=max(abs(dlamdparms(*,*,i)))
-  dparmnorm(i)=1.
-; dlamdparms(*,*,i)=dlamdparms(*,*,i)/mxa
-endfor
-
 ; make functions that go into rcubic polynomial, hence dlam/dcoef(i)
 jx=findgen(nx)-nx/2.
 jx=rebin(jx,nx,nord)
@@ -149,12 +140,6 @@ funs(*,*,13)=lx3*lo1
 funs(*,*,14)=lx4
 
 dlamdcoefs=funs
-
-for i=0,ncoefs-1 do begin
-  mxc=max(abs(dlamdcoefs(*,*,i)))
-  dcoefnorm(i)=1.
-; dlamdcoefs(*,*,i)=dlamdcoefs(*,*,i)/mxc
-endfor
 
 ;dlamdcoefs(*,*,0)=1.
 ;dlamdcoefs(*,*,1)=jord

@@ -47,14 +47,14 @@ endif
 
 ; make needed arrays to allow wavelength computation
 ; make a tentative lambda array for all 3 fibers
-xx=(findgen(nx)-nx/2.)*specdat.pixsiz
-mm=specdat.ord0+lindgen(nord)
-lam03=dblarr(nx,nord,3)
-for i=0,2 do begin
-  lambda3ofx,xx,mm,i,specdat,lamt,y0t
-  lam03(*,*,i)=lamt
-endfor
-mk_badlamwts,lam03
+;xx=(findgen(nx)-nx/2.)*specdat.pixsiz
+;mm=specdat.ord0+lindgen(nord)
+;lam03=dblarr(nx,nord,3)
+;for i=0,2 do begin
+;  lambda3ofx,xx,mm,i,specdat,lamt,y0t
+;  lam03(*,*,i)=lamt
+;endfor
+;mk_badlamwts,lam03
 
 ; locate suitable bias, dark, flat and trace data
 errsum=0
@@ -134,6 +134,15 @@ objs=sxpar(dathdr,'OBJECTS')
 backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
 ; cordat is left in common: bias, dark, background-subtracted data,
 ;   trimmed to remove overscan if necessary.
+
+xx=(findgen(nx)-nx/2.)*specdat.pixsiz
+mm=specdat.ord0+lindgen(nord)
+lam03=dblarr(nx,nord,3)
+for i=0,2 do begin
+  lambda3ofx,xx,mm,i,specdat,lamt,y0t
+  lam03(*,*,i)=lamt
+endfor
+mk_badlamwts,lam03
 
 ; extract spectra
 extract,err
