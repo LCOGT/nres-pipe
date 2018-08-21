@@ -2,7 +2,8 @@ pro trace_refine,tracein,flatin1,flatin2,nleg=nleg,dely=dely,eflat=eflat
 ; This routine accepts the name of a trace file found in tracedir,
 ; and uses it to extract profiles for all orders and fibers from the
 ; input files flatin1 and, optionally, flatin2.
-; These should be raw tungsten-halogen flats.  If the trace covers only 2 fibers,
+; These should be raw (not extracted) tungsten-halogen flats.  
+; If the trace covers only 2 fibers,
 ; then only flatin1 is required.  If 3 fibers, then
 ; flatin1 should contain data for fibers [0,1], and flatin2 for [1,2]
 ; If keyword eflat is provided, it is the name of an extracted flat
@@ -80,8 +81,8 @@ camera=sxpar(tracehdr,'INSTRUME')
 cowid=sxpar(tracehdr,'COWID')
 nblock=sxpar(tracehdr,'NBLOCK')
 sig=sig0*sqrt(cowid)     ; expected read noise per ebox x-position
-fib0=sxpar(tracehdr,'FIB0')
-fib1=sxpar(tracehdr,'FIB1')
+;fib0=sxpar(tracehdr,'FIB0')
+;fib1=sxpar(tracehdr,'FIB1')
 
 trace=reform(tracea(0:npoly-1,*,*,0))
 prof=tracea(0:cowid-1,*,*,1:*)
@@ -106,13 +107,6 @@ if(ns1 gt 0) then efwt(s1)=1.
 ;  stop
 ;end
 
-; Are there dark fibers?  Happens iff nfib=3 and nfilin=1
-if(nfib eq 3 and ninfil eq 1) then begin
-  if(fib0 eq 0) then zdark=2 else zdark=0
-endif else begin
-  zdark=-1                  ; indicates no dark fibers
-endelse
-
 ; read the input image file(s) main data segment
 imagein1=getenv('NRESRAWDAT')+flatin1
 dat1=readfits(imagein1,hdr1,/silent)
@@ -120,6 +114,24 @@ dat1=readfits(imagein1,hdr1,/silent)
 ; trim data array if necessary
 sz=size(dat1)
 if(sz(1) gt 4096 or sz(2) gt 4096) then dat1=dat1(0:4095,0:4095)
+
+; set fib0, fib1, zdark
+objs=sxpar(hdr1,'OBJECTS')
+objwds=strlowcase(get_words(objs,delim='&'))
+if(objwds(0) eq 'none') then begin
+  fib0=1
+  fib1=2
+endif else begin
+  fib0=0
+  fib1=1
+endelse
+
+; Are there dark fibers?  Happens iff nfib=3 and nfilin=1
+if(nfib eq 3 and ninfil eq 1) then begin
+  if(fib0 eq 0) then zdark=2 else zdark=0
+endif else begin
+  zdark=-1                  ; indicates no dark fibers
+endelse
 
 site1=strupcase(strtrim(sxpar(hdr1,'SITEID'),2))
 camera1=strtrim(sxpar(hdr1,'INSTRUME'),2)
@@ -154,7 +166,6 @@ ny=sz(2)
 
 ; subtract the background
 order_cen,trace,ord_vectors
-objs=sxpar(hdr1,'OBJECTS')
 ; if they are not set, put in defaults for ord_wid and nfib
 if(ord_wid eq 0.) then ord_wid=10.5
 if(nfib eq 0) then nfib=3
@@ -436,11 +447,13 @@ tracprof(0:nleg-1,*,*,0)=trace1
 tracprof(0:cowid-1,*,*,1:*)=prof1
 
 ; write out the new trace array
+; as of 2018/08/08, use data date, not creation date, to name output files.
+; Also, in trace_refine, do not set leading digits of year to '00'
 jdc=systime(/julian)      ; file creation time, for sorting similar trace files
 mjdc=jdc-2400000.5d0
-datereald=date_conv(jdc,'R')
+datereald=date_conv(jdd,'R')                ; jdd, not jdc
 datestrd=string(datereald,format='(f13.5)')
-strput,datestrd,'00',0
+;strput,datestrd,'00',0
 datestrd=strtrim(strlowcase(site),2)+strtrim(datestrd,2)
 fout='TRAC'+datestrd+'.fits'
 filout=nresrooti+tracedir+fout
