@@ -267,8 +267,9 @@ for j=0,nord_c-1 do begin
 endfor
 
 ; fit the observed wavelength differences
+svdmnr=1.e-9
 cc0=lstsqr(dat,funs,matchwts_0,nfuns,rms0,chisq0,outp0,1,cov0,ierr,$
-  svdminrat=1.e-9)
+  svdminrat=svdmnr)
 
 ; identify lines with unreasonably large deviations, adjust their weights
 quartile,outp0,med,q,dq
@@ -279,7 +280,7 @@ if(nsg gt 0) then matchwts_1(sc)=0.
 
 ; and fit again
 cc1=lstsqr(dat,funs,matchwts_1,nfuns,rms1,chisq1,outp1,1,cov1,ierr,$
-  svdminrat=1.e-9)
+  svdminrat=svdmnr)
 
 ; and again
 quartile,outp1,med,q,dq
@@ -289,7 +290,7 @@ matchwts_2=matchwts_1
 if(nsc gt 0) then matchwts_2(sc)=0.
 
 cc2=lstsqr(dat,funs,matchwts_2,nfuns,rms2,chisq2,outp2,1,cov2,ierr,$
-  svdminrat=1.e-9)
+  svdminrat=svdmnr)
 
 ; funs are normalized versions of derivatives of the model parameters;
 ; undo the normalization to yield dvals, dcoefs

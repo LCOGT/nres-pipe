@@ -177,7 +177,7 @@ snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
 ; make the title string
   version='1.2'      ; ###bogus###
   if iplot eq 2 then mag_index = 1 else mag_index = 0
-  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(iplot),iord0,exptime,$
+  shorttitl=shtitlstr(objects(iplot),site,mjdd,bjdtdb_c(ist),iord0,exptime,$
        snr,targvmag[mag_index],version) 
 ; set up for plot
   fibstr='_'+string(iplot,format='(i1)')
