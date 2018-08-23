@@ -69,48 +69,6 @@ if(ierr_c ne 0) then begin
   goto,fini
 endif
 
-; trying mpfit now ######################
-; vals=amoeba(ftol,function_name='thar_amoeba',ncalls=ncalls,nmax=nmax,$
-;             function_val=function_val,p0=p0,scale=scale)
-; ierr=ierr+ierr_c
-; if(ierr_c ne 0) then stop
-; if(ierr_c ne 0) then goto,fini
-; print,'ncalls = ',ncalls
-
-; #########hack to force spectrograph parms to remain fixed
-;vals=[0.,0.,0.,0.]
-;nmatch_c=11
-;nmatch=nmatch_c
-;dlam2_c=1.e4
-;matchlam_c=dblarr(nmatch)
-;matchamp_c=fltarr(nmatch)
-;matchwid_c=fltarr(nmatch)
-;matchline_c=dblarr(nmatch)
-;matchxpos_c=dblarr(nmatch)
-;matchord_c=lonarr(nmatch)
-;matcherr_c=fltarr(nmatch)
-;matchdif_c=fltarr(nmatch)
-;matchwts_c=fltarr(nmatch)
-;matchbest_c=dblarr(nmatch)
-;goto,skipfit
-; #########
-
-;
-; do the fit using mpfit, not amoeba
-;vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
-;##########
-;p0=p0(0:6)
-;parinfo_c=parinfo_c(0:6)
-;;vals=mpfit('thar_mpfit2',p0,parinfo=parinfo_c,ftol=1.d-6,/quiet)
-;      ftol=5.d-6)
-;fomall=dblarr(201)
-;dpaa=.01*(findgen(201)-100.)*1.e-5
-;for j=0,200 do begin
-;  tvals=thar_mpfit([dpaa(j),0.,0.,0.])
-;  fomall(j)=total((clip_c*tvals)^2)
-;endfor
-; do the fit using thar_lsqfit. Iterate niter_thar times.
-; save interesting values for each iteration
 niter_thar=2
 ii_parms=dblarr(7,niter_thar+2)
 ii_coefs=dblarr(15,niter_thar+2)
@@ -126,29 +84,6 @@ thar_lsqfit,dvals,dcoefs,rchisq,mchisq
 ;nmatch_c=nmatch
 rchisq_c=rchisq
 mchisq_c=mchisq
-
-; identify lines with unusually bad fits, set their weights to zero
-;;
-; this data clipping is now done within thar_lsqfit, hence is not needed here.
-;sm=where(abs(diff_c) le 0.8*dw,nsm)
-;if(nsm gt 10) then begin         ; 10 = min acceptable number of matched lines
-;  normdif=diff_c/xperr_c
-;  quartile,normdif(sm),med,q,dq
-;  sigq=dq/1.349                ; gaussian sigma estim from interquartile range
-;  sf=where(abs(diff_c) le 0.8*dw and abs(normdif) gt 4.*sigq,nsf)  ; points 
-
-;  if(nsf gt 0) then begin       ; redo mpfit with weights
-;    clip_c(sf)=0.d0
-;    niter_c=0             ; reset so matched line list will be recomputed
-;   vals=mpfit('thar_mpfit',p0,parinfo=parinfo_c,/quiet)
-;;    vals=mpfit('thar_mpfit2',p0,parinfo=parinfo_c,ftol=1.d-6,/quiet)
-;  thar_lsqfit,dvals,dcoefs,rchisq,mchisq,nmatch
-;  endif
-;endif
-
-; ##############
-;skipfit:
-; ##############
 
 logo_nres2,rutname,'INFO',{state:'after mpfit',nmatch:nmatch_c,$
      scatter:sqrt(dlam2_c)}
@@ -180,20 +115,6 @@ dlamnom=10.5777         ; nominal wavelength span of mgbord, in nm
 mgbdisp_c=lam_c(nx_c-1,mgbord)-lam_c(0,mgbord)-dlamnom
 lammid_c=total(lam_c(2000,mgbord-5:mgbord+5))/11.
 matchbest_c=matchlam_c - (matchdif_c-outp_c)
-
-;stop
-
-; do weighted least-squares solution to restricted cubic functions of order
-; to minimize residuals.  Skip this if nmatch_c is too small
-;if(nmatch_c ge minmatch) then begin
-;  thar_rcubic,cubfrz=cubfrz
-;  logo_nres2,rutname,'INFO',{state:'after rcubic',nmatch:nmatch_c,$
-;     scatter:sqrt(dlam2_c)}
-;endif else begin
-;  rms_c=0.
-;  lammid_c=0.
-;  mgbdisp_c=0.
-;endelse
 
 ; no explicit output from this routine -- everything of interest lives
 ; in the common block thar_am

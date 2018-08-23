@@ -297,6 +297,7 @@ cc2=lstsqr(dat,funs,matchwts_2,nfuns,rms2,chisq2,outp2,1,cov2,ierr,$
 dvals=cc2(0:6)
 dcoefs=cc2(7:*)
 outp_c=outp2
+matchwts_c=matchwts_2
 ;nmatch_c=nmatch
 
 schi=where(matchwts_2 gt 2*tiny,nmatch)

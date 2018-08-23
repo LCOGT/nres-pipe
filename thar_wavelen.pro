@@ -337,6 +337,9 @@ fxbaddcol,ind1,hdr,dum(0),'SINALP','Sin(alpha)'
 fxbaddcol,ind2,hdr,dum(0),'FL','Focal Length (mm)'
 fxbaddcol,ind3,hdr,dum(0),'Y0','Y0 (mm)'
 fxbaddcol,ind4,hdr,dum(0),'Z0','Z0 - 1.'
+fxbaddcol,ind5,hdr,dum(0),'EX0','Cubic Distortion (nm)'
+fxbaddcol,ind6,hdr,dum(0),'EX1','Lat Chrom Abb (nm)'
+fxbaddcol,ind7,hdr,dum(0),'EX2','Rotation (nm)'
 
 fxbcreate,unit,tharout,hdr,ext1
 fxbwritm,unit,['SINALP','FL','Y0','Z0','EX0','EX1','EX2'],$
