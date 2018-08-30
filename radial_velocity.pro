@@ -296,8 +296,23 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        rvcco:rvcco}
        
 ; compute the averaged pldp values for star and ThAr
-pldpav=1./(sqrt(total(1./pldpo(fib0,*,*)^2)) > 1.e-5) 
-; optimistic gaussian estimate
+uu=pldpo(fib0,*,*)
+suu=where(uu gt 1.e-6 and uu le 9.99,nsuu)
+if(nsuu gt 0) then uu2=uu(suu)^2
+if(nsuu gt 0) then pldpav=1./sqrt(total(1./uu2)) else pldpav=0.
+
+; make ThAr PLDP
+dlamdx=fltarr(nx,nord)
+for i=0,nord-1 do begin
+  dlamdx(*,i)=deriv(lam_c(*,i))
+endfor
+thardv=matchwid_c*dlamdx(matchxpos_c,matchord_c)*(c/lam_c(matchxpos_c,$
+     matchord_c))/sqrt(matchamp_c)
+tharpldp=1./sqrt(total(1./thardv^2))
+
+; make interquartile-derived rms of thar scatter
+quartile,matchdif_c,med,q,dq
+tharscat=dq/1.35
 
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
@@ -328,7 +343,14 @@ fxaddpar,hdr,'BJD',bjdo(fib0),'[BJD_TDB] Exposure center barycen date'
 fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Average blockfit redshift'
 fxaddpar,hdr,'ZBLKMED',rrom(fib0),'Median blockfit redshift'
 fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal error'
-fxaddpar,hdr,'PLDP',pldpav,'Star photon-limited doppler precision'
+fxaddpar,hdr,'PLDP',pldpav,'[km/s] Star photon-limited doppler precision'
+
+fxaddpar,hdr,'NMATCH',nmatch_c,'Number of matched ThAr lines'
+fxaddpar,hdr,'THARPLDP',tharpldp,'[km/s] PLDP of ThAr matched lines
+fxaddpar,hdr,'THARSCAT',tharscat,'[nm] ThAr line scatter'
+fxaddpar,hdr,'EX0',ex0_c,'Cubic distortion coeff'
+fxaddpar,hdr,'EX1',ex1_c,'Lateral chrom aberration coeff'
+fxaddpar,hdr,'EX2',ex2_c,'Rotation coeff'
 
 ; write out the data as a fits extension table.
 ; each column contains a single row, and each element is an array
