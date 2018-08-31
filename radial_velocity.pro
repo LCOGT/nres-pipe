@@ -59,25 +59,31 @@ thspec=rvindat.zthar             ; use this only for line-shape estimates
 zlam=rvindat.zlam                ; wavelength scale for star zero spectra
 zeronames=rvindat.zeronames      ; names of ZERO files used
 sspec=fltarr(nx,nord,nfib-1)
+sispec=fltarr(nx,nord,nfib-1)
 slam=dblarr(nx,nord,nfib-1)
 if(nfib eq 2) then begin
   sspec(*,*,0)=blazspec(*,*,1)
   slam(*,*,0)=tharred.lam(*,*,1)
+  sispec(*,*,0)=extrspec(*,*,1)
 endif
 if(nfib eq 3) then begin
   if(mfib eq 3) then begin       ; do this if all 3 fibers are illuminated
     sspec(*,*,0)=blazspec(*,*,0)
     sspec(*,*,1)=blazspec(*,*,2)
+    sispec(*,*,0)=extrspec(*,*,0)
+    sispec(*,*,1)=extrspec(*,*,2)
     slam(*,*,0)=tharred.lam(*,*,0)
     slam(*,*,1)=tharred.lam(*,*,2)
   endif
   if(mfib eq 2) then begin      ; do this if 3 fibers, but only 2 illuminated
     if(fib0 eq 0) then begin    ; implies fiber 2 is dark
       sspec(*,*,0)=blazspec(*,*,0)
+      sispec(*,*,0)=extrspec(*,*,0)
       slam(*,*,0)=tharred.lam(*,*,0)
     endif
     if(fib0 eq 1) then begin    ; implies fiber 0 is dark
       sspec(*,*,1)=blazspec(*,*,1)
+      sispec(*,*,1)=extrspec(*,*,1)
       slam(*,*,1)=tharred.lam(*,*,2)
     endif
   endif
@@ -175,6 +181,7 @@ for i=0,1 do begin
       zdatnew(*,j)=interpol(zspec(*,j,i),zlamj,slam(*,j,i),/lsquadratic)
 
       sdat=smooth(smooth(smooth(sspec(*,j,i),3),3),3)  ; lowpassed obs data
+      sidat=smooth(smooth(smooth(sispec(*,j,i),3),3),3) > 1.
 
       blen=long(nx/nblock)           ; number of pix in a block
       bbot=long(findgen(nblock)*(nx/float(nblock)))  ; block starting pix
@@ -184,6 +191,7 @@ for i=0,1 do begin
       for k=0,nblock-1 do begin
         zblock=zdatnew(bbot(k):btop(k),j)
         dblock=sdat(bbot(k):btop(k))
+        iblock=sidat(bbot(k):btop(k))
         lamblock=slam(bbot(k):btop(k),j,i)    ; block nominal wavelength grid
         nblko=n_elements(dblock)
         modelo=dblarr(nblko)
@@ -192,7 +200,7 @@ for i=0,1 do begin
 ; check that dblock, zblock contain data that make sense.  
 ; If not, bail on this block
 ; numbers relating to spectrum intensities
-        dbmean=mean(dblock)
+        dbmean=mean(iblock)
         dbstdv=stddev(dblock)
         quartile,dblock,dbmed,q,dq
         zbmean=mean(zblock)
@@ -201,7 +209,7 @@ for i=0,1 do begin
         blammin=min(lamblock)
         blammax=max(lamblock)
 ; these tests give bogus answers for BLAZ data.
-        if(max(abs(dbmean)) eq 0. or max(abs(zbmean)) eq 0. or $
+        if(max(abs(dbmean)) le 1. or max(abs(zbmean)) le 1. or $
         blammin le tharmatchmin or blammax ge tharmatchmax) then begin 
           cov0=dblarr(3,3)
           blockparms={rr:0.d0,aa:0.d0,bb:0.d0,pldp:0.d0,cov:cov0,$
@@ -211,7 +219,7 @@ for i=0,1 do begin
         endif
 
 ; fit redshift and continuum normalization.
-       blockfit2,lamblock,zblock,dblock,blockparms
+       blockfit2,lamblock,zblock,dblock,iblock,blockparms
       
 ; end blocks loop
       bail:
@@ -296,8 +304,33 @@ rvred={rroa:rroa,rrom:rrom,rroe:rroe,rro:rro,erro:erro,aao:aao,eaao:eaao,$
        rvcco:rvcco}
        
 ; compute the averaged pldp values for star and ThAr
-pldpav=1./(sqrt(total(1./pldpo(fib0,*,*)^2)) > 1.e-5) 
-; optimistic gaussian estimate
+uu=pldpo(fib0,*,*)
+suu=where(uu gt 1.e-6 and uu le 9.99,nsuu)
+if(nsuu gt 10) then begin
+  uu2=uu(suu)^2
+; throw out the top and bottom 10% of uu2 values
+  sou=sort(uu2)
+  uu2s=uu2(sou)
+  uu2s=uu2s(0.1*nsuu:0.8*nsuu)
+  nsu2=n_elements(uu2s)
+endif else begin
+  nsuu=0
+endelse
+  
+if(nsuu gt 0) then pldpav=1./sqrt(total(1./uu2s)) else pldpav=0.
+
+; make ThAr PLDP
+dlamdx=fltarr(nx,nord)
+for i=0,nord-1 do begin
+  dlamdx(*,i)=deriv(lam_c(*,i))
+endfor
+thardv=matchwid_c*dlamdx(matchxpos_c,matchord_c)*(c/lam_c(matchxpos_c,$
+     matchord_c))/sqrt(matchamp_c)
+tharpldp=1./sqrt(total(1./thardv^2))
+
+; make interquartile-derived rms of ThAr scatter
+quartile,matchdif_c,med,q,dq
+tharscat=dq/1.35
 
 ; write the information from the cross-correlation and from the block-fitting
 ; procedures to rvdir as a multi-extension fits file.
@@ -328,7 +361,16 @@ fxaddpar,hdr,'BJD',bjdo(fib0),'[BJD_TDB] Exposure center barycen date'
 fxaddpar,hdr,'ZBLKAVG',rroa(fib0),'Average blockfit redshift'
 fxaddpar,hdr,'ZBLKMED',rrom(fib0),'Median blockfit redshift'
 fxaddpar,hdr,'ZBLKERR',rroe(fib0),'Blockfit redshift formal error'
-fxaddpar,hdr,'PLDP',pldpav,'Star photon-limited doppler precision'
+fxaddpar,hdr,'PLDP',pldpav,'[km/s] Star photon-limited doppler precision'
+
+fxaddpar,hdr,'NMATCH',nmatch_c,'Number of matched ThAr lines'
+fxaddpar,hdr,'THARPLDP',tharpldp,'[km/s] PLDP of ThAr matched lines
+fxaddpar,hdr,'THARSCAT',tharscat,'[nm] ThAr line scatter'
+; The next three are in anticipation of improved ThAr solutions.
+; commented out for now.
+;fxaddpar,hdr,'EX0',ex0_c,'Cubic distortion coeff'
+;fxaddpar,hdr,'EX1',ex1_c,'Lateral chrom aberration coeff'
+;fxaddpar,hdr,'EX2',ex2_c,'Rotation coeff'
 
 ; write out the data as a fits extension table.
 ; each column contains a single row, and each element is an array

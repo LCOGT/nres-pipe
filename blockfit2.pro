@@ -1,10 +1,12 @@
-pro blockfit2,lamblock,zblock,dblock,blockparms
+pro blockfit2,lamblock,zblock,dblock,iblock,blockparms
 ; This routine compares the spectrum blocks 
 ;  zblock = a block from the ZERO file used for this spectrum
 ;  lamblock = the wavelength scale appropriate to zblock, including any
 ;    redshifts that have been applied
 ;  dblock = the corresponding block from the target spectrum.
-; It is assumed that both zblock and dblock are taken from lowpassed
+;  iblock = the corresponding block from the extracted (not blaze-subtracted)
+;           spectrum.
+; It is assumed that zblock, dblock, and iblock are taken from lowpassed
 ; spectra, produced by smoothing the original versions.
 ; The routine fits dblock to a model constructed from zblock as follows:
 ;    model(lamblock)=zblock(lamblock/(1.+r))*(a + b*y1)
@@ -68,7 +70,7 @@ vals=lsqblkfit2(lamblock,zblock,dblock,wts,cov,modelo,resido)
 dlamdx=(max(lamblock)-min(lamblock))/(npt-1)
 lammid=0.5*(max(lamblock)+min(lamblock))
 didlam=deriv(dblock)/dlamdx
-pldpix=1./sqrt(total(didlam^2/(dblock > 1.) > 1.e-20))
+pldpix=1./sqrt(total(didlam^2/(iblock > 1.) > 1.e-20))
 pldp=c*pldpix/lammid
 
 bail:
