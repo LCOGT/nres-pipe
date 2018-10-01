@@ -49,7 +49,7 @@ calibration_schedule = {'{site}__stack_calibrations_nightly'.format(site=site):
                              'kwargs': {'site': site, 'camera': camera,'nres_instrument': nres_instrument},
                              'options': {'queue': 'periodic'}
                             }
-                        for site, camera, nres_instrument, site_restart in [('lsc', 'fl09', 'nres01', 16),
+                        for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
                                                                             ('elp', 'fl17', 'nres02', 18),
                                                                             ('cpt', 'fl13', 'nres03', 11),
                                                                             ('tlv', 'fl18', 'nres04', 9)]}
@@ -63,7 +63,7 @@ trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
                                          'raw_data_root': '/archive/engineering'},
                               'options': {'queue': 'periodic'}
                               }
-                         for site, camera, nres_instrument, site_restart in [('lsc', 'fl09', 'nres01', 16),
+                         for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
                                                                              ('elp', 'fl17', 'nres02', 18),
                                                                              ('cpt', 'fl13', 'nres03', 11),
                                                                              ('tlv', 'fl18', 'nres04', 9)]}
