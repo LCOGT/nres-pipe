@@ -31,6 +31,7 @@ db_address = os.getenv('DB_URL', 'sqlite:///test.db')
 data_reduction_root = os.getenv('NRES_DATA_ROOT', './')
 do_radial_velocity = os.getenv('NRES_DO_RV', 1)
 
+calibration_stack_delay_from_site_restart = int(os.getenv('CAL_STACK_DELAY', 4))
 
 blacklisted_filenames = ['g00', 'x00']
 
@@ -41,58 +42,46 @@ sender_password = os.getenv('SUMMARY_SENDER_PASSWORD', "password")
 # Format for parsing dates throughout the code
 date_format = '%Y-%m-%dT%H:%M:%S'
 
-beat_schedule = {'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_queue_length_metric',
+calibration_schedule = {'{site}__stack_calibrations_nightly'.format(site=site):
+                            {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
+                             'schedule': crontab(minute=0,
+                                                 hour=site_restart + calibration_stack_delay_from_site_restart),
+                             'kwargs': {'site': site, 'camera': camera,'nres_instrument': nres_instrument},
+                             'options': {'queue': 'periodic'}
+                            }
+                        for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
+                                                                            ('elp', 'fa17', 'nres02', 18),
+                                                                            ('cpt', 'fl13', 'nres03', 11),
+                                                                            ('tlv', 'fl18', 'nres04', 9)]}
+
+
+trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
+                             {'task': 'nrespipe.tasks.refine_trace_from_night',
+                              'schedule': crontab(minute=0,
+                                                  hour= site_restart + calibration_stack_delay_from_site_restart),
+                              'kwargs': {'site': site, 'camera': camera, 'nres_instrument': nres_instrument,
+                                         'raw_data_root': '/archive/engineering'},
+                              'options': {'queue': 'periodic'}
+                              }
+                         for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
+                                                                             ('elp', 'fa17', 'nres02', 18),
+                                                                             ('cpt', 'fl13', 'nres03', 11),
+                                                                             ('tlv', 'fl18', 'nres04', 9)]}
+beat_schedule = {**calibration_schedule, **trace_refine_schedule,
+                 'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_queue_length_metric',
                                                'schedule': timedelta(minutes=1),
                                                'args': (rabbitmq_host,),
                                                'options': {'queue': 'periodic'}
                                                },
-                 'lsc_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
-                                               'schedule': crontab(minute=0, hour=16),
-                                               'kwargs': {'site': 'lsc', 'camera': 'fl09', 'nres_instrument': 'nres01'},
-                                               'options': {'queue': 'periodic'}
-                                               },
-                 'lsc_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
-                                                'schedule': crontab(minute=1, hour=16),
-                                                'kwargs': {'site': 'lsc', 'camera': 'fl09',
-                                                           'nres_instrument': 'nres01',
-                                                           'raw_data_root': '/archive/engineering'},
-                                                'options': {'queue': 'periodic'}
-                                                },
-                 'elp_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
-                                                    'schedule': crontab(minute=0, hour=18),
-                                                    'kwargs': {'site': 'elp', 'camera': 'fl17',
-                                                               'nres_instrument': 'nres02'},
-                                                    'options': {'queue': 'periodic'}
-                                                    },
-                 'elp_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
-                                              'schedule': crontab(minute=1, hour=18),
-                                              'kwargs': {'site': 'elp', 'camera': 'fl17',
-                                                         'nres_instrument': 'nres02',
-                                                         'raw_data_root': '/archive/engineering'},
-                                              'options': {'queue': 'periodic'}
-                                          },
-                 'cpt_stack_calibrations_nightly': {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
-                                                    'schedule': crontab(minute=0, hour=11),
-                                                    'kwargs': {'site': 'cpt', 'camera': 'fl13',
-                                                               'nres_instrument': 'nres03'},
-                                                    'options': {'queue': 'periodic'}
-                                                    },
-                 'cpt_refine_trace_nightly': {'task': 'nrespipe.tasks.refine_trace_from_night',
-                                              'schedule': crontab(minute=1, hour=11),
-                                              'kwargs': {'site': 'cpt', 'camera': 'fl13',
-                                                         'nres_instrument': 'nres03',
-                                                         'raw_data_root': '/archive/engineering'},
-                                              'options': {'queue': 'periodic'}
-                                              },
                  'send_nightly_summary': {'task': 'nrespipe.tasks.send_end_of_night_summary_plots',
-                                              'schedule': crontab(minute=31, hour=16),
-                                              'kwargs': {'sites': ['lsc', 'elp', 'cpt'],
-                                                         'instruments':['nres01', 'nres02', 'nres03'],
-                                                         'sender_email': sender_email,
-                                                         'sender_password': sender_password,
-                                                         'recipient_emails': recipient_emails,
-                                                         'raw_data_root': '/archive/engineering'},
-                                              'options': {'queue': 'periodic'}
-                                              }
+                                          'schedule': crontab(minute=31, hour=16),
+                                          'kwargs': {'sites': ['lsc', 'elp', 'cpt', 'tlv'],
+                                                     'instruments':['nres01', 'nres02', 'nres03', 'nres04'],
+                                                     'sender_email': sender_email,
+                                                     'sender_password': sender_password,
+                                                     'recipient_emails': recipient_emails,
+                                                     'raw_data_root': '/archive/engineering'},
+                                          'options': {'queue': 'periodic'}
+                                          }
                  }
 

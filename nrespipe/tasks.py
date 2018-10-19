@@ -16,7 +16,8 @@ import pkg_resources
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
-from nrespipe.utils import  warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
+from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
+from nrespipe.utils import get_calibration_files_taken
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
@@ -176,8 +177,9 @@ def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=
         flat1 = flats_1[(len(flats_1) + 1) // 2]
         flat2 = ''
     else:
-        flat1 = flats_2[(len(flats_2) + 1) // 2]
-        flat2 = ''
+        # Short circuit if there are only flats from fiber 1,2 and not 0,1
+        # This is a requirement of the idl pipeline.
+        return
 
     # run refine_trace on the main task queue
     # Note that flat1 should have fibers 0,1 illuminated while flat2 should have 1,2
@@ -304,7 +306,11 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                                                                                                                 dayobs=dayobs)
             for missing_file in missing_files:
                 email_body += "{filename}<br>\n".format(filename=missing_file)
-
+        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(raw_directory)
+        calibrations_taken = "<p>Bias Frames: {num_biases}; Dark Frames: {num_darks}; Flat Frames: {num_flats}; Arc Frames {num_arcs}</p>\n"
+        calibrations_taken = calibrations_taken.format(num_biases=len(bias_files), num_darks=len(dark_files),
+                                                       num_flats=len(flat_files), num_arcs=len(arc_files))
+        email_body += calibrations_taken
         email_body +="</p>"
 
     input_directories = ['{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'.format(raw_data_root=raw_data_root, site=site,

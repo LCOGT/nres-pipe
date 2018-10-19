@@ -6,8 +6,8 @@ import numpy as np
 pyplot.rcParams["figure.figsize"] = (10, 6)
 pyplot.style.use('ggplot')
 
-site_colors = {'elp': 'red', 'lsc': 'blue', 'cpt': 'green'}
-site_labels = {'elp': 'elp nres02', 'lsc': 'lsc nres01', 'cpt': 'cpt nres03'}
+site_colors = {'elp': 'red', 'lsc': 'blue', 'cpt': 'green', 'tlv': 'brown'}
+site_labels = {'elp': 'elp nres02', 'lsc': 'lsc nres01', 'cpt': 'cpt nres03', 'tlv': 'tlv nres04'}
 
 
 def signal_to_noise_model(reference_flux=180000, read_noise=5):
