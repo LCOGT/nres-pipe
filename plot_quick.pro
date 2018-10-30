@@ -30,7 +30,8 @@ titls=['Rotating template correlation','Non-rotating template correlation',$
       'Mg b 5184','Ca II H 3968.5','H alpha 6562.81','Li 6707.9',$
       'NaD 5890 and 5896']
 ppr=[5.,3.5]                     ; pixels per resolution element for NRES, Sedg
-gai=[1.,2.5]                     ; gain e-/ADU for NRES, Sedg
+gai=[ccd.gain,2.5]                     ; gain e-/ADU for NRES, Sedg
+rdnoi=[ccd.rdnois]
 cs0=0.75                      ; big character size
 cs1=0.65                     ; small character size
 cs2=1.4                      ; very big character size
@@ -171,7 +172,8 @@ if(nx_c gt 4000) then ppre=ppr(0) else ppre=ppr(1)     ; NRES vs Sedgwick
 if(nx_c gt 4000) then gg=gai(0) else gg=gai(1)         ;     ditto
 sigtyp=ptile(plt8,95)*gg*ppre        ; e- in one resolution element for
                                      ; typical bright pixels (95th percentile)
-snr=sigtyp/sqrt(sigtyp + 900.)       ; assume 30 e- read noise
+snr=sigtyp/sqrt(sigtyp + ppre*ccd.rdnois)       ; assume ppre^2*rdnois
+                                                ; read noise per resolution el
 
 ; make the title string
   version='2.0'      ; Version of code with 10 extension output, 5 Apr 2018.

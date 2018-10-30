@@ -54,8 +54,8 @@ endif
 britethrsh=nx*nord*200.        ; threshold for dy shift calculation is 200 ADU
                                ; per pixel, on avg.
 ;***** put the following stuff in the spectrographs.csv file
-gain=1.8        ; CCD gain in e-/ADU
-rn=7.           ; read noise in e-
+gain=ccd.gain        ; CCD gain in e-/ADU
+rn=ccd.rdnois           ; read noise in e-
 sigc=10.         ; threshold for bad data (cosmics), in sigma
 
 ; make arrays containing the data from the extraction boxes specified in trace,

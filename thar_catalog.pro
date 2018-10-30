@@ -6,15 +6,15 @@ pro thar_catalog,tharin,thrsh,gsw,iord,xpos,amp,wid,xposg,ampg,widg,chi2g,ierr
 ; If input parameter gsw ne 0,
 ; line parameters xposg,widg,ampg,chi2g are also returned, giving results
 ; of a gaussian fit to the 9 points centered on the line.
-; Gain is assumed to be 2 e-/ADU, and lines are taken to be real if their
-; peak height above background exceeds thrsh*photon noise, and if the 
-; intensity decreases for at least 2 pixels in both directions from the
+; Noise is estimated from inter-quartile spread, and lines are taken to be 
+; real if their peak height above background exceeds thrsh*photon noise,
+; and if intensity decreases for at least 2 pixels in both directions from the
 ; maximum.
 ; For a normal return, ierr=0.  Otherwise indicates a fatal error.
 
 ; constants
 qhwid=50                ; estimate background from +/- qhwid box
-gain=2.0                ; arbitrary reciprocal gain e-/ADU
+;gain=3.2                ; arbitrary reciprocal gain e-/ADU (no longer used)
 wconst=2.*sqrt(2.*alog(2.))     ; constant for computing FWHM
 
 ; get sizes of things
