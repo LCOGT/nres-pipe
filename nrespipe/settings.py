@@ -51,8 +51,8 @@ calibration_schedule = {'{site}__stack_calibrations_nightly'.format(site=site):
                             }
                         for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
                                                                             ('elp', 'fa17', 'nres02', 18),
-                                                                            ('cpt', 'fl13', 'nres03', 11),
-                                                                            ('tlv', 'fl18', 'nres04', 9)]}
+                                                                            ('cpt', 'fa13', 'nres03', 11),
+                                                                            ('tlv', 'fa18', 'nres04', 9)]}
 
 
 trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
@@ -65,8 +65,8 @@ trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
                               }
                          for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
                                                                              ('elp', 'fa17', 'nres02', 18),
-                                                                             ('cpt', 'fl13', 'nres03', 11),
-                                                                             ('tlv', 'fl18', 'nres04', 9)]}
+                                                                             ('cpt', 'fa13', 'nres03', 11),
+                                                                             ('tlv', 'fa18', 'nres04', 9)]}
 beat_schedule = {**calibration_schedule, **trace_refine_schedule,
                  'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_queue_length_metric',
                                                'schedule': timedelta(minutes=1),
