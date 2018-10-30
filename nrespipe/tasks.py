@@ -9,13 +9,15 @@ from requests.auth import HTTPBasicAuth
 from astropy.io import fits
 from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 from astropy.io import ascii
+from dateutil import parser
 
 import pkg_resources
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_last_night
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
 from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
-from nrespipe.utils import  warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
+from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
+from nrespipe.utils import get_calibration_files_taken
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
@@ -28,7 +30,6 @@ app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 idl_logger = logging.getLogger('idl')
-
 
 
 def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
@@ -99,8 +100,8 @@ def make_stacked_calibrations(site, camera, calibration_type, date_range, data_r
     """
     Stack the calibration files taken on a given night (BIAS, DARK, FLAT, ARC, TEMPLATE)
     """
-    date_range = [datetime.datetime.strptime(date_range[0], settings.date_format),
-                  datetime.datetime.strptime(date_range[1], settings.date_format)]
+    date_range = [parser.parse(date_range[0]),
+                  parser.parse(date_range[1])]
     logger.info('Stacking Calibration frames', extra={'tags': {'site': site, 'instrument': camera,
                                                                'caltype': calibration_type,
                                                                'start': date_range[0].strftime(settings.date_format),
@@ -148,9 +149,9 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
 
 
 @app.task
-def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
+def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=None):
     # Get all the lamp flats from last night and which fibers were illuminated
-    flat_files =get_files_from_last_night('*w00.fits*', raw_data_root, site, nres_instrument)
+    flat_files = get_files_from_night('*w00.fits*', raw_data_root, site, nres_instrument, night=night)
 
     if len(flat_files) == 0:
         # Short circuit
@@ -166,19 +167,19 @@ def refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root):
         else:
             flats_2.append(f)
 
-
     # If there are observations from both telescopes
     if len(flats_1) > 0 and len(flats_2) > 0:
         # Get the middle of each
-        flat1 = flats_1[(len(flats_1) + 1) //  2]
-        flat2 = flats_2[(len(flats_2) + 1) //  2]
+        flat1 = flats_1[(len(flats_1) + 1) // 2]
+        flat2 = flats_2[(len(flats_2) + 1) // 2]
     elif len(flats_1) > 0:
-    # Otherwise get the middle lamp flat
-        flat1 = flats_1[(len(flats_1) + 1) //  2]
+        # Otherwise get the middle lamp flat
+        flat1 = flats_1[(len(flats_1) + 1) // 2]
         flat2 = ''
     else:
-        flat1 = flats_2[(len(flats_2) + 1) //  2]
-        flat2 = ''
+        # Short circuit if there are only flats from fiber 1,2 and not 0,1
+        # This is a requirement of the idl pipeline.
+        return
 
     # run refine_trace on the main task queue
     # Note that flat1 should have fibers 0,1 illuminated while flat2 should have 1,2
@@ -193,7 +194,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
 
     if arc_file is None:
         # Take an input of a raw double frame
-        arc_files = get_files_from_last_night('*a00.fits*', raw_data_root, site, nres_instrument)
+        arc_files = get_files_from_night('*a00.fits*', raw_data_root, site, nres_instrument)
 
         # Short circuit
         if not arc_files:
@@ -269,7 +270,7 @@ def refine_trace0(site, camera, nres_instrument, raw_data_root, arc_file=None):
                            queue='celery')
 
     # Run trace refine on a set of flats
-    refine_trace_from_last_night(site, camera, nres_instrument, raw_data_root)
+    refine_trace_from_night(site, camera, nres_instrument, raw_data_root)
 
 
 @app.task
@@ -305,7 +306,11 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                                                                                                                 dayobs=dayobs)
             for missing_file in missing_files:
                 email_body += "{filename}<br>\n".format(filename=missing_file)
-
+        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(raw_directory)
+        calibrations_taken = "<p>Bias Frames: {num_biases}; Dark Frames: {num_darks}; Flat Frames: {num_flats}; Arc Frames {num_arcs}</p>\n"
+        calibrations_taken = calibrations_taken.format(num_biases=len(bias_files), num_darks=len(dark_files),
+                                                       num_flats=len(flat_files), num_arcs=len(arc_files))
+        email_body += calibrations_taken
         email_body +="</p>"
 
     input_directories = ['{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'.format(raw_data_root=raw_data_root, site=site,

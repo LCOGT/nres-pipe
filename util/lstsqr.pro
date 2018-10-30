@@ -1,4 +1,5 @@
-function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss
+function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
+  svdminrat=svdminrat
 ; This routine does a weighted linear least-squares fit of the nfun functions
 ; contained in array funs to the data in array dat.  The weights are given
 ; in array wt.  Fit coefficients are returned.  If arguments outp and type
@@ -19,6 +20,10 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss
 ; /gauss.  This will use a gaussian elimination routine that returns with
 ; all output = 0 and ierr=1 if a singularity is found.
 ; Note that this technique will give garbage for ill-conditioned systems.
+; Alternatively, set svdminrat=epsilon.  In this case, the normal equations
+; are solved via SVD methods, retaining only singular values sv such that
+; sv/max(singular values) ge epsilon.
+; It is illegal to invoke both the gauss and svdminrat keywords.
 
 ; get dimensions of things, make extended arrays for generating normal eqn
 ; matrix
@@ -55,14 +60,20 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss
 ; print,'cov='
 ; print,cov
 
-; solve equations by gauss elim or lu decomposition, depending on /gauss keyword 
+; solve equations by gauss elim or lu decomposition, or singular value
+; decomposition, depending on /gauss  and /svdminrat keywords 
   ierr=0
   if(keyword_set(gauss)) then begin
     gaus_elim3,a,rhs,vv,ierr
     if(ierr eq 0) then rhs=vv else rhs=fltarr(nfun)
   endif else begin
-    ludcmp,a,index,d
-    lubksb,a,index,rhs
+    if(keyword_set(svdminrat)) then begin
+      svdlineq,a,rhs,svdminrat,vv
+      rhs=vv
+    endif else begin
+      ludcmp,a,index,d
+      lubksb,a,index,rhs
+    endelse
   endelse
 
 ; Make fit function, rms

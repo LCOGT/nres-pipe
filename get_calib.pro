@@ -12,8 +12,8 @@ pro get_calib,stype,filename,cdat,chdr,gerr
 
 ; Procedure is first to select lines matching the desired type, site,
 ; and camera.  Among these, find the line that is closest in time (unsigned).
-; Then find all lines that are less than 1.5 times as far away as the closest,
-; or within 1.5 days, whichever interval is larger.  Among these, find all
+; Then find all lines that are less than 3.5 times as far away as the closest,
+; or within 3.5 days, whichever interval is larger.  Among these, find all
 ; for which navg > 1 (indicating that they are super-calibs).  If there is
 ; at least one of these, take the closest one.  If none, take the closest
 ; line with navg=1.
@@ -66,14 +66,14 @@ typlen=strlen(stypeu)
 for i=0,ns-1 do begin
   datpos=strpos(fnames1(i),stypeu)
 ; deal with early filenames that do not contain the instance name,
-; and also with TRACE filenames in which the date 20xx is replaced
+; and (no longer) with TRACE filenames in which the date 20xx is replaced
 ; with 00xx.
   if(not is_digit(strmid(fnames1(i),datpos+typlen,1))) then begin
     datdbl=double(strmid(fnames1(i),datpos+typlen+3,13))
     if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
   endif else begin
     datdbl=double(strmid(fnames1(i),datpos+typlen,13))
-    if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6
+;   if(datdbl lt 1.99d6) then datdbl=datdbl+2.0d6  
   endelse
   djdates1(i)=date_conv(datdbl,'julian')
 endfor
@@ -81,7 +81,7 @@ endfor
 ; find nearest jdate
 jddif1=abs(djdates1-(mjdd+2400000.5d0))
 md=min(jddif1,ix)
-dt=(1.5*md) > (md + 1.5)             ; search radius
+dt=(3.5*md) > (md + 3.5)             ; search radius
 s2=where((jddif1 le dt) and (navgs1 gt 1),ns2)
 
 if(ns2 gt 0) then begin          ; get here if there is a super-cal inside the
@@ -89,7 +89,7 @@ if(ns2 gt 0) then begin          ; get here if there is a super-cal inside the
   fnames2=fnames1(s2)
   navgs2=navgs1(s2)
   jdates2=djdates1(s2)
-  jdiff2=abs(jdates2-jdc)
+  jdiff2=abs(jdates2-mjdd-2400000.5d0)
   md2=min(jdiff2,ix2)
   
 ; get the data to return

@@ -8,19 +8,19 @@ Author
 
 June 2017
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='nrespipe',
       author=['Curtis McCully', 'Tim Brown', 'Rob Siverd'],
       author_email=['cmccully@lco.global', 'tbrown@lco.global', 'rsiverd@lco.global'],
       version=0.1,
-      packages=['nrespipe'],
+      packages=find_packages(),
       package_dir={'nrespipe': 'nrespipe'},
       package_data={'nrespipe': ['data/trace_reference.cat']},
       setup_requires=['pytest-runner'],
-      install_requires=['numpy', 'kombu', 'celery', 'sqlalchemy<=1.1.14', 'astropy', 'lcogt_logging', 'requests',
+      install_requires=['numpy', 'secretstorage==3.0.1', 'kombu', 'celery', 'sqlalchemy==1.2.5', 'astropy', 'lcogt_logging', 'requests',
                         'opentsdb_python_metrics>=0.1.7.5', 'sep', 'scipy', 'sphinx', 'sphinx-automodapi', 'astroquery',
-                        'matplotlib', 'pypdf2'],
+                        'matplotlib', 'pypdf2', 'kombu', 'python-dateutil'],
       tests_require=['pytest'],
       entry_points={'console_scripts': ['run_nres_listener=nrespipe.main:run_listener',
                                         'run_nres_tasks=nrespipe.main:run_celery_worker',

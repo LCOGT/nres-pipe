@@ -8,8 +8,8 @@ services:
       io.rancher.container.pull_image: always
     logging:
       options:
-        max-size: 100m
-        max-file: 3
+        max-size: '100m'
+        max-file: '3'
   NRESPipelineTestFitsExchange:
     image: rabbitmq:3-management
     ports:
@@ -18,33 +18,34 @@ services:
       io.rancher.container.pull_image: always
     logging:
       options:
-        max-size: 100m
-        max-file: 3
+        max-size: '100m'
+        max-file: '3'
   NRESPipelineE2EData:
-    image: docker.lco.global/nres-pipeline-e2e-data:1.0.0
+    image: docker.lco.global/nres-pipeline-e2e-data:1.0.2
     entrypoint:
     - /bin/true
-    volumes:
-    - nrese2e:/archive
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
+    volumes:
+    - nrese2e:/archive
     logging:
       options:
-        max-size: 100m
-        max-file: 3
+        max-size: '100m'
+        max-file: '3'
   NRESPipelineTest:
     image: ${DOCKER_IMG}
     environment:
       BOSUN_HOSTNAME: alertsdev.lco.gtn
-      BROKER_PASSWORD: ${RABBIT_PASSWORD}
-      BROKER_URL: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nresceleryrabbitmq:5672/
+      BROKER_PASSWORD: ${RABBITMQ_PASSWORD}
+      BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@nresceleryrabbitmq:5672/
       BROKER_USERNAME: ${RABBITMQ_USER}
       DB_URL: sqlite:////archive/engineering/test.db
-      FITS_BROKER: amqp://${RABBITMQ_USER}:${RABBIT_PASSWORD}@nrestestfitsexchange:5672/
+      FITS_BROKER: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@nrestestfitsexchange:5672/
       NRES_DATA_ROOT: /archive/engineering/
       RABBITMQ_HOST: nresceleryrabbitmq
       OPENTSDB_PYTHON_METRICS_TEST_MODE: 'False'
+      CAL_STACK_DELAY: 4
     volumes_from:
     - NRESPipelineE2EData
     links:
@@ -52,8 +53,11 @@ services:
     - NRESPipelineTestFitsExchange:nrestestfitsexchange
     labels:
       io.rancher.container.pull_image: always
-      io.rancher.sidekicks: NRESPipelineE2EData,NRESPipelineTestFitsExchange,NRESCeleryRabbitmq
+      io.rancher.sidekicks: NRESPipelineE2EData
     logging:
       options:
-        max-size: 100m
-        max-file: 3
+        max-size: '100m'
+        max-file: '3'
+volumes:
+  nrese2e:
+    driver: local
