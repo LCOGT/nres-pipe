@@ -24,6 +24,9 @@ endif
 dat=float(dat)+65536.
 
 ; get ranges for bias and data sections
+sz=size(dat)
+nxf=sz(1)                 ; factual size of input data array
+nyf=sz(2)                 ;   (never mind what the header says)
 dss=sxpar(dathdr,'DATASEC')
 wbs=long(get_words(bss,delim='[,:,]',nbss))-1 ; subtract 1 to get zero indexing
 wds=long(get_words(dss,delim='[,:,]',ndss))-1
@@ -33,11 +36,17 @@ if(nbss ne 4 or ndss ne 4) then begin
   goto,fini
 end
 
-; get bias section, average and smooth it, expand it to size of data section
+; get bias section, average and smooth it, expand it to factual size of data
 nyd=wds(3)-wds(2)+1
 nxd=wds(1)-wds(0)+1
-bsec=dat(wbs(0):wbs(1),wbs(2):wbs(3))
-bseca=reform(rebin(bsec,1,nyd))
+; check to see that bias section falls within factual size of data section,
+if(wbs(0) ge 0 and wbs(0) le (nxf-1) and wbs(1) ge 0 and wbs(1) le (nxf-1)) $
+    then begin
+  bsec=dat(wbs(0):wbs(1),wbs(2):wbs(3))
+  bseca=reform(rebin(bsec,1,nyd))
+endif else begin
+  bseca=fltarr(nyd)       ; fill with zeros if no true bias section
+endelse
 ; ### may want a more drastic smoothing than this
 bseca=smooth(smooth(smooth(bseca,17),17),17)
 bseca=reform(bseca,1,nyd)

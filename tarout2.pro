@@ -25,6 +25,7 @@ extrdir='reduced/extr/'
 specdir='reduced/spec/'
 blazdir='reduced/blaz/'
 csvdir='reduced/csv/'
+rutname='tarout2'
 
 ; check to see that tarlist contains at least 1 entry, and at least one
 ; with the substring 'EXTR' in its name.
