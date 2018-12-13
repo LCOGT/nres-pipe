@@ -211,8 +211,13 @@ long1=sxpar(tel1hdr,'LONGITUD')
 if (strtrim(long1) ne '') and (strtrim(long1) ne 'N/A') then begin 
    lat1=sxpar(tel1hdr,'LATITUDE')
    height1=sxpar(tel1hdr,'HEIGHT')
-   ra1s=sxpar(tel1hdr,'RA')             ; string version
-   dec1s=sxpar(tel1hdr,'DEC')           ; string version
+   if(type eq 'TARGET') then begin
+     ra1s=sxpar(tel1hdr,'RA')             ; string version
+     dec1s=sxpar(tel1hdr,'DEC')           ; string version
+   endif else begin
+     ra1s='00:00:00.000'
+     dec1s='00:00:00.000'
+   endelse
    rawd=get_words(ra1s,delim=':')
    ra1=15.*ten(float(rawd))             ; decimal degrees
    decwd=get_words(dec1s,delim=':')
@@ -229,8 +234,13 @@ long2=sxpar(tel2hdr,'LONGITUD')
 if (strtrim(long2) ne '') and (strtrim(long2) ne 'N/A') then begin 
    lat2=sxpar(tel2hdr,'LATITUDE')
    height2=sxpar(tel2hdr,'HEIGHT')
-   ra2s=sxpar(tel2hdr,'RA')             ; string version
-   dec2s=sxpar(tel2hdr,'DEC')           ; string version
+   if(type eq 'TARGET') then begin
+     ra2s=sxpar(tel2hdr,'RA')             ; string version
+     dec2s=sxpar(tel2hdr,'DEC')           ; string version
+   endif else begin
+     ra2s='00:00:00.000'
+     dec2s='00:00:00.000'
+   endelse
    rawd=get_words(ra2s,delim=':')
    ra2=15.*ten(float(rawd))             ; decimal degrees
    decwd=get_words(dec2s,delim=':')
