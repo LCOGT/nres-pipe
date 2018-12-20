@@ -22,9 +22,14 @@ from kombu import Connection, Exchange
 
 from nrespipe import dbs
 from nrespipe import settings
-from nrespipe.plots import plot_signal_to_noise
+from nrespipe.plots import plot_signal_to_noise, plot_signal_to_noise_Bp
 
 from astroquery.simbad import Simbad
+
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+from astroquery.gaia import Gaia
+
 import re
 
 
@@ -504,9 +509,10 @@ def make_summary_pdf(input_directory, output_pdf_filename):
 
 def make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_filenames, output_pdf_filename):
 
-    signal_to_noise_table = Table(names=['target', 'mag', 'sn', 'exptime', 'site', 'dayobs'], dtype=('S60', np.float,
-                                                                                                     np.float, np.float,
-                                                                                                     'S3', 'S8'))
+    signal_to_noise_table = Table(names=['target', 'Vmag', 'sn', 'exptime', 'site', 'dayobs', 'ra', 'dec', 'Bpmag'], 
+        dtype=('S60', np.float, np.float, np.float, 'S3', 'S8', np.float, np.float, np.float ))
+
+
     for input_directory, site, dayobs, output_text_filename in zip(input_directories, sites, daysobs, output_text_filenames):
         extraction_function = lambda pdf_reader: extract_signal_to_noise_from_pdf(pdf_reader, signal_to_noise_table, site, dayobs)
         # Extract the Signal to noise
@@ -517,6 +523,8 @@ def make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_file
             output_table.write(output_text_filename, format='ascii', overwrite=True)
 
     plot_signal_to_noise(output_pdf_filename, signal_to_noise_table, sites, daysobs)
+    output_pdf_filename_Bp = output_pdf_filename.strip('.pdf')+'_Bp.pdf' 
+    plot_signal_to_noise_Bp(output_pdf_filename_Bp, signal_to_noise_table, sites, daysobs)
 
 
 def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Table, site: str, dayobs: str):
@@ -525,8 +533,41 @@ def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Ta
     regex = '^([\w_\s\+-]+)\,\s.+expt\s?=\s?(\d+) s\,.+N=\s*(\d+\.\d+),'
     m = re.search(regex, pdf_text_to_search)
     if m is not None:
-        output_table.add_row({'target': m.group(1), 'mag': get_mag_from_simbad(m.group(1)),
-                              'sn': m.group(3), 'exptime': m.group(2), 'site': site, 'dayobs': dayobs})
+
+        regexra = 'RA\s?\s?=\s?'
+        regexdec = 'DEC\s?\s?=\s?'
+        regexfilein = 'FileIn\s?=\s?'
+
+        m1 = re.search(regexdec, pdf_text_to_search)
+        m2 = re.search(regexra, pdf_text_to_search)
+        m3 = re.search(regexfilein, pdf_text_to_search)
+
+        if m1 is not None and m2 is not None and m3 is not None:
+
+            startdec  = m1.end(0)
+            enddec    = m2.start(0)
+            startra   = m2.end(0)
+            endra     = m3.start(0)
+
+            rastr = pdf_text_to_search[startra:endra]
+            decstr = pdf_text_to_search[startdec:enddec] 
+
+        else:
+
+            rastr = '00:00:00'
+            decstr = '00:00:00'
+
+        coord=SkyCoord(ra=rastr,dec=decstr,unit=(u.hourangle, u.deg))
+
+        ra=coord.ra.value
+        dec=coord.dec.value
+
+        Vmag  = get_mag_from_simbad(m.group(1))
+        Bpmag = query_gaia(ra, dec)
+
+        output_table.add_row({'target': m.group(1), 'Vmag': Vmag,
+                              'sn': m.group(3), 'exptime': m.group(2), 'site': site, 'dayobs': dayobs,
+                              'ra': ra, 'dec': dec,'Bpmag': Bpmag})
     else:
         logger.error("Failed to extract S/N", extra={'tags': {'regex': regex,
                                                               'search_text': pdf_text_to_search}})
@@ -567,6 +608,43 @@ def get_mag_from_simbad(target_name : str):
         mag = float(result['FLUX_V'][0])
     except Exception as e:
         logger.error('Simbad query failed for {target}: {exeception}'.format(target=target_name, exeception=e))
+        mag = np.nan
+
+    return mag
+
+
+def query_gaia(ra_deg,dec_deg):
+
+    # Input:
+    # ra: float in degrees
+    # dec: float in degress
+    # Both header keywords are in 
+    # Header listing for HDU #2 
+    # "RA"
+    # "DEC"
+
+    try:
+
+        coord = SkyCoord(ra=ra_deg, dec=dec_deg, unit=(u.deg, u.deg), frame='icrs')
+
+        
+        box = u.Quantity(2, u.arcmin)#search box
+        
+        gaia_result = Gaia.query_object_async(coordinate=coord, width=box, height=box)
+        mask = gaia_result['phot_bp_mean_mag'] < 16 # sometimes faint stars are closer to the position, remove these. 
+                                                    # This is a hard coded mag limit.
+        gaia_result = gaia_result[mask]
+        gaia_result.sort('dist')
+
+        if len(gaia_result) > 0:
+            logger.info('Querying Gaia DR2 for {radec} found'.format( radec=coord.to_string('hmsdms') ))
+            mag = gaia_result[0]['phot_bp_mean_mag']
+        else:
+            logger.info('No star in Gaia DR2 for {radec} within {box:.1f}'.format( radec=coord.to_string('hmsdms'), box=box ))
+            mag = np.nan
+
+    except Exception as e:
+        logger.error('Gaia DR2 query failed for {radec}: {exeception}'.format(radec=coord.to_string('hmsdms'), exeception=e))
         mag = np.nan
 
     return mag
