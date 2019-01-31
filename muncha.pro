@@ -119,7 +119,8 @@ case 1 of
   autoguider
   expmeter
   if not keyword_set(tharlist) then begin
-    tharlist = 'mtchThAr.txt'
+;    tharlist = 'mtchThAr.txt'
+     tharlist = 'arc_ThAr_Redman.txt'
   endif
   thar_wavelen,dbg=dbg,trp=trp,tharlist=tharlist,cubfrz=cubfrz,oskip=oskip
   if(not keyword_set(nostar)) then begin
