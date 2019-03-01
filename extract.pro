@@ -65,6 +65,9 @@ sigc=10.         ; threshold for bad data (cosmics), in sigma
 dymed0=fltarr(nord)
 dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
 
+max_iter = 100
+current_iter = 0
+
 traceloop:                             ; come back to here if trace disp > 1.
 ebox=fltarr(nx,cowid,nord,mfib)
 vbox=fltarr(nx,cowid,nord,mfib)
@@ -160,18 +163,24 @@ for ifib=0,mfib-1 do begin
 ; and shiftme is set
 ; In what follows, dymed and dymed0 are vectors of length nord
 ;  dymed0xyz is dymed0 rebinned to (nx,nord,mfib)
+
   if(shiftme eq 1 and ifib eq 0) then begin
     dymed=dymedian(mom0,mom1,cct)
     if(abs(median(dymed)) gt 0.1) then begin
       logo_nres2,rutname,'INFO','median(dymed)=  '+string(median(dymed),$
-         format='(f6.3)')+'  Shifting...'
+         format='(f6.3)')+'  Shifting...' +'Current iteration:  '+string(current_iter,$
+         format='(f6.0)')
 ;     print,'median(dymed)=',median(dymed),'    Shifting...'
       dymed0=dymed0+dymed
       dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
 ;     uu=mom1(1950:2150,*)
 ;     uum=median(uu,dimen=1)
 ;     plot,uum
-      goto,traceloop
+      if current_iter <= max_iter then begin
+        current_iter = current_iter+1
+        goto,traceloop
+      endif else begin
+        message, 'Maximum iteration reached !!!'
     endif
     tracdy=median(dymed0)
   endif else begin
