@@ -1,4 +1,4 @@
-FROM docker.lcogt.net/miniconda3:4.3.21
+FROM docker.lcogt.net/miniconda3:4.5.11
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
