@@ -63,7 +63,7 @@ RUN conda install -y sep scipy sphinx -c openastronomy  \
 
 # Switch to wget?
 RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
-        && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09 \
+        && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && curl --ftp-pasv -o $ASTRO_DATA/finals.all ftp://maia.usno.navy.mil/ser7/finals.all \
