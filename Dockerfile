@@ -92,7 +92,7 @@ WORKDIR /nres/code
 RUN python /nres/code/setup.py install
 
 RUN idl -e precompile_nrespipe -quiet  -args '/nres/code/precompile.sav' \
-        && chown -R archive /nres/code
+        && chown -R archive /nres/code && [ -f /nres/code/precompile.sav ]
 
 ENV NRES_IDL_PRECOMPILE='/nres/code/precompile.sav'
 
