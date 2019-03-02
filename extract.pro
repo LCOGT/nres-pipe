@@ -176,7 +176,7 @@ for ifib=0,mfib-1 do begin
 ;     uu=mom1(1950:2150,*)
 ;     uum=median(uu,dimen=1)
 ;     plot,uum
-      if current_iter <= max_iter then begin
+      if current_iter le max_iter then begin
         current_iter = current_iter+1
         goto,traceloop
       endif else begin
