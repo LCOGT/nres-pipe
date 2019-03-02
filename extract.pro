@@ -65,7 +65,7 @@ sigc=10.         ; threshold for bad data (cosmics), in sigma
 dymed0=fltarr(nord)
 dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
 
-max_iter = 100
+max_iter = 1000
 current_iter = 0
 
 traceloop:                             ; come back to here if trace disp > 1.
@@ -180,7 +180,7 @@ for ifib=0,mfib-1 do begin
         current_iter = current_iter+1
         goto,traceloop
       endif else begin
-        message, 'Maximum iteration reached !!!'
+        message, 'Maximum iteration reached !!!',/CONTINUE
       endelse
     endif
     tracdy=median(dymed0)
