@@ -65,7 +65,7 @@ sigc=10.         ; threshold for bad data (cosmics), in sigma
 dymed0=fltarr(nord)
 dymed0xyz=rebin(reform(dymed0,1,nord,1),nx,nord,mfib)
 
-max_iter = 1000
+max_iter = 100
 current_iter = 0
 
 traceloop:                             ; come back to here if trace disp > 1.
