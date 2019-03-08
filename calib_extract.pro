@@ -196,7 +196,7 @@ pltspec = corspec
 ppre=5.                     ; pixels per resolution element for NRES
 ; smooth these 3 with 5-pix-wide pseudo-gaussian to suppress high-freq noise.
 pseugau,pltspec
-get_plotdat,lam,pltspec,[513.3,523.5],iord8,lam8,plt8            ; get Mg b
+get_plotdat,lamt,pltspec,[513.3,523.5],iord8,lam8,plt8            ; get Mg b
 ; make S/N estimate per resolution element for Mg b order
 sigtyp=ptile(plt8,95)*ccd.gain *ppre        ; e- in one resolution element for
                                      ; typical bright pixels (95th percentile)
