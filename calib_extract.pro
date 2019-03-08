@@ -222,7 +222,7 @@ snr=sigtyp/sqrt(sigtyp + ppre*ccd.rdnois)       ; assume ppre^2*rdnois
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
   sxaddpar,hdr,'EXPTIME',exptime
-  sxaddpar,hdr,'SNR',snr,'SNR at 5100 Angstrom'
+  sxaddpar,hdr,'SNR',snr,'S/N at 5100 Angstrom'
   sxaddpar,hdr,'NELECTR0',echdat.nelectron(0),format='(e12.5)'
   sxaddpar,hdr,'NELECTR1',echdat.nelectron(1),format='(e12.5)'
   sxaddpar,hdr,'TRACDY',echdat.tracdy,'[pix] Y-shift of extraction traces'
