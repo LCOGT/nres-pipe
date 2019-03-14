@@ -183,7 +183,7 @@ if(gsw eq 0) then begin
   h=histogram(wida(xgood),min=0,max=10.,binsiz=0.2)
   maxh=max(h,ix)                ; find peak of histogram
   dwid=wida-0.2*ix              ; distance from peak (pix units)
-  sg=where(abs(dwid) le 0.5,nsg)  ; pick lines with width near histogram peak
+  sg=where(abs(dwid) le 3.,nsg)  ; pick lines with width near histogram peak
 
 ; sg=where((wid_c ge 3.5+xpos_c/4096.) and (wid_c le 4.5+xpos_c/4096.),nsg)
 
