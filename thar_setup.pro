@@ -184,10 +184,11 @@ if(gsw eq 0) then begin
   maxh=max(h,ix)                ; find peak of histogram
   dwid=wida-0.2*ix              ; distance from peak (pix units)
   if SITE eq 'tlv' then begin
-    sg=where(abs(dwid) le 3.,nsg)  ; pick lines with width near histogram peak
+        sg=where(abs(dwid) le 3.0,nsg)  ; pick lines with width near histogram peak
   endif else begin
-    sg=where(abs(dwid) le 0.5,nsg)
+        sg=where(abs(dwid) le 0.5,nsg)  ; pick lines with width near histogram peak
   endelse
+
 ; sg=where((wid_c ge 3.5+xpos_c/4096.) and (wid_c le 4.5+xpos_c/4096.),nsg)
 
 ;  if(nsg le 0) then stop
