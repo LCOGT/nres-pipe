@@ -181,6 +181,7 @@ for ifib=0,mfib-1 do begin
         goto,traceloop
       endif else begin
         message, 'Maximum iteration reached !!!',/CONTINUE
+        exit, status=1
       endelse
     endif
     tracdy=median(dymed0)
