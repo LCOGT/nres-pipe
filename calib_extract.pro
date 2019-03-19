@@ -191,19 +191,6 @@ if(~keyword_set(flatk)) then begin
 ; height=sxpar(dathdr,'HEIGHT')
 ;  mkhdr,hdr,corspec
 
-; CALCULATE SNR
-pltspec = corspec
-ppre=5.                     ; pixels per resolution element for NRES
-; smooth these 3 with 5-pix-wide pseudo-gaussian to suppress high-freq noise.
-pseugau,pltspec
-get_plotdat,lamt,pltspec,[513.3,523.5],iord8,lam8,plt8            ; get Mg b
-; make S/N estimate per resolution element for Mg b order
-sigtyp=ptile(plt8,95)*ccd.gain *ppre        ; e- in one resolution element for
-                                     ; typical bright pixels (95th percentile)
-snr=sigtyp/sqrt(sigtyp + ppre*ccd.rdnois)       ; assume ppre^2*rdnois
-                                                ; read noise per resolution el
-
-
   hdr = copy_header(dathdr)
   update_data_size_in_header, hdr, corspec
   sxaddpar, hdr, 'L1IDBIAS', get_output_name(biashdr) , 'ID of bias frame used'
@@ -222,7 +209,6 @@ snr=sigtyp/sqrt(sigtyp + ppre*ccd.rdnois)       ; assume ppre^2*rdnois
   sxaddpar,hdr,'INSTRUME',camera
   sxaddpar,hdr,'OBSTYPE',type
   sxaddpar,hdr,'EXPTIME',exptime
-  sxaddpar,hdr,'SNR',snr,'SNR at 5100 Angstrom'
   sxaddpar,hdr,'NELECTR0',echdat.nelectron(0),format='(e12.5)'
   sxaddpar,hdr,'NELECTR1',echdat.nelectron(1),format='(e12.5)'
   sxaddpar,hdr,'TRACDY',echdat.tracdy,'[pix] Y-shift of extraction traces'
