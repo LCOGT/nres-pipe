@@ -1,4 +1,4 @@
-FROM docker.lcogt.net/miniconda3:4.3.21
+FROM docker.lco.global/docker-miniconda3:4.5.11
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
@@ -63,7 +63,7 @@ RUN conda install -y sep scipy sphinx -c openastronomy  \
 
 # Switch to wget?
 RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
-        && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09 \
+        && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && curl --ftp-pasv -o $ASTRO_DATA/finals.all ftp://maia.usno.navy.mil/ser7/finals.all \
@@ -92,7 +92,7 @@ WORKDIR /nres/code
 RUN python /nres/code/setup.py install
 
 RUN idl -e precompile_nrespipe -quiet  -args '/nres/code/precompile.sav' \
-        && chown -R archive /nres/code
+        && chown -R archive /nres/code && [ -f /nres/code/precompile.sav ]
 
 ENV NRES_IDL_PRECOMPILE='/nres/code/precompile.sav'
 
