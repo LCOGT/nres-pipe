@@ -213,10 +213,15 @@ skip:
 lami=lam
 if(fibno eq 0 or fibno eq 2) then begin
   iic=fibno/2
-  dx=fibcoefs(0,iic)+fibcoefs(1,iic)*jord+fibcoefs(2,iic)*jx+$
-   fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
-   fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
-   fibcoefs(9,iic)*jord^3
+; use legendre coefficients for pixel shifts, not simple polynomials
+; dx=fibcoefs(0,iic)+fibcoefs(1,iic)*jord+fibcoefs(2,iic)*jx+$
+;  fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
+;  fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
+;  fibcoefs(9,iic)*jord^3
+  dx=fibcoefs(0,iic)+fibcoefs(1,iic)*lo1+fibcoefs(2,iic)*lx1+$
+   fibcoefs(3,iic)*lx1*lo1+fibcoefs(4,iic)*lo2+fibcoefs(5,iic)*lx1*lo2+$
+   fibcoefs(6,iic)*lx2+fibcoefs(7,iic)*lx2*lo1+fibcoefs(8,iic)*lx3+$
+   fibcoefs(9,iic)*lo3
   dx=-dx
 ; dx=dx*(1.-fibno)
  for i=0,nord-1 do begin

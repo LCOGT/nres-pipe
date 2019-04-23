@@ -96,7 +96,12 @@ lambda3ofx,xx,mm,fibno,specdat,lam_c,y0m_c   ; vacuum wavelengths
 get_calib,'TRIPLE',tripfile,tripdat,triphdr,gerr
 ; if successful, and if dbg keyword is not set or if it is not set to 2,
 ; then set new common values of coefs_c, fitcoefs_c, lam_c
-if(gerr eq 0) then begin
+if(keyword_set(trp)) then begin
+  if(trp gt 0) then runit=1 else runit=0
+endif else begin
+  runit=0
+endelse
+if(gerr eq 0 and runit ne 0) then begin
   trip_unpack,tripdat,triphdr,trp=trp ; put TRIPLE data into specdat, coefs_c, 
                  ; fibcoefs_c or not, depending on the value of keyword trp.
   tarlist=[tarlist,nresrooti+'reduced/'+tripfile]

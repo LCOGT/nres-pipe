@@ -69,20 +69,21 @@ endif
 if(nwords eq 3 and keyword_set(force2) and words(1) eq 'THAR' and $
     (words(0) eq 'THAR' or words(2) eq 'THAR')) then begin
   nfiba=2                            ; nfiba forced to 2
-  if(words(0) eq 'THAR') then fib0=0 else fib0=2
+  if(words(0) eq 'THAR') then fib0=0 else fib0=2   
 endif
 if(nwords eq 2 and words(0) eq 'THAR' and words(1) eq 'THAR') then begin
   nfiba=2
   fib0=0
 endif
 if(nfiba eq 0) then begin
-  print,'Input file fil01 not ThAr DOUBLE in thar_triple
+  print,'Input file fil01 not ThAr DOUBLE in thar_triple'
   goto,fini
 endif
 
 ; estimate a wavelength solution for star fiber of fil01
+; ifib = index of star fiber in fil01
 if(nfiba eq 2 and fib0 eq 0) then ifib=0
-if(nfiba eq 2 and fib0 eq 2) then ifib=1
+if(nfiba eq 2 and fib0 eq 2) then ifib=1  ; Don't yet have this case
 if(nfiba eq 3) then ifib=0
 print
 print,'thar_fitoff input = ',fnam01
@@ -148,7 +149,7 @@ endif
 ;if(nwords eq 3 and words(1) eq 'THAR' and words(2) eq 'THAR') then nfiba=3
 ;if(nwords eq 2 and words(0) eq 'THAR' and words(1) eq 'THAR') then nfiba=2
 if(nfiba eq 0) then begin
-  print,'Input file fil12 not ThAr DOUBLE in thar_triple
+  print,'Input file fil12 not ThAr DOUBLE in thar_triple'
   stop
   goto,fini
 endif
@@ -207,13 +208,14 @@ endif
 ; call thar_xdisp to get fibcoef estimates
 fibcoefs=dblarr(10,2)
 if(nfiba eq 2) then begin
-  thar_xdisp,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc,rms
+  thar_xdisp1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc,rms
   fibcoefs(*,0)=fibc
   fibcoefs(*,1)=-fibc
 endif 
 if(nfiba eq 3) then begin
-  thar_xdisp,xp00,io00,ll00,er00,xp01,io01,ll01,er01,fibc0,rms0
-  thar_xdisp,xp11,io11,ll11,er11,xp12,io12,ll12,er12,fibc1,rms1
+  thar_xdisp1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc0,rms0
+; thar_xdisp,xp00,io00,ll00,er00,xp01,io01,ll01,er01,fibc0,rms0
+  thar_xdisp1,xp11,io11,ll11,er11,xp12,io12,ll12,er12,fibc1,rms1
   fibcoefs(*,0)=fibc0
   fibcoefs(*,1)=fibc1
 endif

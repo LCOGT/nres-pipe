@@ -25,7 +25,8 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 ;
 ; The routine then median-averages or (for few inputs) averages the parameters
 ; describing the intermediate triple files, and creates a final averaged TRIPLE
-; from the result.  This file is written to reduced/trip, and a summary line
+; from the result.  This file is written to reduced/trip, a new line containing
+; the fibcoefs array is written to reduced/csv/fibcoefs.csv, and a summary line
 ; is written to reduced/csv/standards.csv.
 
 ; get common blocks for NRES, ThAr fitting
@@ -88,6 +89,7 @@ endfor
 pathname=reddir+s0name
 dd=readfits(pathname,dblehdr0,/silent)
 mjdd=sxpar(dblehdr0,'MJD-OBS')
+camera=sxpar(dblehdr0,'CAMERA')
 
 ; use site name to find nfib value for these data from spectrographs.csv
 get_specdat,mjdd,err
@@ -278,6 +280,9 @@ writefits,filout,lamav,hdrout
 fpack_stacked_calibration,filout, sxpar(hdrout, 'OUTNAME')
 
 print,'TRIPLE file written to ',filout
+
+; write fibcoefs into new line in reduced/csv/fibcoefs.csv
+fibcoefs_addline,site,sxpar(hdrout,'MJD-OBS')+2400000.5d0,camera,fibcoefs
 
 ; write line into standards.csv
 case opt of
