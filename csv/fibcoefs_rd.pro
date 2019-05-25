@@ -4,8 +4,8 @@ pro fibcoefs_rd,sites,jdates,cameras,fibcoefs,fibhdr
 ; Column names are returned in the string array stdhdr.
 
 nresroot=getenv('NRESROOT')
-;nresrooti=nresroot+getenv('NRESINST')
-nresrooti=nresroot+'RDlsc1/'            ; use only one fibcoefs.csv file
+nresrooti=nresroot+getenv('NRESINST')
+;nresrooti=nresroot+'RDlsc1/'            ; use only one fibcoefs.csv file
 fibcoefsfile=nresrooti+'reduced/csv/fibcoefs.csv'
 
 dat=read_csv(fibcoefsfile,header=fibhdr)
