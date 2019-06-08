@@ -47,6 +47,7 @@ pipeline {
                     }
                  }
 		    }
+		}
 		stage('Test-Bias-Ingestion') {
 			when {
 				anyOf {
