@@ -102,6 +102,7 @@ pipeline {
 						}
 					}
 				}
+			}
 		}
 		stage('Test-Dark-Ingestion') {
 			when {
