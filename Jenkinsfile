@@ -64,7 +64,7 @@ pipeline {
 				script {
                     withKubeConfig([credentialsId: "prod-kube-config"]) {
 						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-						        "sudo -s -u archive pytest --durations=0 " +
+						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-bias-ingestion.xml -m bias_ingestion /nres/code/")
 					}
 				}
@@ -93,7 +93,7 @@ pipeline {
 				script {
 			        withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                                "sudo -s -u archive pytest --durations=0 " +
+                                "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-master-bias.xml -m master_bias /nres/code/")
 			        }
 			    }
@@ -121,7 +121,7 @@ pipeline {
 				script {
 				    withKubeConfig([credentialsId: "prod-kube-config"]) {
 					    sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-						        "sudo -s -u archive pytest --durations=0 " +
+						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-dark-ingestion.xml -m dark_ingestion /nres/code/")
 					}
 				}
@@ -150,7 +150,7 @@ pipeline {
 				script {
 			        withKubeConfig([credentialsId: "prod-kube-config"]) {
 						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-						        "sudo -s -u archive pytest --durations=0 " +
+						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-master-dark.xml -m master_dark /nres/code/")
 					}
 				}
@@ -178,7 +178,7 @@ pipeline {
 				script {
 				    withKubeConfig([credentialsId: "prod-kube-config"]) {
 				        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-						        "sudo -s -u archive pytest --durations=0 " +
+						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-flat-ingestion.xml -m flat_ingestion /nres/code/")
 					}
 				}
@@ -206,7 +206,7 @@ pipeline {
 				script {
                     withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                                "sudo -s -u archive pytest --durations=0 " +
+                                "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-master-flat.xml -m master_flat /nres/code/")
 					}
 				}
@@ -234,7 +234,7 @@ pipeline {
 				script {
                     withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                                "sudo -s -u archive pytest --durations=0 " +
+                                "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-arc-ingestion.xml -m arc_ingestion /nres/code/")
 					}
 				}
@@ -262,7 +262,7 @@ pipeline {
 				script {
                     withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                            "sudo -s -u archive pytest --durations=0 " +
+                            "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-master-arc.xml -m master_arc /nres/code/")
 					}
 				}
@@ -290,7 +290,7 @@ pipeline {
 				script {
                     withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                            "sudo -s -u archive pytest --durations=0 " +
+                            "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-zero-file.xml -m zero_file /nres/code/")
 					}
 				}
@@ -318,7 +318,7 @@ pipeline {
 				script {
 			        withKubeConfig([credentialsId: "prod-kube-config"]) {
 						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
-                            "sudo -s -u archive pytest --durations=0 " +
+                            "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-science-files.xml -m science_files /nres/code/")
 					}
 				}
