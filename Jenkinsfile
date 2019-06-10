@@ -18,320 +18,324 @@ pipeline {
 		lock resource: 'IDLLock'
 	}
 	stages {
-		stage('Build image') {
+		stage("Build image") {
 			steps {
 				script {
 					dockerImage = docker.build("${DOCKER_IMG}")
 				}
 			}
 		}
-		stage('Push image') {
+		stage("Push image") {
 			steps {
 				script {
 					dockerImage.push("${GIT_DESCRIPTION}")
 				}
 			}
 		}
-		stage('DeployTestStack') {
+		stage("DeployTestStack") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 	        steps {
 	            script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
                         sh('helm repo update && helm upgrade --install nres-pipe lco/nres-pipe ' +
                                 '--set nresPipeline.tag="${GIT_DESCRIPTION}" --namespace dev --wait --timeout=3600')
+
+                        podName = sh(script: 'kubectl -n dev get po -l app.kubernetes.io/instance=nres-pipe -o jsonpath="{.items[0].metadata.name}"')
+                                     returnStdout: true).trim()
+
                     }
                  }
 		    }
 		}
-		stage('Test-Bias-Ingestion') {
+		stage("Test-Bias-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-						        'pytest --durations=0 --junitxml=/nres/code/pytest-bias-ingestion.xml ' +
-								'-m bias_ingestion /nres/code/')
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+						        "pytest --durations=0 --junitxml=/nres/code/pytest-bias-ingestion.xml " +
+								"-m bias_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-bias-ingestion.xml ' +
-						            'pytest-bias-ingestion.xml')
-						    junit 'pytest-bias-ingestion.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-bias-ingestion.xml " +
+						            "pytest-bias-ingestion.xml")
+						    junit "pytest-bias-ingestion.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Master-Bias-Creation') {
+		stage("Test-Master-Bias-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: 'prod-kube-config']) {
-                        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                                'pytest --durations=0 --junitxml=/nres/code/pytest-master-bias.xml ' +
-                                '-m master_bias /nres/code/')
+			        withKubeConfig([credentialsId: "prod-kube-config"]) {
+                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                                "pytest --durations=0 --junitxml=/nres/code/pytest-master-bias.xml " +
+                                "-m master_bias /nres/code/")
 			        }
 			    }
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-master-bias.xml pytest-master-bias.xml')
-						    junit 'pytest-master-bias.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-bias.xml pytest-master-bias.xml")
+						    junit "pytest-master-bias.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Dark-Ingestion') {
+		stage("Test-Dark-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-				    withKubeConfig([credentialsId: 'prod-kube-config']) {
-					    sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-						        'pytest --durations=0 --junitxml=/nres/code/pytest-dark-ingestion.xml ' +
-								'-m dark_ingestion /nres/code/')
+				    withKubeConfig([credentialsId: "prod-kube-config"]) {
+					    sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+						        "pytest --durations=0 --junitxml=/nres/code/pytest-dark-ingestion.xml " +
+								"-m dark_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-dark-ingestion.xml ' +
-						            'pytest-dark-ingestion.xml')
-						    junit 'pytest-dark-ingestion.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-dark-ingestion.xml " +
+						            "pytest-dark-ingestion.xml")
+						    junit "pytest-dark-ingestion.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Master-Dark-Creation') {
+		stage("Test-Master-Dark-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: 'prod-kube-config']) {
-						sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-						        'pytest --durations=0 --junitxml=/nres/code/pytest-master-dark.xml ' +
-								'-m master_dark /nres/code/')
+			        withKubeConfig([credentialsId: "prod-kube-config"]) {
+						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+						        "pytest --durations=0 --junitxml=/nres/code/pytest-master-dark.xml " +
+								"-m master_dark /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-master-dark.xml pytest-master-dark.xml')
-						    junit 'pytest-master-dark.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-dark.xml pytest-master-dark.xml")
+						    junit "pytest-master-dark.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Flat-Ingestion') {
+		stage("Test-Flat-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-				    withKubeConfig([credentialsId: 'prod-kube-config']) {
-				        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-						        'pytest --durations=0 --junitxml=/nres/code/pytest-flat-ingestion.xml ' +
-								'-m flat_ingestion /nres/code/')
+				    withKubeConfig([credentialsId: "prod-kube-config"]) {
+				        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+						        "pytest --durations=0 --junitxml=/nres/code/pytest-flat-ingestion.xml " +
+								"-m flat_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-flat-ingestion.xml pytest-flat-ingestion.xml')
-						    junit 'pytest-flat-ingestion.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-flat-ingestion.xml pytest-flat-ingestion.xml")
+						    junit "pytest-flat-ingestion.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Master-Flat-Creation') {
+		stage("Test-Master-Flat-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
-                        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                                'pytest --durations=0 --junitxml=/nres/code/pytest-master-flat.xml ' +
-                                '-m master_flat /nres/code/')
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                                "pytest --durations=0 --junitxml=/nres/code/pytest-master-flat.xml " +
+                                "-m master_flat /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-master-flat.xml pytest-master-flat.xml')
-						    junit 'pytest-master-flat.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-flat.xml pytest-master-flat.xml")
+						    junit "pytest-master-flat.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Arc-Ingestion') {
+		stage("Test-Arc-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
-                        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                                'pytest --durations=0 --junitxml=/nres/code/pytest-arc-ingestion.xml ' +
-                                '-m arc_ingestion /nres/code/')
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                                "pytest --durations=0 --junitxml=/nres/code/pytest-arc-ingestion.xml " +
+                                "-m arc_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-arc-ingestion.xml pytest-arc-ingestion.xml')
-						    junit 'pytest-arc-ingestion.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-arc-ingestion.xml pytest-arc-ingestion.xml")
+						    junit "pytest-arc-ingestion.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Master-Arc-Creation') {
+		stage("Test-Master-Arc-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
-                        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                            'pytest --durations=0 --junitxml=/nres/code/pytest-master-arc.xml ' +
-                            '-m master_arc /nres/code/')
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                            "pytest --durations=0 --junitxml=/nres/code/pytest-master-arc.xml " +
+                            "-m master_arc /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-master-arc.xml pytest-master-arc.xml')
-						    junit 'pytest-master-arc.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-arc.xml pytest-master-arc.xml")
+						    junit "pytest-master-arc.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Zero-File-Creation') {
+		stage("Test-Zero-File-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: 'prod-kube-config']) {
-                        sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                            'pytest --durations=0 --junitxml=/nres/code/pytest-zero-file.xml ' +
-                            '-m zero_file /nres/code/')
+                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                            "pytest --durations=0 --junitxml=/nres/code/pytest-zero-file.xml " +
+                            "-m zero_file /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-zero-file.xml pytest-zero-file.xml')
-						    junit 'pytest-zero-file.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-zero-file.xml pytest-zero-file.xml")
+						    junit "pytest-zero-file.xml"
 						}
 					}
 				}
 			}
 		}
-		stage('Test-Science-File-Creation') {
+		stage("Test-Science-File-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: 'prod-kube-config']) {
-						sh('kubectl -n dev run -c nres-pipeline nres-pipe-e2e-test -- ' +
-                            'pytest --durations=0 --junitxml=/nres/code/pytest-science-files.xml ' +
-                            '-m science_files /nres/code/')
+			        withKubeConfig([credentialsId: "prod-kube-config"]) {
+						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                            "pytest --durations=0 --junitxml=/nres/code/pytest-science-files.xml " +
+                            "-m science_files /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-						    sh('kubectl -n dev cp -c nres-pipeline ' +
-						            'nres-pipe-e2e-test:/nres/code/pytest-science-files.xml pytest-science-files.xml')
-						    junit 'pytest-science-files.xml'
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+						    sh("kubectl -n dev cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-science-files.xml pytest-science-files.xml")
+						    junit "pytest-science-files.xml"
 						}
 					}
 				}
 				success {
 					script {
-					    withKubeConfig([credentialsId: 'prod-kube-config']) {
-                            sh('kubectl -n dev delete pod nres-pipe-e2e-test || true')
+					    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                            sh("kubectl -n dev delete pod ${podName} || true")
 					    }
 					}
 				}
