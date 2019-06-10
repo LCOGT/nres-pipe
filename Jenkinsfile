@@ -41,7 +41,7 @@ pipeline {
 			}
 	        steps {
 	            script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
                         sh('helm repo update && helm upgrade --install nres-pipe lco/nres-pipe ' +
                                 '--set nresPipeline.tag="${GIT_DESCRIPTION}" --namespace dev --wait --timeout=3600')
 
@@ -62,8 +62,8 @@ pipeline {
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
 						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-bias-ingestion.xml -m bias_ingestion /nres/code/")
 					}
@@ -72,8 +72,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-bias-ingestion.xml " +
 						            "pytest-bias-ingestion.xml")
 						    junit "pytest-bias-ingestion.xml"
@@ -91,8 +91,8 @@ pipeline {
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: "prod-kube-config"]) {
-                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
                                 "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-master-bias.xml -m master_bias /nres/code/")
 			        }
@@ -101,8 +101,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-master-bias.xml pytest-master-bias.xml")
 						    junit "pytest-master-bias.xml"
 						}
@@ -119,8 +119,8 @@ pipeline {
 			}
 			steps {
 				script {
-				    withKubeConfig([credentialsId: "prod-kube-config"]) {
-					    sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+				    withKubeConfig([credentialsId: "dev-kube-config"]) {
+					    sh("kubectl exec -c nres-pipeline ${podName} -- " +
 						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-dark-ingestion.xml -m dark_ingestion /nres/code/")
 					}
@@ -129,8 +129,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-dark-ingestion.xml " +
 						            "pytest-dark-ingestion.xml")
 						    junit "pytest-dark-ingestion.xml"
@@ -148,8 +148,8 @@ pipeline {
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: "prod-kube-config"]) {
-						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
 						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-master-dark.xml -m master_dark /nres/code/")
 					}
@@ -158,8 +158,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-master-dark.xml pytest-master-dark.xml")
 						    junit "pytest-master-dark.xml"
 						}
@@ -176,8 +176,8 @@ pipeline {
 			}
 			steps {
 				script {
-				    withKubeConfig([credentialsId: "prod-kube-config"]) {
-				        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+				    withKubeConfig([credentialsId: "dev-kube-config"]) {
+				        sh("kubectl exec -c nres-pipeline ${podName} -- " +
 						        "/usr/bin/sudo -s -u archive pytest --durations=0 " +
 						        "--junitxml=/nres/code/pytest-flat-ingestion.xml -m flat_ingestion /nres/code/")
 					}
@@ -186,8 +186,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-flat-ingestion.xml pytest-flat-ingestion.xml")
 						    junit "pytest-flat-ingestion.xml"
 						}
@@ -204,8 +204,8 @@ pipeline {
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
-                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
                                 "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-master-flat.xml -m master_flat /nres/code/")
 					}
@@ -214,8 +214,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-master-flat.xml pytest-master-flat.xml")
 						    junit "pytest-master-flat.xml"
 						}
@@ -232,8 +232,8 @@ pipeline {
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
-                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
                                 "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                                 "--junitxml=/nres/code/pytest-arc-ingestion.xml -m arc_ingestion /nres/code/")
 					}
@@ -242,8 +242,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-arc-ingestion.xml pytest-arc-ingestion.xml")
 						    junit "pytest-arc-ingestion.xml"
 						}
@@ -260,8 +260,8 @@ pipeline {
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
-                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
                             "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-master-arc.xml -m master_arc /nres/code/")
 					}
@@ -270,8 +270,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-master-arc.xml pytest-master-arc.xml")
 						    junit "pytest-master-arc.xml"
 						}
@@ -288,8 +288,8 @@ pipeline {
 			}
 			steps {
 				script {
-                    withKubeConfig([credentialsId: "prod-kube-config"]) {
-                        sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
                             "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-zero-file.xml -m zero_file /nres/code/")
 					}
@@ -298,8 +298,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-zero-file.xml pytest-zero-file.xml")
 						    junit "pytest-zero-file.xml"
 						}
@@ -316,8 +316,8 @@ pipeline {
 			}
 			steps {
 				script {
-			        withKubeConfig([credentialsId: "prod-kube-config"]) {
-						sh("kubectl -n dev exec -c nres-pipeline ${podName} -- " +
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
                             "/usr/bin/sudo -s -u archive pytest --durations=0 " +
                             "--junitxml=/nres/code/pytest-science-files.xml -m science_files /nres/code/")
 					}
@@ -326,8 +326,8 @@ pipeline {
 			post {
 				always {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-						    sh("kubectl -n dev cp -c nres-pipeline " +
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
 						            "${podName}:/nres/code/pytest-science-files.xml pytest-science-files.xml")
 						    junit "pytest-science-files.xml"
 						}
@@ -335,8 +335,8 @@ pipeline {
 				}
 				success {
 					script {
-					    withKubeConfig([credentialsId: "prod-kube-config"]) {
-                            sh("kubectl -n dev delete pod ${podName} || true")
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                            sh("helm delete nres-pipe || true")
 					    }
 					}
 				}
