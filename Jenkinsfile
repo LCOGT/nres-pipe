@@ -45,7 +45,7 @@ pipeline {
                         sh('helm repo update && helm upgrade --install nres-pipe lco/nres-pipe ' +
                                 '--set nresPipeline.tag="${GIT_DESCRIPTION}" --namespace dev --wait --timeout=3600')
 
-                        podName = sh(script: 'kubectl -n dev get po -l app.kubernetes.io/instance=nres-pipe -o jsonpath="{.items[0].metadata.name}"')
+                        podName = sh(script: 'kubectl -n dev get po -l app.kubernetes.io/instance=nres-pipe -o jsonpath="{.items[0].metadata.name}"',
                                      returnStdout: true).trim()
 
                     }
