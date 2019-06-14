@@ -2,7 +2,7 @@ FROM docker.lco.global/docker-miniconda3:4.5.11
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
-RUN yum -y install epel-release mariadb-devel \
+RUN yum -y install epel-release mariadb-devel sudo \
         && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
