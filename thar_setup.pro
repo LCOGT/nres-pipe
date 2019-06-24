@@ -151,10 +151,11 @@ thar_catalog,tharspec_c,thrshamp,gsw,iord_c,xpos_t,amp_t,wid_t,$
      xposg,ampg,widg,chi2g,ierrc
 ierr_c=ierr_c+ierrc
 dldx=dlamdx(xpos_t,iord_c)
-xperr_c=dldx*wid_t/(sqrt(amp_t > 10.))
+xperr_c=dldx*wid_t/(sqrt(amp_t > 10.))    ; units are nm
 ; make array to hold differences between obsd and matched std wavelengths
 ncat=n_elements(iord_c)
 diff_c=dblarr(ncat)
+stop
 
 ; select between 3-pt and gaussian estimates of line params using gsw
 if(gsw eq 0) then begin

@@ -117,4 +117,6 @@ sb=where(abs(outp) ge thrq,nsb)
 if(nsb gt 0) then wts(sb)=0.
 fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svm)
 
+stop
+
 end
