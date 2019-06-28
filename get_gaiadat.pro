@@ -21,40 +21,56 @@ pro get_gaiadat,targra,targdec,gaiaparms
 ;  on return gerr=0, else 1.
 
 ; constants
+nresroot=getenv('NRESROOT')
 gerr=0
-pycode='query_GAIA.py'
+pycode=nresroot+'code/query_GAIA.py'
 radian=180./!pi
-bigrad=1.5               ; big capture radius, arcmin
-smallrad=2.0/3600.       ; small capture radius, degrees
+bigrad=3.               ; big capture radius, arcmin
+smallrad=2.0            ; small capture radius, arcsec
 
 ; do the gaia cone search 
 searchradius=bigrad
 
-cmd = 'python '+pycode+' '+string(ra)+' '+string(dec)+' '+string(searchradius)
+cmd = 'python '+pycode+' '+string(targra)+' '+string(targdec)+' '+$
+          string(searchradius)
 spawn,cmd,result
-words=get_words(result[5],nw,delim=' ')
+ss=result[5]
+nss=strlen(ss)
+ss=strmid(ss,1,nss-2)
+words=get_words(ss,nw,delimiters=[','])
+sm=where(strpos(words,'masked') ge 0,nsm)
+if(nsm gt 0) then words(sm)='0.0'
+fwords=float(words)
 
-distance                = words[0]
-gaia_ra                 = words[1]
-gaia_dec                = words[2]
-gaia_ppmra              = words[3]
-gaia_ppmdec	        = words[4]
-gaia_Gmag               = words[5]
-gaia_BPmag              = words[6]
-gaia_RPmag              = words[7]
-gaia_Teff               = words[8]
-gaia_Lum                = words[9]
-gaia_Radius             = words[10]
-gaia_RV                 = words[11]
-gaia_errorRV            = words[12]
+distance                = fwords[0]
+gaia_ra                 = fwords[1]
+gaia_dec                = fwords[2]
+gaia_ppmra              = fwords[3]
+gaia_ppmdec	        = fwords[4]
+gaia_Gmag               = fwords[5]
+gaia_BPmag              = fwords[6]
+gaia_RPmag              = fwords[7]
+gaia_Teff               = fwords[8]
+gaia_Lum                = fwords[9]
+gaia_Radius             = fwords[10]
+gaia_RV                 = fwords[11]
+gaia_errorRV            = fwords[12]
+gaia_parallax           = fwords[13]
+
+stop
 
 ; compute J2000.0 coords, compare with input
 cosdec=cos(targdec/radian)
 gra=gaia_ra-(.015*gaia_ppmra/(cosdec*3600.))
 gdec=gaia_dec-(.015*gaia_ppmdec/3600.)
-dra=3600.*(targra-gra)*cosdec
+radif=targra-gra
+if(radif gt 180.) then radif=radif-360.
+if(radif lt -180.) then radif=radif+360.
+dra=3600.*(radif)*cosdec
 ddec=3600.*(targdec-gdec)
 dr=sqrt(dra^2+ddec^2)         ; unsigned separation in arcsec
+
+stop
 
 ; if it failed, set default values and gerr, bail out
 if(dr gt smallrad) then begin
@@ -65,7 +81,7 @@ if(dr gt smallrad) then begin
 endif else begin 
 
 ; search succeeded.
-  gplax=1./distance
+  gplax=gaia_parallax
 
 ; estimate vmag
   vmag=vmag_estim(gaia_BPmag,gaia_BRmag)
@@ -75,10 +91,11 @@ endif else begin
 
 ; set outputs
 gaiaparms={gra:gra,gdec:gdec,gpmra:gaia_ppmra,gpmdec:gaia_ppmdec,gplax:gplax,$
-    grv=gaia_RV,gerrv:gaia_errorRV,gvmag:vmag,gbmag:gaia_BPmag,$
+    grv:gaia_RV,gerrv:gaia_errorRV,gvmag:vmag,gbmag:gaia_BPmag,$
     grmag:gaia_BRmag,ggmag:gaia_Gmag,gteff:gaia_Teff,glogg:glogg,glum:gaia_Lum,$
     gerr:gerr}
 
 endelse
 
+stop
 end

@@ -72,8 +72,8 @@ if(nfib eq 2) then begin
   targnames(1)=strcompress(strupcase(objects(1)),/remove_all)
   targra(1)=tel2dat.ra
   targdec(1)=tel2dat.dec
-  targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
-; get_targ_props returns a structure containing name, RA, DEC, Vmag, B-V,
+  targ1struc=get_targ_props2(targnames(1),targra(1),targdec(1))
+; get_targ_props2 returns a structure containing name, RA, DEC, Vmag, B-V,
 ; logg, PMRA, PMDEC.  If no name or position match, get a structure full
 ; of nulls.
   if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
@@ -102,7 +102,7 @@ if(nfib eq 3) then begin
     targnames(0)=strcompress(strupcase(objects(0)),/remove_all)
     targra(0)=tel1dat.ra
     targdec(0)=tel1dat.dec 
-    targ0struc=get_targ_props(targnames(0),targra(0),targdec(0))
+    targ0struc=get_targ_props2(targnames(0),targra(0),targdec(0))
     if(targra(0) eq 0.d0 and targdec(0) eq 0.d0) then coosrc(0)=0 else $
       coosrc(0)=1
     if(coosrc(0) eq 0) then begin
@@ -117,14 +117,14 @@ if(nfib eq 3) then begin
     zerotypes(0)='NULL'
     targra(0)=0.d0
     targdec(0)=0.d0
-    targ0struc=get_targ_props('NULL',0.d0,0.d0)
+    targ0struc=get_targ_props2('NULL',0.d0,0.d0)
   endelse
 
   if(objects(2) ne 'NONE') then begin
     targnames(1)=strcompress(strupcase(objects(2)),/remove_all)
     targra(1)=tel2dat.ra
     targdec(1)=tel2dat.dec 
-    targ1struc=get_targ_props(targnames(1),targra(1),targdec(1))
+    targ1struc=get_targ_props2(targnames(1),targra(1),targdec(1))
     if(targra(1) eq 0.d0 and targdec(1) eq 0.d0) then coosrc(1)=0 else $
       coosrc(1)=1
     if(coosrc(1) eq 0) then begin
@@ -139,7 +139,7 @@ if(nfib eq 3) then begin
     zerotypes(1)='NULL'
     targra(1)=0.d0
     targdec(1)=0.d0
-    targ1struc=get_targ_props('NULL',0.d0,0.d0)
+    targ1struc=get_targ_props2('NULL',0.d0,0.d0)
   endelse
 endif
   
