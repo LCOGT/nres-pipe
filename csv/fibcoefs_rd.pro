@@ -4,13 +4,13 @@ pro fibcoefs_rd,sites,jdates,cameras,fibcoefs,fibhdr
 ; Column names are returned in the string array stdhdr.
 
 nresroot=getenv('NRESROOT')
-nresrooti=nresroot+getenv('NRESINST')
-;nresrooti=nresroot+'RDlsc1/'            ; use only one fibcoefs.csv file
-fibcoefsfile=nresrooti+'reduced/csv/fibcoefs.csv'
+;nresrooti=nresroot+getenv('NRESINST')
+nresrooti=nresroot+'code/csv/'
+fibcoefsfile=nresrooti+'fibcoefs.csv'
 
 dat=read_csv(fibcoefsfile,header=fibhdr)
 sites=dat.field01
-jdates=dat.field02
+jdates=dat.field02+2400000.5d0
 cameras=dat.field03
 fibcoefs=[dat.field04,dat.field05,dat.field06,dat.field07,dat.field08,$
   dat.field09,dat.field10,dat.field11,dat.field12,dat.field13,dat.field14,$

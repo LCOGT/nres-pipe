@@ -1,4 +1,4 @@
-pro thar_fitoff,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
+pro thar_fitoff_1,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
 ; This routine reads a ThAr DOUBLE extracted spectrum file filin, and
 ; puts its corspec array into the common data area.
 ; It then calls thar_fitall to fit a model of the spectrograph to
@@ -10,7 +10,7 @@ pro thar_fitoff,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
 ; of the rcubic coefficients read from spectrographs.csv.
 
 @nres_comm
-@thar_comm
+@thar_comm_1
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
@@ -18,7 +18,8 @@ outdir=nresrooti+'reduced/thar/'
 infile=filin
 outfile=outdir+filout
 ierr_c=0                             ; clear errors in common before starting
-rutname='thar_fitoff'
+rutname='thar_fitoff1'
+trp=2                  ; gets triple data from fibcoefs.csv, other SG data from spectrographs.csv
 
 ; read the input file
 corspec=readfits(infile,hdr,/silent)
@@ -45,7 +46,7 @@ tharspec_c=corspec(*,*,fibin0)
 
 ; call thar_fitall
 ;thar_fitall,sgsite,fibin0,ierr,cubfrz=cubfrz,tharlist=tharlist
-thar_fa,sgsite,fibin0,ierr,cubfrz=cubfrz,tharlist=tharlist
+thar_fitall_1,filin,fibin0,ierr,tharlist=tharlist,trp=trp
 
 tharstruc={mm:mm_c,grspc_c:grspc_c,sinalp:sinalp_c,y0:y0_c,z0:z0_c,$
 gltype:gltype_c,apex:apex_c,lamcen:lamcen_c,rot:rot_c,pixsiz:pixsiz_c,nx:nx_c,$

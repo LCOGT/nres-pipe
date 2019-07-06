@@ -1,8 +1,7 @@
-pro thar_setup,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
+pro thar_setup_1,filin,fibindx,ierr,dbg=dbg,tharlist=tharlist,trp=trp
 ; This routine accepts identifiers for the spectrograph being modeled,
-; for a list of (possibly only one) extracted ThAr input spectra,
+; one extracted ThAr input spectrum,
 ; and for the fiber index (0,1,2) being used.
-; sgsite is a string, one of {'SQA','ELP','TEN','ALI','LSC','CPT','OGG'}
 ; It reads the appropriate spectrograph configuration file,
 ; finds input spectrum in nres_comm corspec array and renames it tharspec_c,
 ; and proceeds to fill as much as it can of the thar_am common block,
@@ -10,13 +9,15 @@ pro thar_setup,sgsite,fibindx,ierr,dbg=dbg,trp=trp,tharlist=tharlist
 ; On return, ierr=0 is normal, anything else is a fatal error.
 
 ; common blocks
-@thar_comm
-
+@thar_comm_1
 @nres_comm
 
 ; constants
-;nresroot=getenv('NRESROOT')
-rutname='thar_setup'
+nresroot=getenv('NRESROOT')
+nresinst='RD'+strtrim(site,2)+'1/'        ; site from nres_comm
+nresrooti=nresroot+nresinst
+stage2root=getenv('STAGE2ROOT')
+rutname='thar_setup_1'
 linelist=nresrooti+'reduced/config/arc_ThAr_Redman.txt'
 if(keyword_set(tharlist)) then begin
   linelist=nresrooti+'reduced/config/'+strtrim(tharlist,2)
@@ -39,7 +40,7 @@ wrang=[[500,1500],[1000,3000]]  ; range of pixels to use in linewidth estimate,
 ierr_c=0
 
 ; set wslop, wrang values according to site.
-if(strupcase(strtrim(sgsite,2)) eq 'SQA') then begin
+if(strupcase(strtrim(site,2)) eq 'SQA') then begin
   wslop=wslope(0)
   wran=wrang(*,0)
 endif else begin
@@ -47,72 +48,95 @@ endif else begin
   wran=wrang(*,1)
 endelse
 
-; read the spectrograph specdat file, tuck data away in thar_am.
-get_specdat,mjdd,err
-mm_c=specdat.ord0 + lindgen(specdat.nord)      ; diffraction orders
-grspc_c=specdat.grspc                  ; grating groove spacing (mm)
-grinc_c=specdat.grinc                  ; grating incidence angle
-sinalp_c=sin(specdat.grinc/radian)     ; sin nominal incidence angle
-fl_c=specdat.fl                        ; camera nominal fl (mm)
-y0_c=specdat.y0                        ; y posn at which gamma=0 (mm)
-z0_c=specdat.z0                        ; (n-1) of air in SG (no units)
-gltype_c=specdat.gltype                ; cross-disperser glass type (eg 'BK7')
-apex_c=specdat.apex                      ; cross-disp prism apex angle (degree)
-lamcen_c=specdat.lamcen                ; nominal wavelen at FOV center (micron)
-rot_c=specdat.rot                      ; detector rotation angle (degree)
-pixsiz_c=specdat.pixsiz                ; detector pixel size (mm)
-nx_c=specdat.nx                        ; no of detector columns
-nord_c=specdat.nord                    ; no of spectrum orders
-dsinalp_c=abs(sin((specdat.grinc+specdat.dgrinc)/radian)-sinalp_c)
-dfl_c=specdat.dfl
-dy0_c=specdat.dy0
-dz0_c=specdat.dz0
-coefs_c=specdat.coefs
-ncoefs_c=specdat.ncoefs
-fibcoefs_c=specdat.fibcoefs
+; read the spectrograph specdat file, tuck data away in thar_am, but
+; get every data item we can from header of input data file.
+stop
+fits_open,filin,fcb
+fits_read,fcb,dat0,hdr0,exten=0
+fits_close,fcb
+get_specdat_1,mjdd,err,siter=strtrim(site,2)
+ord0=specdat.ord0                       ; spectrum lowest diffraction order
+nx_c=sxpar(hdr0,'NX')                   ; no of detector columns
+nord_c=sxpar(hdr0,'NORD')               ; no of diffraction orders
+mm_c=ord0 + lindgen(nord_c)             ; diffraction orders
+grspc_c=specdat.grspc                   ; grating groove spacing (mm)
+grinc_c=specdat.grinc                   ; grating incidence angle
+sinalp_c=sxpar(hdr0,'sinalp')           ; sin nominal incidence angle
+fl_c=sxpar(hdr0,'FL')                   ; camera nominal fl (mm)
+y0_c=sxpar(hdr0,'Y0')                   ; y posn at which gamma=0 (mm)
+z0_c=sxpar(hdr0,'Z0')                   ; (n-1) of air in SG (no units)
+gltype_c=specdat.gltype                 ; cross-disperser glass type (eg 'BK7')
+apex_c=specdat.apex                     ; cross-disp prism apex angle (degree)
+lamcen_c=specdat.lamcen                 ; nominal wavelen at FOV center (micron)
+rot_c=specdat.rot                       ; detector rotation angle (degree)
+pixsiz_c=specdat.pixsiz                 ; detector pixel size (mm)
+;***
+fib0=sxpar(hdr0,'FIB0')                 ; index of 1st lighted fiber
 
-; make parinfo structure array for use with mpfit
-; parameters are fixed if corresponding dparameter is set to zero
-pritempl={value:0.d0,fixed:1,parname:'NULL',tied:''}
-parinfo_c=[pritempl,pritempl,pritempl,pritempl] ; initlze array of structures
-parinfo_c[0].parname='sinalp'
-parinfo_c[1].parname='fl'
-parinfo_c[2].parname='y0'
-parinfo_c[3].parname='z0'
-if(dsinalp_c ne 0.) then parinfo_c[0].fixed=0
-if(dfl_c ne 0.) then parinfo_c[1].fixed=0
-if(dy0_c ne 0.) then parinfo_c[2].fixed=0
-if(dz0_c ne 0.) then parinfo_c[3].fixed=0
-p3tied='P[1]*0.00015751'
-parinfo_c[3].tied=p3tied
+ncoefs_c=15                             ; hard-wired ncoefs, for now
+coefs_c=dblarr(ncoefs_c)
+for i=0,ncoefs_c-1 do begin
+  cstr='C'+string(i,format='(i02)')
+  coefs_c(i)=double(sxpar(hdr0,cstr))
+endfor
 
-; make the first-guess wavelength array based on specdat structure.
-xx=pixsiz_c*(findgen(nx_c)-float(nx_c/2.))
-mm=mm_c
-fibno=1
-lambda3ofx,xx,mm,fibno,specdat,lam_c,y0m_c   ; vacuum wavelengths
+ex0_c=0.d0      ; Initialize the ex parameters to zero, because they don't
+ex1_c=0.d0      ; exist in the model that yields the current lam_c.
+ex2_c=0.d0
 
-; get nearest applicable TRIPLE data
-get_calib,'TRIPLE',tripfile,tripdat,triphdr,gerr
+; get the list of wavelength params to fit as opposed to be frozen, put into thar_comm
+thar_get_dofit_1,site,dstr          ; gets the most recent version
+dofitstr=dstr
+
+;*** changed code
+; 2019/04/03: Deprecating the use of default.csv.  If we want to update the
+; spectrograph parameters, we should do it by adding a line to 
+; spectrographs.csv.  Henceforth the default parameters will come from there.
+
+; get default spectrograph params to put in frozen params.
+;thar_get_default_stg2,site,mjdd
+
+;stop
+
+; get trace data for later use in cubchrom
+; first make a fake cordat array, with dimensions nx_c x nx_c
+cordat=fltarr(nx_c,nx_c)
+nfib=3                      ; also used to fool order_cen.pro into cooperating.
+inst='RD'+site+'1/'
+get_calib_1,'TRACE',tracefile,tracprof,tracehdr,gerr,inst=inst
+ord_wid=sxpar(tracehdr,'ORDWIDTH')   ; width of band to be considered for
+                                     ; extraction
+medboxsz=sxpar(tracehdr,'MEDBOXSZ')
+npoly=sxpar(tracehdr,'NPOLY')
+cowid=sxpar(tracehdr,'COWID')
+nblock=sxpar(tracehdr,'NBLOCK')
+trace=reform(tracprof(0:npoly-1,*,*,0))
+prof=tracprof(0:cowid-1,*,*,1:nblock)
+order_cen,trace,ord_vectors
+tracedat={trace:trace,npoly:npoly,ord_vectors:ord_vectors,ord_wid:ord_wid,$
+          medboxsz:medboxsz,tracefile:tracefile,prof:prof}
+
+; average TRIPLE files up to the current one to yield best-guess smoothed
+; values of fib_coefXX.  Use these to replace the specdat values
+; if keyword trp is set to 2 or 3.  Normally expect trp=2, in which case 
+; fib_coefs values come from avg TRIPLE, all other data from specdat.
+smooth_triple,site,mjdd,fibcoefsm,terr
+
 ; if successful, and if dbg keyword is not set or if it is not set to 2,
 ; then set new common values of coefs_c, fitcoefs_c, lam_c
-if(keyword_set(trp)) then begin
-  if(trp gt 0) then runit=1 else runit=0
-endif else begin
-  runit=0
-endelse
-if(gerr eq 0 and runit ne 0) then begin
-  trip_unpack,tripdat,triphdr,trp=trp ; put TRIPLE data into specdat, coefs_c, 
-                 ; fibcoefs_c or not, depending on the value of keyword trp.
-  tarlist=[tarlist,nresrooti+'reduced/'+tripfile]
-  ip=strpos(tripfile,'/',/reverse_search)
-  plen=strlen(tripfile)
-  tripfile_short_c=strmid(tripfile,ip+1,plen-ip)    ; this lives in thar_comm
+;###########
+if(terr eq 0) then begin
+; trip_unpack,tripdat,triphdr,trp=trp ; TRIPLE data into specdat, coefs_c, 
+              ; fibcoefs_c or not, depending on the value of keyword trp.
+  if(trp ge 2) then fibcoefs_c=fibcoefsm
+  tripfile_short_c='fibcoefs.csv'
+;###########
   logo_nres2,rutname,'INFO','TRIPLE file used = '+tripfile_short_c
 endif else begin
   tripfile_short_c='spectrographs.csv'
 endelse
 
+; check data size matches with config expectations
 sz=size(corspec)
 nx=sz(1)
 nord=sz(2)
@@ -149,9 +173,12 @@ endfor
 ; construct the catalog of observed ThAr lines.
 thar_catalog,tharspec_c,thrshamp,gsw,iord_c,xpos_t,amp_t,wid_t,$
      xposg,ampg,widg,chi2g,ierrc
+
+if(abs(mjdd-58498.81789d0) le 1.e-4) then stop
+
 ierr_c=ierr_c+ierrc
 dldx=dlamdx(xpos_t,iord_c)
-xperr_c=dldx*wid_t/(sqrt(amp_t > 10.))    ; units are nm
+xperr_c=dldx*wid_t/(sqrt(amp_t > 10.))
 ; make array to hold differences between obsd and matched std wavelengths
 ncat=n_elements(iord_c)
 diff_c=dblarr(ncat)
@@ -188,11 +215,7 @@ if(gsw eq 0) then begin
   h=histogram(wida(xgood),min=0,max=10.,binsiz=0.2)
   maxh=max(h,ix)                ; find peak of histogram
   dwid=wida-0.2*ix              ; distance from peak (pix units)
-  if SITE eq 'tlv' then begin
-        sg=where(abs(dwid) le 3.0,nsg)  ; pick lines with width near histogram peak
-  endif else begin
-        sg=where(abs(dwid) le 0.5,nsg)  ; pick lines with width near histogram peak
-  endelse
+  sg=where(abs(dwid) le 0.5,nsg)  ; pick lines with width near histogram peak
 
 ; sg=where((wid_c ge 3.5+xpos_c/4096.) and (wid_c le 4.5+xpos_c/4096.),nsg)
 
@@ -202,6 +225,9 @@ endif else begin
      and lchi2 le 1.8 and lchi2 gt (-2.999) and siga gt thrshamp,nsg)
  ; if(nsg le 0) then stop
 endelse
+
+; Make lists of observed (not "lab") line properties.  The lines listed here
+; are all observed lines that pass significance and width cutoffs.
 iord_c=iord_c(sg)
 xpos_c=xpos_c(sg)
 amp_c=amp_c(sg)
@@ -209,6 +235,10 @@ wid_c=wid_c(sg)
 diff_c=diff_c(sg)
 xperr_c=xperr_c(sg)
 clip_c=dblarr(nsg)+1.d0       ; weight array used to clip bad lines
+
+; make arrays to keep track of which observed lines are matched to lab lines.
+match_c=lonarr(nsg)            ; will be set = 1 for matched lines
+matchindx_c=[]                 ; will be filled with indices of matched lines
 
 ; read the ThAr standard line list
 openr,iun,linelist,/get_lun
@@ -256,15 +286,8 @@ x0=0.
 z0=0.
 f0=0.
 g0=0.
-;while(1) do begin
-;thar_plot,thar,dd0,a0,x0,z0,f0,g0,lam1
-;print,'dd0,a0,x0,z0,f0,g0,  dd0=1000. to quit'
-;read,dd0,a0,x0,z0,f0,g0
-;if(dd0 eq 1000.) then goto,fini
-;endwhile
 
 fini:
 ierr=ierr_c
 
-;stop
 end

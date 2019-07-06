@@ -1,4 +1,4 @@
-pro thar_xdisp1,xp0,io0,ll0,er0,xp1,io1,ll1,er1,fibc,rms
+pro thar_xdisp_1,xp0,io0,ll0,er0,xp1,io1,ll1,er1,fibc,rms
 ; This routine estimates the fibcoef polynomial coefficients describing
 ; the x-displacements in pix between ThAr spectra from two distinct fibers.
 ; On input,
