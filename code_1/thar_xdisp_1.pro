@@ -18,7 +18,7 @@ pro thar_xdisp_1,xp0,io0,ll0,er0,xp1,io1,ll1,er1,fibc,rms
 ; Modified from thar_xdisp to employ Legendre polynomials for the fitting
 ; functions, rather than simple polynomials.
 
-@thar_comm     ;load thar common block
+@thar_comm_1     ;load thar common block
 
 ; constants
 lamthrsh=0.005   ; max wavelength difference for a match (nm)
@@ -37,7 +37,7 @@ nl1=n_elements(xp1)
 for i=0L,nord_c-1 do begin
   s0=where(io0 eq i,ns0)
   s1=where(io1 eq i,ns1)
-  if(ns0 gt 0) then begin
+  if(ns0 gt 0 and ns1 gt 0) then begin
     for j=0,ns0-1 do begin
       md=min(abs(ll1(s1)-ll0(s0(j))),ix)
       if(md le lamthrsh) then begin
@@ -116,7 +116,5 @@ thrq=dq*thrsig/1.35              ; more than thrsig sigma from zero
 sb=where(abs(outp) ge thrq,nsb)
 if(nsb gt 0) then wts(sb)=0.
 fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svm)
-
-stop
 
 end

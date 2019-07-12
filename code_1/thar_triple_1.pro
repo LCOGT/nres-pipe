@@ -203,7 +203,6 @@ if(nfiba eq 3) then begin
   z0av=(z001+z011)/2.
   coefsav=(coefs01+coefs11)/2.
   lamav=(lam01+lam11)/2.        ; avg'd lambda grid for fiber 1
-  stop
 endif
 
 ; #############
@@ -251,20 +250,16 @@ branch='trip/'
 
 ; make output header = 1st input header with mods, write out the data
 mkhdr,hdrout,lamav
-sxaddpar,hdrout,'MJD',mjd
+sxaddpar,hdrout,'MJD',mjdd
 sxaddpar,hdrout,'NFRAVGD',2
 sxaddpar,hdrout,'ORIGNAM0',fil01
 sxaddpar,hdrout,'ORIGNAM1',fil12
 sxaddpar,hdrout,'ORD0',mm_c(0)
 sxaddpar,hdrout,'GRSPC',grspc_c
 sxaddpar,hdrout,'SINALP',sinalpav
-sxaddpar,hdrout,'DSINALP',dsinalp_c
 sxaddpar,hdrout,'FL',flav
-sxaddpar,hdrout,'DFL',dfl_c
 sxaddpar,hdrout,'Y0',y0av
-sxaddpar,hdrout,'DY0',dy0_c
 sxaddpar,hdrout,'Z0',z0av
-sxaddpar,hdrout,'DZ0',dz0_c
 sxaddpar,hdrout,'GLASS',gltype_c
 sxaddpar,hdrout,'APEX',apex_c
 sxaddpar,hdrout,'LAMCEN',lamcen_c
@@ -307,7 +302,7 @@ writefits,filout,lamav,hdrout
 print,'FITS:',filout
 
 ; write line into standards.csv
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,'0000'
+stds_addline,'TRIPLE',branch+fout,2,site,camera,jdd,'0000'
 print,'standards.csv',branch+fout
 
 fini:

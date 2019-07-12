@@ -254,7 +254,7 @@ jx=matchxpos_c-nx_c/2.
 ; make functions to be fit, for all orders and x positions
 ; These are the functions multiplying the fitting parameters
 if(keyword_set(recomp)) then begin
-  dlamdparm3,site,lam,/gotsp
+  dlamdparm3_1,site,lam,/gotsp
 endif else begin
   print,'skipping dlamdparm3 compute'
 endelse
@@ -304,6 +304,7 @@ cc2=lstsqr(dat,funs,matchwts_2,nfuns,rms2,chisq2,outp2,1,cov2,ierr,$
 ; undo the normalization to yield dvals, dcoefs
 dvals=cc2(0:6)/dparmnorm
 dcoefs=cc2(7:*)/dcoefnorm
+outp_c=outp2
 
 ;stop
 

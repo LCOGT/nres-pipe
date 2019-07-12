@@ -14,7 +14,7 @@ pro thar_fitoff_1,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
 common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
 
 ; constants
-outdir=nresrooti+'reduced/thar/'
+outdir=nresrooti+'/reduced/thar/'
 infile=filin
 outfile=outdir+filout
 ierr_c=0                             ; clear errors in common before starting

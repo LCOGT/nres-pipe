@@ -1,5 +1,5 @@
 function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
-  svdminrat=svdminrat
+  svdminrat=svdminrat,dofit=dofit
 ; This routine does a weighted linear least-squares fit of the nfun functions
 ; contained in array funs to the data in array dat.  The weights are given
 ; in array wt.  Fit coefficients are returned.  If arguments outp and type
@@ -23,6 +23,9 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
 ; Alternatively, set svdminrat=epsilon.  In this case, the normal equations
 ; are solved via SVD methods, retaining only singular values sv such that
 ; sv/max(singular values) ge epsilon.
+; if keyword dofit is set, then dofit must be an integer array dofit[nfun].
+; Then parameters with index j such that dofit[j]=0 are held frozen in
+; the fit, and their rms and cov values are set to zero.
 ; It is illegal to invoke both the gauss and svdminrat keywords.
 
 ; get dimensions of things, make extended arrays for generating normal eqn
@@ -34,13 +37,27 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
     return,0.
     end
   nx=s(1)
+
+; redefine funs, nfun if keyword dofit is set
+  if(keyword_set(dofit)) then begin
+    if(n_elements(dofit) ne nfun) then begin
+      print,'bad dimension in dofit array'
+      return,0.
+      end
+    sd=where(dofit ne 0,nsd)
+    funsin=funs         ; save input values of funs, nfun
+    nfunin=nfun
+    funs=funs(*,sd)
+    nfun=nsd
+  endif
+
   wte=rebin(wt,nx,nfun)
   datw=reform(dat,nx,1)
   datw=rebin(datw,nx,nfun)*wte
   funw=funs*wte
 
 ; make normal eqn matrix, rhs
-  a=fltarr(nfun,nfun)
+  a=dblarr(nfun,nfun)
   rhs=rebin(funw*datw,1,nfun)
   rhs=reform(rhs,nfun)
   for i=0,nfun-1 do begin
@@ -65,7 +82,7 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
   ierr=0
   if(keyword_set(gauss)) then begin
     gaus_elim3,a,rhs,vv,ierr
-    if(ierr eq 0) then rhs=vv else rhs=fltarr(nfun)
+    if(ierr eq 0) then rhs=vv else rhs=dblarr(nfun)
   endif else begin
     if(keyword_set(svdminrat)) then begin
       svdlineq,a,rhs,svdminrat,vv
@@ -87,6 +104,23 @@ function lstsqr,dat,funs,wt,nfun,rms,chisq,outp,type,cov,ierr,gauss=gauss,$
   rmst=sqrt(total(dif2(s))/n_elements(s))
   ndegfree=n_elements(s)-nfun
   chisq=total(dif2(s)*wt(s))/ndegfree
+
+; put output parameters back in the full output array (with frozen values)
+  if(keyword_set(dofit)) then begin
+    rhso=dblarr(nfunin)
+    rhso(sd)=rhs
+    rhs=rhso
+; and similarly for cov matrix
+    covo=dblarr(nfunin,nfunin)
+    for i=0,nsd-1 do begin
+      for j=0,nsd-1 do begin
+        covo(sd(i),sd(j))=cov(i,j)
+      endfor
+    endfor
+    cov=covo
+    funs=funsin
+    nfun=nfunin
+  endif
 
 ; if rms is defined, set its value
   if (npr ge 5) then rms=rmst

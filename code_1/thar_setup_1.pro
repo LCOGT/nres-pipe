@@ -50,7 +50,6 @@ endelse
 
 ; read the spectrograph specdat file, tuck data away in thar_am, but
 ; get every data item we can from header of input data file.
-stop
 fits_open,filin,fcb
 fits_read,fcb,dat0,hdr0,exten=0
 fits_close,fcb
@@ -61,10 +60,14 @@ nord_c=sxpar(hdr0,'NORD')               ; no of diffraction orders
 mm_c=ord0 + lindgen(nord_c)             ; diffraction orders
 grspc_c=specdat.grspc                   ; grating groove spacing (mm)
 grinc_c=specdat.grinc                   ; grating incidence angle
-sinalp_c=sxpar(hdr0,'sinalp')           ; sin nominal incidence angle
-fl_c=sxpar(hdr0,'FL')                   ; camera nominal fl (mm)
-y0_c=sxpar(hdr0,'Y0')                   ; y posn at which gamma=0 (mm)
-z0_c=sxpar(hdr0,'Z0')                   ; (n-1) of air in SG (no units)
+;sinalp_c=sxpar(hdr0,'sinalp')           ; sin nominal incidence angle
+;fl_c=sxpar(hdr0,'FL')                   ; camera nominal fl (mm)
+;y0_c=sxpar(hdr0,'Y0')                   ; y posn at which gamma=0 (mm)
+;z0_c=sxpar(hdr0,'Z0')                   ; (n-1) of air in SG (no units)
+sinalp_c=specdat.sinalp
+fl_c=specdat.fl
+y0_c=specdat.y0
+z0_c=specdat.z0
 gltype_c=specdat.gltype                 ; cross-disperser glass type (eg 'BK7')
 apex_c=specdat.apex                     ; cross-disp prism apex angle (degree)
 lamcen_c=specdat.lamcen                 ; nominal wavelen at FOV center (micron)
@@ -74,11 +77,12 @@ pixsiz_c=specdat.pixsiz                 ; detector pixel size (mm)
 fib0=sxpar(hdr0,'FIB0')                 ; index of 1st lighted fiber
 
 ncoefs_c=15                             ; hard-wired ncoefs, for now
-coefs_c=dblarr(ncoefs_c)
-for i=0,ncoefs_c-1 do begin
-  cstr='C'+string(i,format='(i02)')
-  coefs_c(i)=double(sxpar(hdr0,cstr))
-endfor
+coefs_c=specdat.coefs
+;coefs_c=dblarr(ncoefs_c)
+;for i=0,ncoefs_c-1 do begin
+;  cstr='C'+string(i,format='(i02)')
+;  coefs_c(i)=double(sxpar(hdr0,cstr))
+;endfor
 
 ex0_c=0.d0      ; Initialize the ex parameters to zero, because they don't
 ex1_c=0.d0      ; exist in the model that yields the current lam_c.
@@ -163,6 +167,12 @@ if(tnsqds le nsqdthr) then begin
   logo_nres2,rutname,'ERROR',{tnsqds:tnsqds}
   goto,fini
 endif
+
+; make first guess lam_c, with current specdat values
+xx=pixsiz_c*(findgen(nx_c)-float(nx_c/2.))
+mm=mm_c
+fibno=1
+lambda3ofx,xx,mm,fibno,specdat,lam_c,y0m_c   ; vacuum wavelengths
 
 ; make dlambda/dx, for later use
 dlamdx=fltarr(nx_c,nord_c)
