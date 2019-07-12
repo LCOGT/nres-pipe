@@ -18,315 +18,326 @@ pipeline {
 		lock resource: 'IDLLock'
 	}
 	stages {
-		stage('Build image') {
+		stage("Build image") {
 			steps {
 				script {
 					dockerImage = docker.build("${DOCKER_IMG}")
 				}
 			}
 		}
-		stage('Push image') {
+		stage("Push image") {
 			steps {
 				script {
 					dockerImage.push("${GIT_DESCRIPTION}")
 				}
 			}
 		}
-		stage('DeployTestStack') {
+		stage("DeployTestStack") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
+	        steps {
+	            script {
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh('helm repo update && helm upgrade --install nres-pipe lco/nres-pipe ' +
+                                '--set nresPipeline.tag="${GIT_DESCRIPTION}" --namespace dev --wait --timeout=3600')
 
-			steps {
-				script {
-					withCredentials([
-						usernamePassword(
-							credentialsId: 'rabbit-mq',
-							usernameVariable: 'RABBITMQ_USER',
-							passwordVariable: 'RABBITMQ_PASSWORD')
-						]) {
-							sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest || true')
-							sh('rancher -c ${RANCHERDEV_CREDS} up --stack NRESPipelineTest --force-upgrade --confirm-upgrade -d')
-					}
-					CONTAINER_ID = getContainerId('NRESPipelineTest-NRESPipelineTest-1')
-					CONTAINER_HOST = getContainerHostName('NRESPipelineTest-NRESPipelineTest-1')
-				}
-			}
+                        podName = sh(script: 'kubectl -n dev get po -l app.kubernetes.io/instance=nres-pipe ' +
+                                        '--sort-by=.status.startTime -o jsonpath="{.items[-1].metadata.name}"',
+                                     returnStdout: true).trim()
+
+                    }
+                 }
+		    }
 		}
-		stage('Test-Bias-Ingestion') {
+		stage("Test-Bias-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-bias-ingestion.xml ' +
-								'-m bias_ingestion /nres/code/',
-						    CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
+						        "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+						        "--junitxml=/nres/code/pytest-bias-ingestion.xml -m bias_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-bias-ingestion.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-bias-ingestion.xml " +
+						            "pytest-bias-ingestion.xml")
+						    junit "pytest-bias-ingestion.xml"
 						}
-						junit 'pytest-bias-ingestion.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Master-Bias-Creation') {
+		stage("Test-Master-Bias-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-master-bias.xml ' +
-								'-m master_bias /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
-					}
-				}
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                                "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                                "--junitxml=/nres/code/pytest-master-bias.xml -m master_bias /nres/code/")
+			        }
+			    }
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-master-bias.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-bias.xml pytest-master-bias.xml")
+						    junit "pytest-master-bias.xml"
 						}
-						junit 'pytest-master-bias.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Dark-Ingestion') {
+		stage("Test-Dark-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-dark-ingestion.xml ' +
-								'-m dark_ingestion /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+				    withKubeConfig([credentialsId: "dev-kube-config"]) {
+					    sh("kubectl exec -c nres-pipeline ${podName} -- " +
+						        "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+						        "--junitxml=/nres/code/pytest-dark-ingestion.xml -m dark_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-dark-ingestion.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-dark-ingestion.xml " +
+						            "pytest-dark-ingestion.xml")
+						    junit "pytest-dark-ingestion.xml"
 						}
-						junit 'pytest-dark-ingestion.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Master-Dark-Creation') {
+		stage("Test-Master-Dark-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-master-dark.xml ' +
-								'-m master_dark /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
+						        "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+						        "--junitxml=/nres/code/pytest-master-dark.xml -m master_dark /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-master-dark.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-dark.xml pytest-master-dark.xml")
+						    junit "pytest-master-dark.xml"
 						}
-						junit 'pytest-master-dark.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Flat-Ingestion') {
+		stage("Test-Flat-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-flat-ingestion.xml ' +
-								'-m flat_ingestion /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+				    withKubeConfig([credentialsId: "dev-kube-config"]) {
+				        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+						        "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+						        "--junitxml=/nres/code/pytest-flat-ingestion.xml -m flat_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-flat-ingestion.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-flat-ingestion.xml pytest-flat-ingestion.xml")
+						    junit "pytest-flat-ingestion.xml"
 						}
-						junit 'pytest-flat-ingestion.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Master-Flat-Creation') {
+		stage("Test-Master-Flat-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-master-flat.xml ' +
-								'-m master_flat /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                                "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                                "--junitxml=/nres/code/pytest-master-flat.xml -m master_flat /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-master-flat.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-flat.xml pytest-master-flat.xml")
+						    junit "pytest-master-flat.xml"
 						}
-						junit 'pytest-master-flat.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Arc-Ingestion') {
+		stage("Test-Arc-Ingestion") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-arc-ingestion.xml ' +
-								'-m arc_ingestion /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                                "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                                "--junitxml=/nres/code/pytest-arc-ingestion.xml -m arc_ingestion /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-arc-ingestion.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-arc-ingestion.xml pytest-arc-ingestion.xml")
+						    junit "pytest-arc-ingestion.xml"
 						}
-						junit 'pytest-arc-ingestion.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Master-Arc-Creation') {
+		stage("Test-Master-Arc-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-master-arc.xml ' +
-								'-m master_arc /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                            "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                            "--junitxml=/nres/code/pytest-master-arc.xml -m master_arc /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-master-arc.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-master-arc.xml pytest-master-arc.xml")
+						    junit "pytest-master-arc.xml"
 						}
-						junit 'pytest-master-arc.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Zero-File-Creation') {
+		stage("Test-Zero-File-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-zero-file.xml ' +
-								'-m zero_file /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+                    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                        sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                            "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                            "--junitxml=/nres/code/pytest-zero-file.xml -m zero_file /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-zero-file.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-zero-file.xml pytest-zero-file.xml")
+						    junit "pytest-zero-file.xml"
 						}
-						junit 'pytest-zero-file.xml'
 					}
 				}
 			}
 		}
-		stage('Test-Science-File-Creation') {
+		stage("Test-Science-File-Creation") {
 			when {
 				anyOf {
-					branch 'PR-*'
+					branch "PR-*"
 					expression { return params.forceEndToEnd }
 				}
 			}
 			steps {
 				script {
-					sshagent(credentials: ['jenkins-rancher-ssh']) {
-						executeOnRancher('pytest --durations=0 --junitxml=/nres/code/pytest-science-files.xml ' +
-								'-m science_files /nres/code/',
-								CONTAINER_HOST, CONTAINER_ID, ARCHIVE_UID)
+			        withKubeConfig([credentialsId: "dev-kube-config"]) {
+						sh("kubectl exec -c nres-pipeline ${podName} -- " +
+                            "/usr/bin/sudo -s -E -u archive /opt/conda/bin/pytest --durations=0 " +
+                            "--junitxml=/nres/code/pytest-science-files.xml -m science_files /nres/code/")
 					}
 				}
 			}
 			post {
 				always {
-					script{
-						sshagent(credentials: ['jenkins-rancher-ssh']) {
-							copyFromRancherContainer('/nres/code/pytest-science-files.xml', '.', CONTAINER_HOST, CONTAINER_ID)
+					script {
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+						    sh("kubectl cp -c nres-pipeline " +
+						            "${podName}:/nres/code/pytest-science-files.xml pytest-science-files.xml")
+						    junit "pytest-science-files.xml"
 						}
-						junit 'pytest-science-files.xml'
 					}
 				}
 				success {
 					script {
-						sh('rancher -c ${RANCHERDEV_CREDS} rm --stop --type stack NRESPipelineTest')
+					    withKubeConfig([credentialsId: "dev-kube-config"]) {
+                            sh("helm delete nres-pipe || true")
+					    }
 					}
 				}
 			}

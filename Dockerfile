@@ -1,13 +1,25 @@
-FROM docker.lco.global/docker-miniconda3:4.5.11
+FROM docker.lco.global/docker-miniconda3:4.6.14
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
-RUN yum -y install epel-release mariadb-devel \
-        && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
+RUN yum -y install epel-release mariadb-devel sudo freetype libXp libXpm libXmu redhat-lsb-core supervisor \
+        fpack wget ghostscript gcc xorg-x11-server-Xvfb\
         && yum -y clean all
 
-RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy=1.1.4 pytest mock requests ipython celery \
+RUN conda config --append channels conda-forge && conda config --append channels astropy && conda config --append channels openastronomy \
+        && conda install -y python=3.6 numpy cython astropy kombu celery python-dateutil sqlalchemy>=1.3.0 secretstorage==3.0.1 \
+        pytest mock requests ipython celery astroquery matplotlib sep scipy sphinx \
         && conda clean -y --all
+
+RUN pip install lcogt-logging mysqlclient sphinx-automodapi \
+        && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
+        && rm -rf ~/.cache/pip
+
+RUN git clone https://github.com/mstamy2/PyPDF2 /usr/src/pypdf2
+
+WORKDIR /usr/src/pypdf2
+
+RUN python setup.py install
 
 RUN mkdir /home/archive \
         && /usr/sbin/groupadd -g 10000 "domainusers" \
@@ -52,36 +64,15 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     NRESROOT="/nres/" \
     ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary"
 
-RUN yum -y install gcc \
-        && yum -y clean all
-
-RUN pip install lcogt-logging mysqlclient sphinx-automodapi && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
-        && rm -rf ~/.cache/pip
-
-RUN conda install -y sep scipy sphinx -c openastronomy  \
-        && conda clean -y --all
-
 # Switch to wget?
 RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && curl --ftp-pasv -o $ASTRO_DATA/finals.all ftp://maia.usno.navy.mil/ser7/finals.all \
-        && cp $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat \
+        && cp -f $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
-
-RUN conda install -y -c astropy astroquery matplotlib\
-        && conda clean -y --all
-
-RUN git clone https://github.com/mstamy2/PyPDF2 /usr/src/pypdf2
-
-WORKDIR /usr/src/pypdf2
-
-RUN python setup.py install
-
-RUN yum -y install xorg-x11-server-Xvfb \
-        && yum -y clean all
 
 ENV DISPLAY=":99"
 
