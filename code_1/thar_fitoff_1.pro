@@ -11,7 +11,7 @@ pro thar_fitoff_1,fibindx,filin,filout,cubfrz=cubfrz,tharlist=tharlist
 
 @nres_comm
 @thar_comm_1
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 
 ; constants
 outdir=nresrooti+'/reduced/thar/'

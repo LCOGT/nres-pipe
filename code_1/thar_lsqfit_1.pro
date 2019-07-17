@@ -70,7 +70,7 @@ pro thar_lsqfit_1,dvals,dcoefs,rchisq,mchisq,nmatch,dofit=dofit,$
 @thar_comm_1
 
 ; common area for debugging data
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 
 ; constants
 rutname='thar_lsqfit_1'

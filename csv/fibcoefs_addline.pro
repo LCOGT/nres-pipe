@@ -6,9 +6,9 @@ pro fibcoefs_addline,site,jdate,camera,fibcoef
 ; to be sorted into time order, without otherwise changing it.
 
 nresroot=getenv('NRESROOT')
-nresrooti=nresroot+getenv('NRESINST')
-;nresrooti=nresroot+'RDlsc1/'                ; keep only one fibcoef.csv file
-fibcoefsfile=nresrooti+'reduced/csv/fibcoefs.csv'
+;nresrooti=nresroot+getenv('NRESINST')
+nresrooti=nresroot+'code/csv/'                ; keep only one fibcoef.csv file
+fibcoefsfile=nresrooti+'fibcoefs.csv'
 
 fibcoefs_rd,sites,jdates,cameras,fibcoefs,hdr
 

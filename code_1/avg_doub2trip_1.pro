@@ -32,7 +32,7 @@ pro avg_doub2trip_1,flist,tharlist=tharlist,array=array
 ; get common blocks for NRES, ThAr fitting
 @nres_comm
 @thar_comm_1
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 jdc=systime(/julian)
 tarlist=[]
 ; constants

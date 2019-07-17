@@ -58,7 +58,7 @@ if(ierr_c ne 0) then begin
 endif
 
 ; save interesting values for each iteration
-niter_thar=21
+niter_thar=9
 ii_parms=dblarr(7,niter_thar+1)
 ii_coefs=dblarr(15,niter_thar+1)
 ii_lam=dblarr(4096,67,niter_thar+1)

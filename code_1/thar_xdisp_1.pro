@@ -16,12 +16,12 @@ pro thar_xdisp_1,xp0,io0,ll0,er0,xp1,io1,ll1,er1,fibc,rms
 ; inversely as the square of the expected positional error, with outlier
 ; rejection.
 ; Modified from thar_xdisp to employ Legendre polynomials for the fitting
-; functions, rather than simple polynomials.
+; functions, rather than simple power laws.
 
 @thar_comm_1     ;load thar common block
 
 ; constants
-lamthrsh=0.005   ; max wavelength difference for a match (nm)
+lamthrsh=0.010   ; max wavelength difference for a match (nm)
 thrsig=5.         ; outliers at least this many sigma from mean
 svm=1.e-5        ; minimum singular value ratio used in fit
 
@@ -116,5 +116,7 @@ thrq=dq*thrsig/1.35              ; more than thrsig sigma from zero
 sb=where(abs(outp) ge thrq,nsb)
 if(nsb gt 0) then wts(sb)=0.
 fibc=lstsqr(dx,funs,wts,nfun,rms,chisq,outp,1,cov,svdminrat=svm)
+
+;stop
 
 end
