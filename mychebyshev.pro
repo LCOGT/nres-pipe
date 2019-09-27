@@ -1,4 +1,4 @@
-function mylegendre,x,ord
+function mychebyshev,x,ord
 ; This function returns the legendre polynomial of order ord, evaluated
 ; at the values x (which may be a vector), for orders 0-6 ONLY.
 ; Unlike the IDL legendre function, this one does not throw an error
@@ -16,11 +16,11 @@ endif
 case ord of
   0: y=x-x+1.
   1: y=x
-  2: y=(3.*x^2-1.)/2.
-  3: y=(5.*x^3-3.*x)/2.
-  4: y=(35.*x^4-30.*x^2+3.)/8.
-  5: y=(63.*x^5-70.*x^3+15.*x)/8.
-  6: y=(231.*x^6-315.*x^4+105.*x^2-5)/16.
+  2: y=(2*x^2-1.)
+  3: y=(4.*x^3-3.*x)
+  4: y=(8*x^4-8.*x^2+1.)
+  5: y=(16.*x^5-20.*x^3+5.*x)
+  6: y=(32.*x^6-48.*x^4+18*x^2-1.)
 endcase
 
 fini:

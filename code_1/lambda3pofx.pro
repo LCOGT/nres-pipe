@@ -1,31 +1,27 @@
-pro lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,$
+pro lambda3pofx,xx,mm,fibno,specstruc,lam,y0m,$
      air=air
 ; This routine computes wavelength lam(nm) as a function of x-coordinate xx
 ; and order number mm, for fiber fibno={0, 1, or 2}
 ; for a cross-dispersed echelle.
+; It differs from lambda3ofx in that the required input does not include
+; the physical model parameters, and the polynomial coefficients coefs
+; are interpreted differently than in lambda3ofx.
+;  
 ; On input,
 ;  xx(nx) = x-coordinate vector, measured from CCD center, in mm
 ;  mm(nord) = vector containing order numbers for which lam is to be calculated
 ;  fibno = 0, 1, or 2 depending on desired fiber number.  1 (center) is
 ;    the calibration fiber, 0 and 2 are star fibers.
 ;  spectstruc = structure containing spectrograph descriptive info, as follows
-;  .d = grating groove spacing (microns)
-;  .gltype = prism glass type
-;  .apex = prism vertex angle (degrees)
-;  .lamcen = nominal wavelength (micron) for which prism out-and-back 
-;           deviation is zero
-;  .rot = rotation angle of CCD (degree) relative to main dispersion along x
-;  .sinalp = sin of incidence angle on grating
-;  .fl = focal length of the spectrograph camera (mm)
-;  .y0 = y-coordinate on CCD (mm) at which gamma angle = 0.
 ;  .z0 = refractive index of ambient medium surrounding SG is 1.+z0.
 ;       If keyword air is set, material is assumed to be dry air with
 ;       n(Na D) = 1.+z0
-;  .coefs =  a vector of float or double
-;  coefficients in a restricted cubic polynomial that accounts for non-ideal
-;  behavior in the wavelength solution.  The number of elements must be
-;  10 or 15.  Any or all elements may be zero;  if all are zero, the
-;  polynomial correction is skipped.
+;  .coefs =  a vector of double polynomial coefficients describing two
+;  polynomial functions sa, cg that are roughly equal to 
+;  sa ~= (sin(alpha)-sin(beta))  (a function of detector x-coordinate only)
+;  cg ~= cos(gamma)  (a function of detector y-coordinate only)
+;  These functions are sums of Chebyshev polynomials defined on [-1,1],
+;  so the x,y coords pixel coordinates scaled by 0.5*npix.
 ;  .fibcoefs(10,2) = floating coeffs giving shift in pixel units between
 ;    fiber1 and fiber0 = fibcoefs(*,0)
 ;    fiber1 and fiber2 = fibcoefs(*,1)
@@ -34,8 +30,8 @@ pro lambda3ofx,xx,mm,fibno,specstruc,lam,y0m,$
 ;  lam(nx,nord) = computed wavelength vs x,order (nm)
 ;  y0m(nord) = y(order index) (units = mm) at the center of each order.
 ;
-; Method is to combine the diffraction equation with geometrical relations
-; for image scale and rotation.
+; Method is to combine the polynomial approximation to the grating
+;  equation with geometrical relations for image scale and rotation.
 
 compile_opt hidden
 
@@ -46,19 +42,17 @@ dn=20                 ; extend x-coord by this much at each end to allow
                       ; interpolation for fibers 0 and 2
 
 ; unpack specstruc
-d=specstruc.grspc
+;d=specstruc.grspc
 gltype=specstruc.gltype
 apex=specstruc.apex
 lamcen=specstruc.lamcen
 r0=specstruc.rot/radian
-sinalp=specstruc.sinalp
+;sinalp=specstruc.sinalp
 fl=specstruc.fl
 y0=specstruc.y0
 z0=specstruc.z0
 rcubic=specstruc.coefs(0:specstruc.ncoefs-1)
 fibcoefs=specstruc.fibcoefs
-
-;print,'lambda3ofx parms:',sinalp,fl,y0,z0
 
 ; get sizes of things
 nx=n_elements(xx)
@@ -148,24 +142,6 @@ if(ns eq 0) then goto,skip
 
 ; make polynomial functions
 ; try using legendre polynomials in the expansion, instead of these
-;funs=fltarr(nxe,nord,ncoef)
-;funs(*,*,0)=1.
-;funs(*,*,1)=jord
-;funs(*,*,2)=jord^2
-;funs(*,*,3)=jord^3
-;funs(*,*,4)=jx
-;funs(*,*,5)=jx*jord
-;funs(*,*,6)=jx*jord^2
-;funs(*,*,7)=jx^2
-;funs(*,*,8)=jx^2*jord
-;funs(*,*,9)=jx^3
-;if(ncoef eq 15) then begin
-;  funs(*,*,10)=jord^4
-;  funs(*,*,11)=jx*jord^3
-;  funs(*,*,12)=jx^2*jord^2
-;  funs(*,*,13)=jx^3*jord
-;  funs(*,*,14)=jx^4
-;endif
 
 lx=2.*jx/nx
 lord=2.*jord/nord
@@ -214,10 +190,6 @@ lami=lam
 if(fibno eq 0 or fibno eq 2) then begin
   iic=fibno/2
 ; use legendre coefficients for pixel shifts, not simple polynomials
-; dx=fibcoefs(0,iic)+fibcoefs(1,iic)*jord+fibcoefs(2,iic)*jx+$
-;  fibcoefs(3,iic)*jx*jord+fibcoefs(4,iic)*jord^2+fibcoefs(5,iic)*jx*jord^2+$
-;  fibcoefs(6,iic)*jx^2+fibcoefs(7,iic)*jord*jx^2+fibcoefs(8,iic)*jx^3+$
-;  fibcoefs(9,iic)*jord^3
   dx=fibcoefs(0,iic)+fibcoefs(1,iic)*lo1+fibcoefs(2,iic)*lx1+$
    fibcoefs(3,iic)*lx1*lo1+fibcoefs(4,iic)*lo2+fibcoefs(5,iic)*lx1*lo2+$
    fibcoefs(6,iic)*lx2+fibcoefs(7,iic)*lx2*lo1+fibcoefs(8,iic)*lx3+$

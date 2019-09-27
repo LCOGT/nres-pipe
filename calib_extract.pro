@@ -154,9 +154,11 @@ objs=sxpar(dathdr,'OBJECTS')
 backsub,cordat,ord_vectors,ord_wid,nfib,medboxsz,objs
 ; cordat is left in common: bias, dark, background-subtracted data,
 ;   trimmed to remove overscan if necessary.
+stop
 
 ; extract spectra
 extract,err
+stop
 
 ; flatfield
 if(keyword_set(flatk)) then begin
@@ -171,7 +173,7 @@ endelse
   
 ; make the header and fill it out
 ; do not do this if flatk is set, since it will be done in mk_flat1
-if(~keyword_set(flatk)) then begin
+if(not keyword_set(flatk)) then begin
 
 ; write corspec (raw/flat) first
   mjdobs=sxpar(dathdr,'MJD-OBS')

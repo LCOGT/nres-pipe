@@ -1,0 +1,20 @@
+Things wrong with thar_triple & assoc routines:
+
+Arguably, these should work on blaze-corrected spectra, not flat-fielded.
+Do we have blaze-corrected arc spectra?  Maybe just extracted is fine.
+
+Since the triple code works on extracted spectra, it shouldn't be hard to
+substitute the stage2 thar-fitting code for the muncha code now used.
+
+It may be wise to reset the starting conditions before solving for each of
+the 4 fibers, since results appear so much worse for the last 3 fibers than
+for the first.  Doing the substitution above may make this moot.
+
+I think the stage2 code is speedier than the muncha code, which also argues
+for substututing.
+
+In the process, might as well replace the muncha thar-fitting code as well.
+
+*Done* 
+Comments in one of the fit_something.pro code are messed up, and tell lies
+about the function of the tharlist keyword.  Fix this.

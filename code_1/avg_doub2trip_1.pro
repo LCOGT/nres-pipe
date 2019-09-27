@@ -1,4 +1,4 @@
-pro avg_doub2trip,flist,tharlist=tharlist,array=array
+pro avg_doub2trip_1,flist,tharlist=tharlist,array=array
 ; This routine combines a list of DOUBLE files into a single averaged
 ; TRIPLE file, saves the output into the /reduced/trip directory, and writes
 ; a summary line into the standards.csv file.
@@ -31,8 +31,8 @@ pro avg_doub2trip,flist,tharlist=tharlist,array=array
 
 ; get common blocks for NRES, ThAr fitting
 @nres_comm
-@thar_comm
-common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun
+@thar_comm_1
+common thar_dbg,inmatch,isalp,ifl,iy0,iz0,ifun,ie0,ie1,ie2
 jdc=systime(/julian)
 tarlist=[]
 ; constants
@@ -68,6 +68,7 @@ for i=0,nfile-1 do begin
     ;stop
     print,'input DOUBLE file not found in standards.csv  ',files(i)
     print,'avg_doub2trip FAIL'
+    stop
     goto,fini
   endif else begin
     flag2(i)=fix(strmid(flags(s),2,1))
@@ -124,7 +125,7 @@ if(opt eq 1 or opt eq 2) then begin
     fil01=files(i)
     fil12=fil01
     if(nfib eq 3) then force=1 else force=0
-    thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
+    thar_triple_1,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
        tharlist=tharlist
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
     if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
@@ -142,7 +143,8 @@ if(opt eq 3 or opt eq 4) then begin
       fil01=files(2*i+1)
       fil12=files(2*i)
     endelse
-    thar_triple,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
+    thar_triple_1,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
+      tharlist=tharlist
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
     if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
   endfor
@@ -229,13 +231,9 @@ endfor
 sxaddpar,hdrout,'ORD0',mm_c(0)
 sxaddpar,hdrout,'GRSPC',grspc_c
 sxaddpar,hdrout,'SINALP',sinalpav
-sxaddpar,hdrout,'DSINALP',dsinalp_c
 sxaddpar,hdrout,'FL',flav
-sxaddpar,hdrout,'DFL',dfl_c
 sxaddpar,hdrout,'Y0',y0av
-sxaddpar,hdrout,'DY0',dy0_c
 sxaddpar,hdrout,'Z0',z0av
-sxaddpar,hdrout,'DZ0',dz0_c
 sxaddpar,hdrout,'GLASS',gltype_c
 sxaddpar,hdrout,'APEX',apex_c
 sxaddpar,hdrout,'LAMCEN',lamcen_c
@@ -282,7 +280,8 @@ fpack_stacked_calibration,filout, sxpar(hdrout, 'OUTNAME')
 print,'TRIPLE file written to ',filout
 
 ; write fibcoefs into new line in reduced/csv/fibcoefs.csv
-fibcoefs_addline,site,sxpar(hdrout,'MJD-OBS')+2400000.5d0,camera,fibcoefs
+mjdout=sxpar(hdrout,'MJD-OBS')+2400000.5d0
+fibcoefs_addline,site,mjdout,camera,fibcoefs
 
 ; write line into standards.csv
 case opt of
@@ -316,7 +315,7 @@ print,'Values for spectrographs.csv'
 print,'GrInc,dGrInc,FL,dFL,Y0,dY0,Z0,dZ0'
 alp=asin(sinalpav)*radian
 dalp=0.01
-fvals=[alp,dalp,flav,dfl_c,y0av,dy0_c,z0av,dz0_c]
+fvals=[alp,flav,y0av,z0av]
 svals=string(fvals,format='(f13.8)')
 svals=svals+','
 print,svals,format='(8a14)'
@@ -327,6 +326,20 @@ sfibc=string(reform(fibcoefs,20),format='(e16.8)')
 sfibc=sfibc+','
 print,sfibc,format='(20a17)'
 print
+
+nmt=n_elements(matchxpos_c)
+openw,iunt,'matchtest.txt',/append,/get_lun
+printf,iunt,mjdc,format='(f12.5)'
+printf,iunt,nmt
+printf,iunt,matchlam_c,format='(6f12.7)'
+printf,iunt,matchline_c,format='(6f12.7)'
+printf,iunt,matchxpos_c
+printf,iunt,matchamp_c
+printf,iunt,matchwid_c
+printf,iunt,matchord_c
+close,iunt
+free_lun,iunt
+
 
 fini:
 

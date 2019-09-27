@@ -1,4 +1,4 @@
-pro thar_rcubic,cubfrz=cubfrz
+pro thar_rcubic_1,cubfrz=cubfrz
 ; This routine does a robust weighted minimum-chi^2 fit to the residuals
 ; remaining after the 4-parameter fit to ThAr line positions vs x-posn
 ; and order, as done by the first part of thar_fitall.pro.
@@ -18,7 +18,7 @@ pro thar_rcubic,cubfrz=cubfrz
 ; If there are too few data points to fit the required number of coefficients,
 ; then all rcubic coeffs are left unchanged.
 
-@thar_comm
+@thar_comm_1
 
 ; constants
 thr1=0.02                  ; threshold dif for retaining data, (nm)

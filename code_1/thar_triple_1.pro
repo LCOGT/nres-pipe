@@ -1,4 +1,4 @@
-pro thar_triple,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
+pro thar_triple_1,fil01,fil12,tripstruc,rms,force2=force2,cubfrz=cubfrz,$
     nofits=nofits,tharlist=tharlist
 ; This routine runs offline (ie, not called by muncha).
 ; It accepts ascii file names fil01,fil02, which should be FITS files
@@ -86,9 +86,9 @@ if(nfiba eq 2 and fib0 eq 0) then ifib=0
 if(nfiba eq 2 and fib0 eq 2) then ifib=1  ; Don't yet have this case
 if(nfiba eq 3) then ifib=0
 print
-print,'thar_fitoff input = ',fnam01
+print,'thar_fitoff_1 input = ',fnam01
 print
-thar_fitoff,ifib,fnam01,'thar_fitoff00.sav',cubfrz=cubfrz,tharlist=tharlist
+thar_fitoff_1,ifib,fnam01,'thar_fitoff00.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil12 results
 ; name contains (input file # 0 or 1) (fiber # 0,1,2)
 sinalp00=sinalp_c
@@ -107,9 +107,9 @@ if(nfiba eq 2 and fib0 eq 0) then ifib=1
 if(nfiba eq 2 and fib0 eq 2) then ifib=2
 if(nfiba eq 3) then ifib=1
 print
-print,'thar_fitoff input =',fnam12
+print,'thar_fitoff_1 input =',fnam12
 print
-thar_fitoff,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
+thar_fitoff_1,ifib,fnam01,'thar_fitoff01.sav',cubfrz=cubfrz,tharlist=tharlist
 sinalp01=sinalp_c
 fl01=fl_c
 y001=y0_c
@@ -156,7 +156,7 @@ endif
 
 if(nfiba eq 3) then begin
 ; estimate wavelength solution for fiber 1 of fil12
-  thar_fitoff,1,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz,tharlist=tharlist
+  thar_fitoff_1,1,fnam12,'thar_fitoff11.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil01 results
   sinalp11=sinalp_c
   fl11=fl_c
@@ -170,7 +170,7 @@ if(nfiba eq 3) then begin
   er11=matcherr_c
 
 ; estimate wavelength solution for fiber 2 of fil12
-  thar_fitoff,2,fnam12,'thar_fitoff12.sav',cubfrz=cubfrz,tharlist=tharlist
+  thar_fitoff_1,2,fnam12,'thar_fitoff12.sav',cubfrz=cubfrz,tharlist=tharlist
 ; save stuff to be averaged with fil01 results
   sinalp12=sinalp_c
   fl12=fl_c
@@ -203,26 +203,27 @@ if(nfiba eq 3) then begin
   z0av=(z001+z011)/2.
   coefsav=(coefs01+coefs11)/2.
   lamav=(lam01+lam11)/2.        ; avg'd lambda grid for fiber 1
-  stop
 endif
 
 ; #############
-; save inputs to xdisp1, for quick debug turnaround
+; save inputs to xdisp_1, for quick debug turnaround
 save,xp01,io01,ll01,er01,xp00,io00,ll00,er00,xp11,io11,ll11,er11,xp12,io12,ll12,er12,$
     file='savexdispin.idl'
 ; #############
 
+;stop
+
 ; call thar_xdisp to get fibcoef estimates
 fibcoefs=dblarr(10,2)
 if(nfiba eq 2) then begin
-  thar_xdisp1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc,rms
+  thar_xdisp_1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc,rms
   fibcoefs(*,0)=fibc
   fibcoefs(*,1)=-fibc
 endif 
 if(nfiba eq 3) then begin
-  thar_xdisp1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc0,rms0
+  thar_xdisp_1,xp01,io01,ll01,er01,xp00,io00,ll00,er00,fibc0,rms0
 ; thar_xdisp,xp00,io00,ll00,er00,xp01,io01,ll01,er01,fibc0,rms0
-  thar_xdisp1,xp11,io11,ll11,er11,xp12,io12,ll12,er12,fibc1,rms1
+  thar_xdisp_1,xp11,io11,ll11,er11,xp12,io12,ll12,er12,fibc1,rms1
   fibcoefs(*,0)=fibc0
   fibcoefs(*,1)=fibc1
 endif
@@ -251,20 +252,16 @@ branch='trip/'
 
 ; make output header = 1st input header with mods, write out the data
 mkhdr,hdrout,lamav
-sxaddpar,hdrout,'MJD',mjd
+sxaddpar,hdrout,'MJD',mjdd
 sxaddpar,hdrout,'NFRAVGD',2
 sxaddpar,hdrout,'ORIGNAM0',fil01
 sxaddpar,hdrout,'ORIGNAM1',fil12
 sxaddpar,hdrout,'ORD0',mm_c(0)
 sxaddpar,hdrout,'GRSPC',grspc_c
 sxaddpar,hdrout,'SINALP',sinalpav
-sxaddpar,hdrout,'DSINALP',dsinalp_c
 sxaddpar,hdrout,'FL',flav
-sxaddpar,hdrout,'DFL',dfl_c
 sxaddpar,hdrout,'Y0',y0av
-sxaddpar,hdrout,'DY0',dy0_c
 sxaddpar,hdrout,'Z0',z0av
-sxaddpar,hdrout,'DZ0',dz0_c
 sxaddpar,hdrout,'GLASS',gltype_c
 sxaddpar,hdrout,'APEX',apex_c
 sxaddpar,hdrout,'LAMCEN',lamcen_c
@@ -307,7 +304,7 @@ writefits,filout,lamav,hdrout
 print,'FITS:',filout
 
 ; write line into standards.csv
-stds_addline,'TRIPLE',branch+fout,2,site,camera,jd,'0000'
+stds_addline,'TRIPLE',branch+fout,2,site,camera,jdd,'0000'
 print,'standards.csv',branch+fout
 
 fini:
