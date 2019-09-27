@@ -74,7 +74,8 @@ for i=0,nc-1 do begin
     fibcoesm(i)=mean(dat(sg))
     goto,loop
   endif
-  cc=lstsqr(dat,tt,wts,funs,2,rms,chisq,outp,1,cov,ierr)
+  if(npt lt nc) then funstrun=funs(0:npt-1,*) else funstrun=funs
+  cc=lstsqr(dat,funstrun,wts,2,rms,chisq,outp,1,cov,ierr)
   fibcoesm(i)=cc(0)+cc(1)*ttout
   loop:
 endfor

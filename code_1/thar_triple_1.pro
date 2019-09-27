@@ -211,7 +211,7 @@ save,xp01,io01,ll01,er01,xp00,io00,ll00,er00,xp11,io11,ll11,er11,xp12,io12,ll12,
     file='savexdispin.idl'
 ; #############
 
-stop
+;stop
 
 ; call thar_xdisp to get fibcoef estimates
 fibcoefs=dblarr(10,2)

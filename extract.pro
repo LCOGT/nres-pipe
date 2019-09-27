@@ -280,8 +280,6 @@ for ifib=0,mfib-1 do begin
 
   extlstsq,sprofile,dfpdy,d2fpdy2,ebo,vbo,ewts,datparms,nfun,ifun,fitc
 
-; stop
-
 ; subtract profile*intensity from observations, look for high-sigma outliers
   prod0=sprofile*rebin(reform(fitc(*,*,0),nx,1,nord),nx,cowid,nord)
   prod2=dfpdy*rebin(reform(fitc(*,*,2),nx,1,nord),nx,cowid,nord)*$

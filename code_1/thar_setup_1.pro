@@ -100,8 +100,6 @@ dofitstr=dstr
 ; get default spectrograph params to put in frozen params.
 ;thar_get_default_stg2,site,mjdd
 
-;stop
-
 ; get trace data for later use in cubchrom
 ; first make a fake cordat array, with dimensions nx_c x nx_c
 cordat=fltarr(nx_c,nx_c)
@@ -166,6 +164,28 @@ if(tnsqds le nsqdthr) then begin
   ierr_c=2
   logo_nres2,rutname,'ERROR',{tnsqds:tnsqds}
   goto,fini
+endif
+
+; test a very blue order of tharspec_c to see if its noise properties
+; show that it has been flat-fielded.  If so, obtain a FLAT for the
+; corresponding date, and multiply tharspec_c by the flat for the appropriate
+; fiber, so that it is essentially a raw extracted spectrum.
+tdat=tharspec_c(*,nord_c-5)
+quartile,tdat,tmed,tq,tdq
+sb=where(tdat-tmed gt 10.*tdq,nsb)
+if(nsb gt 0) then tdat(sb)=0.          ; zero out real lines
+thwid=nx_c/8.
+rmbot=stddev(tdat(0:2*thwid))
+rmmid=stddev(tdat(nx_c/2-thwid:nx_c/2+thwid))
+rmtop=stddev(tdat(nx_c-2*thwid:nx_c-1))
+rmavg=(rmbot+rmtop)/2.
+print,'rmavg/rmmid = ',rmavg/rmmid
+if(rmavg/rmmid gt 1.4) then begin       ; do this if lots noisier at edges
+  get_calib,'FLAT',filename,cdat,chdr,gerr
+  tspecout=tharspec_c
+  tspecout=tspecout*(cdat(*,*,1) > 0.)   ; ignore fiber index for now 
+                                         ;  too confusing
+  tharspec_c=tspecout
 endif
 
 ; make first guess lam_c, with current specdat values

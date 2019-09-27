@@ -68,6 +68,7 @@ for i=0,nfile-1 do begin
     ;stop
     print,'input DOUBLE file not found in standards.csv  ',files(i)
     print,'avg_doub2trip FAIL'
+    stop
     goto,fini
   endif else begin
     flag2(i)=fix(strmid(flags(s),2,1))
@@ -142,7 +143,8 @@ if(opt eq 3 or opt eq 4) then begin
       fil01=files(2*i+1)
       fil12=files(2*i)
     endelse
-    thar_triple_1,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits
+    thar_triple_1,fil01,fil12,tripstruc,rms,force2=force,/cubfrz,/nofits,$
+      tharlist=tharlist
     if(i eq 0) then outs=[tripstruc] else outs=[outs,tripstruc]
     if(i eq 0) then filinp=[fil01,fil12] else filinp=[filinp,fil01,fil12]
   endfor
@@ -278,7 +280,8 @@ fpack_stacked_calibration,filout, sxpar(hdrout, 'OUTNAME')
 print,'TRIPLE file written to ',filout
 
 ; write fibcoefs into new line in reduced/csv/fibcoefs.csv
-fibcoefs_addline,site,sxpar(hdrout,'MJD-OBS')+2400000.5d0,camera,fibcoefs
+mjdout=sxpar(hdrout,'MJD-OBS')+2400000.5d0
+fibcoefs_addline,site,mjdout,camera,fibcoefs
 
 ; write line into standards.csv
 case opt of
@@ -323,6 +326,20 @@ sfibc=string(reform(fibcoefs,20),format='(e16.8)')
 sfibc=sfibc+','
 print,sfibc,format='(20a17)'
 print
+
+nmt=n_elements(matchxpos_c)
+openw,iunt,'matchtest.txt',/append,/get_lun
+printf,iunt,mjdc,format='(f12.5)'
+printf,iunt,nmt
+printf,iunt,matchlam_c,format='(6f12.7)'
+printf,iunt,matchline_c,format='(6f12.7)'
+printf,iunt,matchxpos_c
+printf,iunt,matchamp_c
+printf,iunt,matchwid_c
+printf,iunt,matchord_c
+close,iunt
+free_lun,iunt
+
 
 fini:
 

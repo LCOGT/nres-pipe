@@ -10,7 +10,7 @@ fibcoefsfile=nresrooti+'fibcoefs.csv'
 
 dat=read_csv(fibcoefsfile,header=fibhdr)
 sites=dat.field01
-jdates=dat.field02+2400000.5d0
+jdates=dat.field02
 cameras=dat.field03
 fibcoefs=[dat.field04,dat.field05,dat.field06,dat.field07,dat.field08,$
   dat.field09,dat.field10,dat.field11,dat.field12,dat.field13,dat.field14,$
