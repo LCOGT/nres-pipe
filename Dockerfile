@@ -60,7 +60,7 @@ RUN curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && cp /nres/code/bary/iers_final_a.dat $ASTRO_DATA/ \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
-        && chown -R archive:domainusers $ASTRO_DATA
+        && chown -R archive:domainusers $ASTRO_DATA \
         && cp /nres/code/bary/tai-utc.dat $ASTRO_DATA/
 
 RUN conda install -y -c astropy astroquery matplotlib\
