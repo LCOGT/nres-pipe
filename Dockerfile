@@ -37,13 +37,6 @@ RUN curl -o /opt/idl/xtra/mpfit.tar.gz "http://www.physics.wisc.edu/~craigm/idl/
         && rm -f /opt/idl/xtra/mpfit.tar.gz \
         && chown -R archive:domainusers /opt/idl/xtra/mpfit
 
-RUN curl -o /opt/idl/xtra/exofast.tgz "http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz" \
-        && mkdir -p /opt/idl/xtra/exofast \
-        && tar -xzf /opt/idl/xtra/exofast.tgz -C /opt/idl/xtra/exofast/ \
-        && rm -f /opt/idl/xtra/exofast.tgz \
-        && sed -i -e '123s/\[0d0/\[1d-30/' /opt/idl/xtra/exofast/exofast/bary/zbarycorr.pro \
-        && chown -R archive:domainusers /opt/idl/xtra/exofast
-
 # trailing slash is required for nres root
 ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lco.gtn:/usr/local/itt/license/license.dat" \
@@ -62,14 +55,14 @@ RUN conda install -y sep scipy sphinx -c openastronomy  \
         && conda clean -y --all
 
 # Switch to wget?
-RUN curl -o $ASTRO_DATA/tai-utc.dat ftp://maia.usno.navy.mil/ser7/tai-utc.dat \
-        && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
+RUN curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
-        && curl --ftp-pasv -o $ASTRO_DATA/finals.all ftp://maia.usno.navy.mil/ser7/finals.all \
-        && cp $ASTRO_DATA/finals.all $ASTRO_DATA/iers_final_a.dat \
+        && wget https://datacenter.iers.org/data/latestVersion/7_FINALS.ALL_IAU1980_V2013_017.txt -P $ASTRO_DATA \
+        && cp $ASTRO_DATA/7_FINALS.ALL_IAU1980_V2013_017.txt $ASTRO_DATA/iers_final_a.dat \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
+        && cp /nres/code/bary/tai-utc.dat $ASTRO_DATA/
 
 RUN conda install -y -c astropy astroquery matplotlib\
         && conda clean -y --all
