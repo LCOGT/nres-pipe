@@ -58,8 +58,7 @@ RUN conda install -y sep scipy sphinx -c openastronomy  \
 RUN curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
         && curl --ftp-pasv -o $ASTRO_DATA/TTBIPM09.ext ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.09.ext \
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
-        && wget https://datacenter.iers.org/data/latestVersion/7_FINALS.ALL_IAU1980_V2013_017.txt -P $ASTRO_DATA \
-        && cp $ASTRO_DATA/7_FINALS.ALL_IAU1980_V2013_017.txt $ASTRO_DATA/iers_final_a.dat \
+        && cp /nres/code/bary/iers_final_a.dat $ASTRO_DATA/ \
         && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
         && chown -R archive:domainusers $ASTRO_DATA
         && cp /nres/code/bary/tai-utc.dat $ASTRO_DATA/
