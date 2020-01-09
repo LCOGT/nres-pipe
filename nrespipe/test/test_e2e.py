@@ -32,7 +32,7 @@ logger = logging.getLogger('nrespipe')
 
 def wait_for_celery_to_finish():
     logger.info('Waiting for data to process')
-    celery_inspector = app.control.inspect()
+    celery_inspector = tasks.app.control.inspect()
     log_counter = 0
     while True:
         queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
