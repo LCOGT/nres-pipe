@@ -15,6 +15,7 @@ from nrespipe import dbs
 import tarfile
 import logging
 
+logger = logging.getLogger('nrespipe')
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
                for instrument_path in glob(os.path.join(os.path.join(os.environ['NRES_DATA_ROOT'], site, '*')))]
@@ -27,25 +28,21 @@ cameras = {'lsc': 'fl09', 'elp': 'fl17'}
 nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', 'dark', 'dble', 'diag', 'expm',
                              'extr', 'flat', 'plot', 'rv', 'spec', 'tar', 'temp', 'thar', 'trace', 'trip', 'zero']
 
-logger = logging.getLogger('nrespipe')
-
 
 def wait_for_celery_to_finish():
-    logger.info('Waiting for data to process')
     celery_inspector = tasks.app.control.inspect()
-    log_counter = 0
+    logger.info('Processing:')
+    logger_counter = 0
     while True:
+        if logger_counter % 10 == 0:
+            logger.info('Processing: ' + '. ' * logger_counter // 10)
         queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
         time.sleep(1)
-        log_counter += 1
-        if log_counter % 10 == 0:
-            logger.info('Processing: ' + '. ' * (log_counter // 10))
-        if any([queue is None or 'celery@banzai-celery-worker' not in queue for queue in queues]):
-            logger.warning('No valid celery queues were detected, retrying...')
+        if any([queue is None or 'celery@worker' not in queue for queue in queues]):
             # Reset the celery connection
             celery_inspector = tasks.app.control.inspect()
             continue
-        if all([len(queue['celery@banzai-celery-worker']) == 0 for queue in queues]):
+        if all([len(queue['celery@worker']) == 0 for queue in queues]):
             break
 
 
