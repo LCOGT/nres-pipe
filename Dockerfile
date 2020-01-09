@@ -45,9 +45,9 @@ RUN curl -o /opt/idl/xtra/mpfit.tar.gz "https://pages.physics.wisc.edu/~craigm/i
 ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lco.gtn:/usr/local/itt/license/license.dat" \
     PATH="${PATH}:/opt/idl/idl/bin" \
-    IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
+    IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/nres/code/util/exofast:+/nres/code/bary:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
     NRESROOT="/nres/" \
-    ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary"
+    ASTRO_DATA="/nres/code/bary"
 
 RUN curl -o /opt/idl/xtra/exofast.tgz "http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz" \
         && mkdir -p /opt/idl/xtra/exofast \
