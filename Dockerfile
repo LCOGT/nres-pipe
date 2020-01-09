@@ -1,13 +1,17 @@
-FROM docker.lco.global/docker-miniconda3:4.5.11
+FROM docker.lco.global/docker-miniconda3:4.7.12
 MAINTAINER Las Cumbres Observatory <webmaster@lco.global>
 ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf" ]
 
-RUN yum -y install epel-release mariadb-devel sudo \
+RUN yum -y install epel-release mariadb-devel sudo gcc xorg-x11-server-Xvfb \
         && yum install -y freetype libXp libXpm libXmu redhat-lsb-core supervisor fpack wget ghostscript \
         && yum -y clean all
 
-RUN conda install -y -c conda-forge pip numpy cython astropy sqlalchemy=1.1.4 pytest mock requests ipython celery \
+COPY pip_requirements.txt conda_requirements.txt /opt/
+
+RUN conda install -y --file /opt/conda_requirements.txt \
         && conda clean -y --all
+
+RUN pip install -r /opt/pip_requirements.txt --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ --no-cache-dir
 
 RUN mkdir /home/archive \
         && /usr/sbin/groupadd -g 10000 "domainusers" \
@@ -31,7 +35,7 @@ RUN curl -o /opt/idl/xtra/coyote_astron.tar.gz "https://idlastro.gsfc.nasa.gov/f
         && tar -xzf /opt/idl/xtra/coyote_astron.tar.gz -C /opt/idl/xtra/astron/ \
         && rm -f /opt/idl/xtra/coyote_astron.tar.gz
 
-RUN curl -o /opt/idl/xtra/mpfit.tar.gz "http://www.physics.wisc.edu/~craigm/idl/down/mpfit.tar.gz" \
+RUN curl -o /opt/idl/xtra/mpfit.tar.gz "https://pages.physics.wisc.edu/~craigm/idl/down/mpfit.tar.gz" \
         && mkdir -p /opt/idl/xtra/mpfit \
         && tar -xzf /opt/idl/xtra/mpfit.tar.gz -C /opt/idl/xtra/mpfit/ \
         && rm -f /opt/idl/xtra/mpfit.tar.gz \
@@ -45,14 +49,12 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     NRESROOT="/nres/" \
     ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary"
 
-RUN yum -y install gcc \
-        && yum -y clean all
-
-RUN pip install lcogt-logging mysqlclient sphinx-automodapi && pip install opentsdb_python_metrics --trusted-host buildsba.lco.gtn --extra-index-url http://buildsba.lco.gtn/python/ \
-        && rm -rf ~/.cache/pip
-
-RUN conda install -y sep scipy sphinx -c openastronomy  \
-        && conda clean -y --all
+RUN curl -o /opt/idl/xtra/exofast.tgz "http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz" \
+        && mkdir -p /opt/idl/xtra/exofast \
+        && tar -xzf /opt/idl/xtra/exofast.tgz -C /opt/idl/xtra/exofast/ \
+        && rm -f /opt/idl/xtra/exofast.tgz \
+        && sed -i -e '123s/\[0d0/\[1d-30/' /opt/idl/xtra/exofast/exofast/bary/zbarycorr.pro \
+        && chown -R archive:domainusers /opt/idl/xtra/exofast
 
 # Switch to wget?
 RUN curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm/TTBIPM.2009 \
@@ -60,12 +62,7 @@ RUN curl --ftp-pasv -o $ASTRO_DATA/TTBIPM.09  ftp://ftp2.bipm.org/pub/tai/ttbipm
         && cat $ASTRO_DATA/TTBIPM.09 $ASTRO_DATA/TTBIPM09.ext > $ASTRO_DATA/bipmfile \
         && wget https://datacenter.iers.org/data/latestVersion/7_FINALS.ALL_IAU1980_V2013_017.txt -P $ASTRO_DATA \
         && cp $ASTRO_DATA/7_FINALS.ALL_IAU1980_V2013_017.txt $ASTRO_DATA/iers_final_a.dat \
-        && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update \
-        && chown -R archive:domainusers $ASTRO_DATA \
-        && cp /nres/code/bary/tai-utc.dat $ASTRO_DATA/
-
-RUN conda install -y -c astropy astroquery matplotlib\
-        && conda clean -y --all
+        && python -c "from astropy import time; print(time.Time.now().jd)" > $ASTRO_DATA/exofast_update
 
 RUN git clone https://github.com/mstamy2/PyPDF2 /usr/src/pypdf2
 
@@ -73,12 +70,12 @@ WORKDIR /usr/src/pypdf2
 
 RUN python setup.py install
 
-RUN yum -y install xorg-x11-server-Xvfb \
-        && yum -y clean all
-
 ENV DISPLAY=":99"
 
 COPY . /nres/code/
+
+RUN mv /nres/code/bary/* $ASTRO_DATA/ \
+        && chown -R archive:domainusers $ASTRO_DATA
 
 WORKDIR /nres/code
 
