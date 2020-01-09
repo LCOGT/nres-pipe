@@ -41,9 +41,9 @@ def wait_for_celery_to_finish():
         if log_counter % 10 == 0:
             logger.info('Processing: ' + '. ' * (log_counter // 10))
         if any([queue is None or 'celery@banzai-celery-worker' not in queue for queue in queues]):
-            logger.warning('No valid celery queues were detected, retrying...', extra_tags={'queues': queues})
+            logger.warning('No valid celery queues were detected, retrying...')
             # Reset the celery connection
-            celery_inspector = app.control.inspect()
+            celery_inspector = tasks.app.control.inspect()
             continue
         if all([len(queue['celery@banzai-celery-worker']) == 0 for queue in queues]):
             break
