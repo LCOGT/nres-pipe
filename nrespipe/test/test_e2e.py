@@ -34,10 +34,11 @@ def wait_for_celery_to_finish():
     logger.info('Processing:')
     logger_counter = 0
     while True:
-        if logger_counter % 10 == 0:
-            logger.info('Processing: ' + '. ' * (logger_counter // 10))
+        if logger_counter % 5 == 0:
+            logger.info('Processing: ' + '. ' * (logger_counter // 5))
         queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
         time.sleep(1)
+        logger_counter += 1
         if any([queue is None or 'celery@worker' not in queue for queue in queues]):
             # Reset the celery connection
             celery_inspector = tasks.app.control.inspect()
