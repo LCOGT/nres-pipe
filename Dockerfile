@@ -47,7 +47,7 @@ ENV EXOFAST_PATH="/nres/code/util/exofast/" \
     PATH="${PATH}:/opt/idl/idl/bin" \
     IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/nres/code/util/exofast:+/nres/code/bary:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
     NRESROOT="/nres/" \
-    ASTRO_DATA="/nres/code/bary"
+    ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary/"
 
 RUN curl -o /opt/idl/xtra/exofast.tgz "http://www.astronomy.ohio-state.edu/~jdeast/exofast.tgz" \
         && mkdir -p /opt/idl/xtra/exofast \
