@@ -13,6 +13,7 @@ import datetime
 from dateutil import parser
 from nrespipe import dbs
 import tarfile
+import logging
 
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
