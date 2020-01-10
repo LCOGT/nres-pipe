@@ -67,7 +67,7 @@
 ; 2010/04/08: Written by Jason Eastman (OSU)
 
 function jdutc2jdtdb, jd_utc, TT_IN=TT_IN, tbase=tbase, $
-                      jd_tt=jd_tt, clock_corr=clock_corr, bipmfile=bipmfile
+                      jd_tt=jd_tt, clock_corr=clock_corr, bipmfile=bipmfile, UPDATE=update
 
 if n_elements(tbase) eq 0 then tbase = 0
 
@@ -93,7 +93,7 @@ if not keyword_set(TT_IN) then begin
     now = systime(/julian, /utc)
     caldat, now, month, day, year
     caldat, lastupdated.field1, monthup, dayup, yearup 
-    if (year gt yearup) or (month ge 6 and monthup lt 6) then begin
+    if (year gt yearup) or (month ge 6 and monthup lt 6) and keyword_set(update) then begin
         ;; if Jan 1st or Jul 1st has passed without an update, update
         spawn, 'wget --timeout=5 -NP ' + getenv('ASTRO_DATA') + $
           ' ftp://maia.usno.navy.mil/ser7/tai-utc.dat', $

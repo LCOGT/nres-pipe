@@ -13,7 +13,9 @@ import datetime
 from dateutil import parser
 from nrespipe import dbs
 import tarfile
+import logging
 
+logger = logging.getLogger('nrespipe')
 sites = [os.path.basename(site_path) for site_path in glob(os.path.join(os.environ['NRES_DATA_ROOT'], '*'))]
 instruments = [os.path.join(site, os.path.basename(instrument_path)) for site in sites
                for instrument_path in glob(os.path.join(os.path.join(os.environ['NRES_DATA_ROOT'], site, '*')))]
@@ -29,9 +31,14 @@ nres_pipeline_directories = ['bias', 'blaz', 'ccor', 'class', 'config', 'csv', '
 
 def wait_for_celery_to_finish():
     celery_inspector = tasks.app.control.inspect()
+    logger.info('Processing:')
+    logger_counter = 0
     while True:
+        if logger_counter % 5 == 0:
+            logger.info('Processing: ' + '. ' * (logger_counter // 5))
         queues = [celery_inspector.active(), celery_inspector.scheduled(), celery_inspector.reserved()]
         time.sleep(1)
+        logger_counter += 1
         if any([queue is None or 'celery@worker' not in queue for queue in queues]):
             # Reset the celery connection
             celery_inspector = tasks.app.control.inspect()
