@@ -56,7 +56,7 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
         for line_to_upload in lines_to_upload:
             file_to_upload, dayobs = line_to_upload.split()
             ingest_file(file_path=file_to_upload)
-    os.remove(file_upload_list)
+    #os.remove(file_upload_list)
     return console_output.returncode
 
 
