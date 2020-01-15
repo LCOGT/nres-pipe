@@ -581,6 +581,7 @@ def download_from_s3(frameid, output_directory):
     response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN, stream=True).json()
     with open(os.path.join(output_directory, response['filename']), 'wb') as f:
         f.write(requests.get(response['url']).content)
+    return os.path.join(output_directory, response['filename'])
 
 
 def ingest_file(file_path):
