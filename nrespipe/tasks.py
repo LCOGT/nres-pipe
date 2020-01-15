@@ -95,7 +95,8 @@ def process_nres_file(file_info, data_reduction_root_path, db_address):
 
         path = funpack(path, temp_directory)
 
-        if not is_raw_nres_file(path):
+        header = fits.getheader(path)
+        if not is_raw_nres_file(header):
             logger.debug('Not raw NRES file. Skipping...', extra={'tags': {'filename': filename}})
             dbs.set_file_as_processed(filename, checksum, frameid=file_info.get('frameid'), db_address=db_address)
         else:
