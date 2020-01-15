@@ -19,6 +19,11 @@ import requests
 from astropy.io import fits
 from astropy.table import Table
 from kombu import Connection, Exchange
+from time import sleep
+
+from lco_ingester import ingester
+from lco_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
+
 
 from nrespipe import dbs
 from nrespipe import settings
@@ -55,29 +60,29 @@ def need_to_process(filename, checksum, db_address):
     return not record.processed or checksum != record.checksum
 
 
-def filename_is_blacklisted(path):
+def filename_is_blacklisted(filename):
     # Only get raw files
-    if not '00.fits' in path:
+    if not '00.fits' in filename:
         return True
 
     for blacklisted_filetype in settings.blacklisted_filenames:
-        if blacklisted_filetype in path:
+        if blacklisted_filetype in filename:
             return True
 
 
-def is_raw_nres_file(path):
-    try:
-        header = fits.getheader(path)
-    except:
-        return False
-
+def is_raw_nres_file(header):
     telescope = header.get('TELESCOP')
 
     if telescope is not None:
         is_nres = 'nres' in telescope.lower()
     else:
         is_nres = False
-    return is_nres
+
+    try:
+        is_raw = int(header.get('RLEVEL', '00')) == 0
+    except:
+        is_raw = False
+    return is_nres and is_raw
 
 
 def which_nres(path):
@@ -351,7 +356,6 @@ def measure_sources_from_raw(filename, threshold=50):
     bias_region = parse_region_keyword(header['BIASSEC'])
     data -= np.median(data[bias_region])
 
-
     # Run sep to make the catalog
     error = (np.abs(data) + float(header['RDNOISE'])) ** 0.5
 
@@ -570,3 +574,38 @@ def get_mag_from_simbad(target_name : str):
         mag = np.nan
 
     return mag
+
+
+def download_from_s3(frameid, output_directory):
+    url = f'{settings.ARCHIVE_FRAME_URL}/{frameid}'
+    response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN, stream=True).json()
+    with open(os.path.join(output_directory, response['filename']), 'wb') as f:
+        f.write(requests.get(response['url']).content)
+
+
+def ingest_file(file_path):
+    retry = False
+    try_counter = 1
+    while retry:
+        try:
+            ingester.upload_file_and_ingest_to_archive(file_path)
+            os.remove(file_path)
+            retry = False
+        except DoNotRetryError as exc:
+            logger.warning('Exception occured: {0}. Aborting.'.format(exc))
+            retry = False
+        except NonFatalDoNotRetryError as exc:
+            logger.debug('Non-fatal Exception occured: {0}. Aborting.'.format(exc))
+            retry = False
+        except RetryError as exc:
+            logger.debug('Retry Exception occured: {0}. Retrying.'.format(exc))
+            retry = True
+            try_counter += 1
+        except BackoffRetryError as exc:
+            sleep(5 ** try_counter)
+            retry = True
+            try_counter += 1
+        except Exception as exc:
+            logger.fatal('Unexpected exception: {0} Will retry.'.format(exc))
+            retry = True
+            try_counter += 1

@@ -18,6 +18,7 @@ class ProcessingState(Base):
     filename = Column(String(50), unique=True, index=True)
     checksum = Column(CHAR(32), default='0'*32)
     processed = Column(Boolean, default=False)
+    frameid = Column(Integer, default=None, nullable=True)
 
 
 def create_db(db_address):
@@ -120,7 +121,7 @@ def get_processing_state(filename, checksum, db_address):
     return get_or_create(db_address, ProcessingState, {'filename': filename, 'checksum': checksum}, {})
 
 
-def set_file_as_processed(filename, checksum, db_address):
+def set_file_as_processed(filename, checksum, frameid, db_address):
     """
     Mark a file as processed in the database
 
@@ -135,6 +136,7 @@ def set_file_as_processed(filename, checksum, db_address):
     record = get_or_create(db_address, ProcessingState, {'filename': filename}, {'checksum': checksum})
     record.processed = True
     record.checksum = checksum
+    record.frameid = frameid
 
     db_session = get_session(db_address)
     db_session.add(record)
