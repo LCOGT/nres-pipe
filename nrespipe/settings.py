@@ -33,6 +33,8 @@ ARCHIVE_FRAME_URL = f'{ARCHIVE_API_ROOT}/frames/'
 
 ARCHIVE_AUTH_TOKEN = {'Authorization': f'Token {os.getenv("AUTH_TOKEN")}'}
 
+DO_INGEST = os.getenv('DO_INGEST', False)
+
 db_address = os.getenv('DB_URL', 'sqlite:///test.db')
 data_reduction_root = os.getenv('NRES_DATA_ROOT', './')
 do_radial_velocity = os.getenv('NRES_DO_RV', 1)

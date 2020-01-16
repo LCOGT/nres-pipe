@@ -124,9 +124,10 @@ def test_if_stacked_calibrations_were_created(raw_filenames, calibration_type):
     for day_obs in days_obs:
         if len(glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', raw_filenames))) > 0:
             number_of_stacks_that_should_have_been_created += 1
-        created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc',
+    for instrument in instruments:
+        created_stacked_calibrations += glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'tar',
                                                           calibration_type.lower() + '*.fits*'))
-    assert len(created_stacked_calibrations) == number_of_stacks_that_should_have_been_created
+    assert len(set(created_stacked_calibrations)) == number_of_stacks_that_should_have_been_created
 
 
 def set_images_to_unprocessed_in_db(filenames):
@@ -309,8 +310,8 @@ class TestScienceFileCreation:
                 assert os.path.exists(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', expected_filename))
 
     def test_if_science_tar_files_have_fits_file_and_pdf_file(self):
-        for day_obs in days_obs:
-            processed_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', '*.tar.gz'))
+        for instrument in instruments:
+            processed_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'tar', '*.tar.gz'))
             for processed_file in processed_files:
                 processed_tarfile = tarfile.open(processed_file)
                 tarfile_contents = processed_tarfile.getnames()

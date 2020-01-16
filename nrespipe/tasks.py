@@ -15,7 +15,7 @@ import pkg_resources
 
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
-from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, measure_sources_from_raw
+from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw
 from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
 from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
@@ -50,13 +50,14 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
         logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
 
     file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'reduced', 'tar', 'beammeup.txt')
-    if os.path.exists(file_upload_list):
+
+    if settings.DO_INGEST and os.path.exists(file_upload_list):
         with open(file_upload_list) as f:
             lines_to_upload = f.read().splitlines()
-        for line_to_upload in lines_to_upload:
-            file_to_upload, dayobs = line_to_upload.split()
-            ingest_file(file_path=file_to_upload)
-    #os.remove(file_upload_list)
+            for line_to_upload in lines_to_upload:
+                file_to_upload, dayobs = line_to_upload.split()
+                ingest_file(file_path=file_to_upload)
+        os.remove(file_upload_list)
     return console_output.returncode
 
 
