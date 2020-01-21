@@ -585,11 +585,12 @@ def download_from_s3(frameid, output_directory):
 
 
 def ingest_file(file_path):
-    retry = False
+    retry = True
     try_counter = 1
     while retry:
         try:
-            ingester.upload_file_and_ingest_to_archive(file_path)
+            with open(file_path, 'rb') as f:
+                ingester.upload_file_and_ingest_to_archive(f)
             os.remove(file_path)
             retry = False
         except DoNotRetryError as exc:
