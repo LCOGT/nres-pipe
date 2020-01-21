@@ -307,7 +307,8 @@ class TestScienceFileCreation:
             input_files = glob(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'raw', '*e00.fits*'))
             for input_file in input_files:
                 expected_filename = os.path.basename(input_file).replace('e00', 'e91').replace('.fits.fz', '.tar.gz')
-                assert os.path.exists(os.path.join(os.environ['NRES_DATA_ROOT'], day_obs, 'specproc', expected_filename))
+                assert any(os.path.exists(os.path.join(os.environ['NRES_DATA_ROOT'], instrument, 'reduced', 'tar',
+                                                       expected_filename)) for instrument in instruments)
 
     def test_if_science_tar_files_have_fits_file_and_pdf_file(self):
         for instrument in instruments:
