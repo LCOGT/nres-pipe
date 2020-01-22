@@ -30,7 +30,7 @@ FITS_BROKER = os.getenv('FITS_BROKER', 'memory://localhost')
 FITS_EXCHANGE = os.getenv('FITS_EXCHANGE', 'fits_files')
 
 ARCHIVE_API_ROOT = os.getenv('API_ROOT')
-ARCHIVE_FRAME_URL = f'{ARCHIVE_API_ROOT}/frames/'
+ARCHIVE_FRAME_URL = f'{ARCHIVE_API_ROOT}/frames'
 
 ARCHIVE_AUTH_TOKEN = {'Authorization': f'Token {os.getenv("AUTH_TOKEN")}'}
 
