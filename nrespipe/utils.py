@@ -578,7 +578,7 @@ def get_mag_from_simbad(target_name : str):
 
 def download_from_s3(frameid, output_directory):
     url = f'{settings.ARCHIVE_FRAME_URL}/{frameid}'
-    response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN, stream=True).json()
+    response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN).json()
     with open(os.path.join(output_directory, response['filename']), 'wb') as f:
         f.write(requests.get(response['url']).content)
     return os.path.join(output_directory, response['filename'])

@@ -42,10 +42,10 @@ RUN curl -o /opt/idl/xtra/mpfit.tar.gz "https://pages.physics.wisc.edu/~craigm/i
         && chown -R archive:domainusers /opt/idl/xtra/mpfit
 
 # trailing slash is required for nres root
-ENV EXOFAST_PATH="/nres/code/util/exofast/" \
+ENV EXOFAST_PATH="/nres-pipe/code/util/exofast/" \
     IDL_LMGRD_LICENSE_FILE="1700@ad4sba.lco.gtn:/usr/local/itt/license/license.dat" \
     PATH="${PATH}:/opt/idl/idl/bin" \
-    IDL_PATH="+/nres/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
+    IDL_PATH="+/nres-pipe/code:+/opt/idl/xtra/astron/pro:+/opt/idl/xtra/exofast:+/opt/idl/xtra/mpfit:<IDL_DEFAULT>" \
     NRESROOT="/nres/" \
     ASTRO_DATA="/opt/idl/xtra/exofast/exofast/bary/"
 
@@ -72,19 +72,19 @@ RUN python setup.py install
 
 ENV DISPLAY=":99"
 
-COPY . /nres/code/
+COPY . /nres-pipe/code/
 
-RUN mv /nres/code/bary/* $ASTRO_DATA/ \
+RUN mv /nres-pipe/code/bary/* $ASTRO_DATA/ \
         && chown -R archive:domainusers $ASTRO_DATA
 
-WORKDIR /nres/code
+WORKDIR /nres-pipe/code
 
-RUN python /nres/code/setup.py install
+RUN python /nres-pipe/code/setup.py install
 
-RUN idl -e precompile_nrespipe -quiet  -args '/nres/code/precompile.sav' \
-        && chown -R archive /nres/code && [ -f /nres/code/precompile.sav ]
+RUN idl -e precompile_nrespipe -quiet  -args '/nres-pipe/code/precompile.sav' \
+        && chown -R archive /nres-pipe/code && [ -f /nres-pipe/code/precompile.sav ]
 
-ENV NRES_IDL_PRECOMPILE='/nres/code/precompile.sav'
+ENV NRES_IDL_PRECOMPILE='/nres-pipe/code/precompile.sav'
 
 COPY docker/ /
 
