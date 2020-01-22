@@ -20,6 +20,7 @@ from astropy.io import fits
 from astropy.table import Table
 from kombu import Connection, Exchange
 from time import sleep
+import traceback
 
 from lco_ingester import ingester
 from lco_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
@@ -583,6 +584,9 @@ def download_from_s3(frameid, output_directory):
         f.write(requests.get(response['url']).content)
     return os.path.join(output_directory, response['filename'])
 
+def format_exception():
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    return traceback.format_exception(exc_type, exc_value, exc_tb)
 
 def ingest_file(file_path):
     retry = True
@@ -617,6 +621,7 @@ def ingest_file(file_path):
                 retry = True
                 try_counter += 1
         except Exception as exc:
-            logger.fatal('Unexpected exception: {0} Will retry.'.format(exc), extra={'tags': {'filename': file_path}})
+            logger.fatal('Unexpected exception: {0} \nWill retry.'.format(format_exception()),
+                         extra={'tags': {'filename': file_path}})
             retry = True
             try_counter += 1
