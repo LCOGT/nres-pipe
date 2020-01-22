@@ -61,6 +61,16 @@ def stack_nres_calibrations():
                                           settings.data_reduction_root, args.nres_instrument, target=args.target)
 
 
+def run_trace_orders():
+    parser = argparse.ArgumentParser(description='Trace two fibers across all orders of a reduced 2D flat field image.')
+    parser.add_argument('--infile', dest='infile', required=True, help='Full path to reduced input file.')
+    parser.add_argument('--outfile', dest='outfile', required=True, help='Full path for ascii output file.')
+
+    args = parser.parse_args()
+
+    tasks.trace.delay(args.infile, args.outfile)
+
+
 def run_nres_trace0():
     parser = argparse.ArgumentParser(description='Reduce all the data from a site at the end of a night.')
     parser.add_argument('--site', dest='site', required=True, help='Site code (e.g. ogg)')
