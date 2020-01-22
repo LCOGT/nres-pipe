@@ -27,6 +27,7 @@ broker_username = os.getenv('BROKER_USERNAME', 'guest')
 broker_password = os.getenv('BROKER_PASSWORD', 'guest')
 
 FITS_BROKER = os.getenv('FITS_BROKER', 'memory://localhost')
+FITS_EXCHANGE = os.getenv('FITS_EXCHANGE', 'fits_files')
 
 ARCHIVE_API_ROOT = os.getenv('API_ROOT')
 ARCHIVE_FRAME_URL = f'{ARCHIVE_API_ROOT}/frames/'
