@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger('nrespipe')
 
+
 class NRESListener(ConsumerMixin):
     def __init__(self, broker_url, data_reduction_root, db_address):
         self.broker_url = broker_url
@@ -22,6 +23,5 @@ class NRESListener(ConsumerMixin):
         return [consumer]
 
     def on_message(self, body, message):
-        path = body.get('path')
-        tasks.process_nres_file.delay(path, self.data_reduction_root, self.db_address)
+        tasks.process_nres_file.delay(body, self.data_reduction_root, self.db_address)
         message.ack()  # acknowledge to the sender we got this message (it can be popped)

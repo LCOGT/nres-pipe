@@ -15,9 +15,9 @@ import pkg_resources
 
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
-from nrespipe.utils import filename_is_blacklisted, copy_to_final_directory, post_to_fits_exchange, measure_sources_from_raw
+from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw
 from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
-from nrespipe.utils import get_calibration_files_taken
+from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
@@ -50,48 +50,63 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
         logger.error('IDL NRES pipeline returned with a non-zero exit status: {c}'.format(c=console_output.returncode))
 
     file_upload_list = os.path.join(data_reduction_root, site, nres_instrument, 'reduced', 'tar', 'beammeup.txt')
-    if os.path.exists(file_upload_list):
+
+    if settings.DO_INGEST and os.path.exists(file_upload_list):
         with open(file_upload_list) as f:
             lines_to_upload = f.read().splitlines()
-        for line_to_upload in lines_to_upload:
-            file_to_upload, dayobs = line_to_upload.split()
-            final_product = copy_to_final_directory(file_to_upload, data_reduction_root, site, nres_instrument, dayobs)
-            post_to_fits_exchange(settings.broker_url, final_product)
+            for line_to_upload in lines_to_upload:
+                file_to_upload, dayobs = line_to_upload.split()
+                ingest_file(file_path=file_to_upload)
         os.remove(file_upload_list)
     return console_output.returncode
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
 @metric_timer('nrespipe', async=False)
-def process_nres_file(path, data_reduction_root_path, db_address):
-    input_filename = os.path.basename(path)
+def process_nres_file(file_info, data_reduction_root_path, db_address):
 
-    if not os.path.exists(path):
-        logger.error('File not found', extra={'tags': {'filename': input_filename}})
-        raise FileNotFoundError
+    # If the file_info is just a string, assume it is a full path to a file
+    path = file_info.get('path')
+    if path is not None:
+        filename = os.path.basename(path)
 
-    if filename_is_blacklisted(path):
-        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': input_filename}})
+        if not os.path.exists(path):
+            logger.error('File not found', extra={'tags': {'filename': filename}})
+            raise FileNotFoundError
+
+        checksum = get_md5(path)
+    else:
+        filename = file_info.get('filename')
+        checksum = file_info.get('version_set')[0].get('md5')
+        path = None
+        if not is_raw_nres_file(file_info):
+            dbs.set_file_as_processed(filename, checksum, file_info.get('frameid'), db_address)
+
+    if filename_is_blacklisted(filename):
+        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': filename}})
         return
 
-    checksum = get_md5(path)
-    if not need_to_process(input_filename, checksum, db_address):
-        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': input_filename}})
+    if not need_to_process(filename, checksum, db_address):
+        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': filename}})
         return
 
     with tempfile.TemporaryDirectory() as temp_directory:
+        if path is None:
+            path = download_from_s3(file_info.get('frameid'), temp_directory)
+
         path = funpack(path, temp_directory)
 
-        if not is_raw_nres_file(path):
-            logger.debug('Not raw NRES file. Skipping...', extra={'tags': {'filename': input_filename}})
-            dbs.set_file_as_processed(input_filename, checksum, db_address)
+        header = fits.getheader(path)
+        if not is_raw_nres_file(header):
+            logger.debug('Not raw NRES file. Skipping...', extra={'tags': {'filename': filename}})
+            dbs.set_file_as_processed(filename, checksum, frameid=file_info.get('frameid'), db_address=db_address)
         else:
-            logger.info('Processing NRES file', extra={'tags': {'filename': input_filename}})
+            logger.info('Processing NRES file', extra={'tags': {'filename': filename}})
             nres_site, nres_instrument = which_nres(path)
             return_code = run_idl('run_nres_pipeline', [path, str(settings.do_radial_velocity)],
                                   data_reduction_root_path, nres_site, nres_instrument)
             if return_code == 0:
-                dbs.set_file_as_processed(input_filename, checksum, db_address)
+                dbs.set_file_as_processed(filename, checksum, frameid=file_info.get('frameid'), db_address=db_address)
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)

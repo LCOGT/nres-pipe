@@ -3,6 +3,7 @@ import logging.config
 from lcogt_logging import LCOGTFormatter
 from datetime import timedelta
 from celery.schedules import crontab
+import requests
 
 # logging
 logging.captureWarnings(True)
@@ -26,6 +27,13 @@ broker_username = os.getenv('BROKER_USERNAME', 'guest')
 broker_password = os.getenv('BROKER_PASSWORD', 'guest')
 
 FITS_BROKER = os.getenv('FITS_BROKER', 'memory://localhost')
+
+ARCHIVE_API_ROOT = os.getenv('API_ROOT')
+ARCHIVE_FRAME_URL = f'{ARCHIVE_API_ROOT}/frames/'
+
+ARCHIVE_AUTH_TOKEN = {'Authorization': f'Token {os.getenv("AUTH_TOKEN")}'}
+
+DO_INGEST = os.getenv('DO_INGEST', False)
 
 db_address = os.getenv('DB_URL', 'sqlite:///test.db')
 data_reduction_root = os.getenv('NRES_DATA_ROOT', './')
