@@ -21,6 +21,7 @@ from astropy.table import Table
 from kombu import Connection, Exchange
 from time import sleep
 import traceback
+import sys
 
 from lco_ingester import ingester
 from lco_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
