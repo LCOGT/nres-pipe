@@ -7,7 +7,6 @@ from celery import Celery
 import os
 from requests.auth import HTTPBasicAuth
 from astropy.io import fits
-from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 from astropy.io import ascii
 from dateutil import parser
 
@@ -62,12 +61,11 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
-@metric_timer('nrespipe', async=False)
 def process_nres_file(file_info, data_reduction_root_path, db_address):
 
     # If the file_info is just a string, assume it is a full path to a file
-    path = file_info.get('path')
-    if path is not None:
+    if file_info.get('version_set') is None:
+        path = file_info.get('path')
         filename = os.path.basename(path)
 
         if not os.path.exists(path):
@@ -137,12 +135,6 @@ def make_stacked_calibrations_for_one_night(site, camera, nres_instrument):
                                                       'data_reduction_root_path': settings.data_reduction_root,
                                                       'nres_instrument': nres_instrument},
                                               queue='celery')
-
-@app.task
-def collect_queue_length_metric(rabbit_api_root):
-    response = requests.get('http://{base_url}:15672/api/queues/%2f/celery/'.format(base_url=rabbit_api_root),
-                            auth=HTTPBasicAuth('guest', 'guest')).json()
-    send_tsdb_metric('nrespipe.queue_length', response['messages'], async=False)
 
 
 @app.task

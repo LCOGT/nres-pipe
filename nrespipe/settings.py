@@ -77,11 +77,6 @@ trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
                                                                              ('cpt', 'fa13', 'nres03', 11),
                                                                              ('tlv', 'fa18', 'nres04', 9)]}
 beat_schedule = {**calibration_schedule, **trace_refine_schedule,
-                 'queue-length-every-minute': {'task': 'nrespipe.tasks.collect_queue_length_metric',
-                                               'schedule': timedelta(minutes=1),
-                                               'args': (rabbitmq_host,),
-                                               'options': {'queue': 'periodic'}
-                                               },
                  'send_nightly_summary': {'task': 'nrespipe.tasks.send_end_of_night_summary_plots',
                                           'schedule': crontab(minute=31, hour=16),
                                           'kwargs': {'sites': ['lsc', 'elp', 'cpt', 'tlv'],
