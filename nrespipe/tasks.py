@@ -293,7 +293,7 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
     email_body = "<p>NRES Nighly Summary for {dayobs}</p>\n".format(dayobs=dayobs)
     for site, instrument in zip(sites, instruments):
         pdf_filename = '{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}.pdf'
-        pdf_filename = pdf_filename.format(raw_data_root=raw_data_root, site=site,instrument=instrument, dayobs=dayobs)
+        pdf_filename = pdf_filename.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
         specproc_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'
         specproc_directory = specproc_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
 

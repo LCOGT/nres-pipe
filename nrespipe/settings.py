@@ -55,7 +55,7 @@ calibration_schedule = {'{site}__stack_calibrations_nightly'.format(site=site):
                             {'task': 'nrespipe.tasks.make_stacked_calibrations_for_one_night',
                              'schedule': crontab(minute=0,
                                                  hour=site_restart + calibration_stack_delay_from_site_restart),
-                             'kwargs': {'site': site, 'camera': camera,'nres_instrument': nres_instrument},
+                             'kwargs': {'site': site, 'camera': camera, 'nres_instrument': nres_instrument},
                              'options': {'queue': 'periodic'}
                             }
                         for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
@@ -69,7 +69,7 @@ trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
                               'schedule': crontab(minute=0,
                                                   hour= site_restart + calibration_stack_delay_from_site_restart),
                               'kwargs': {'site': site, 'camera': camera, 'nres_instrument': nres_instrument,
-                                         'raw_data_root': '/archive/engineering'},
+                                         'raw_data_root': '/nres/'},
                               'options': {'queue': 'periodic'}
                               }
                          for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
@@ -80,11 +80,11 @@ beat_schedule = {**calibration_schedule, **trace_refine_schedule,
                  'send_nightly_summary': {'task': 'nrespipe.tasks.send_end_of_night_summary_plots',
                                           'schedule': crontab(minute=31, hour=16),
                                           'kwargs': {'sites': ['lsc', 'elp', 'cpt', 'tlv'],
-                                                     'instruments':['nres01', 'nres02', 'nres03', 'nres04'],
+                                                     'instruments': ['nres01', 'nres02', 'nres03', 'nres04'],
                                                      'sender_email': sender_email,
                                                      'sender_password': sender_password,
                                                      'recipient_emails': recipient_emails,
-                                                     'raw_data_root': '/archive/engineering'},
+                                                     'raw_data_root': '/nres/'},
                                           'options': {'queue': 'periodic'}
                                           }
                  }
