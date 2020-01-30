@@ -327,7 +327,7 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                                                                                                               instrument=instrument, dayobs=dayobs)
                              for site, instrument in zip(sites, instruments)]
 
-    output_pdf_filename = '{raw_data_root}/nres/plots/nres_sn_{dayobs}.pdf'.format(raw_data_root=raw_data_root, dayobs=dayobs)
+    output_pdf_filename = '{raw_data_root}/plots/nres_sn_{dayobs}.pdf'.format(raw_data_root=raw_data_root, dayobs=dayobs)
     make_signal_to_noise_pdf(input_directories, sites, [dayobs] * len(sites), output_text_filenames, output_pdf_filename)
     attachments.insert(0, output_pdf_filename)
     # Send an email with the end of night plots
