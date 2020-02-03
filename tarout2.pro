@@ -352,6 +352,7 @@ foreach file, data_files do begin
 endforeach
 
 combine_plot_files, reduced_name
+spawn, 'cp ' + strtrim(reduced_name, 2) + '.pdf ' + nresrooti +'/reduced/plot/
 
 ;write_readme_file, file_search('*')
 

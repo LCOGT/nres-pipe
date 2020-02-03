@@ -485,25 +485,18 @@ def send_email(subject, recipient_emails, sender_email, sender_password, email_b
     server.quit()
 
 
-def extract_from_pdfs(input_directory, extraction_function):
+def extract_from_pdfs(input_directory, dayobs, extraction_function):
     # Get all of the tar files in the input_directory
-    tar_files = glob(os.path.join(input_directory, '*.tar.gz'))
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        for tar_filename in tar_files:
-            basename = os.path.basename(tar_filename).replace('.tar.gz', '')
-            with tarfile.open(tar_filename) as open_tar_file:
-                # Extract the pdf file from the tar directory into a temporary directory
-                open_tar_file.extract('{basename}/{basename}.pdf'.format(basename=basename), path=temp_dir)
-                tmp_pdf_filename = os.path.join(temp_dir, basename, '{basename}.pdf'.format(basename=basename))
-                pdf_reader = PdfFileReader(tmp_pdf_filename)
-                extraction_function(pdf_reader)
+    pdf_files = glob(os.path.join(input_directory, '*' + dayobs + '*e??.pdf'))
+    for pdf_file in pdf_files:
+        pdf_reader = PdfFileReader(pdf_file)
+        extraction_function(pdf_reader)
 
 
-def make_summary_pdf(input_directory, output_pdf_filename):
+def make_summary_pdf(input_directory, dayobs, output_pdf_filename):
     pdf_writer = PdfFileWriter()
     extraction_function = lambda pdf_reader: pdf_writer.appendPagesFromReader(pdf_reader)
-    extract_from_pdfs(input_directory, extraction_function)
+    extract_from_pdfs(input_directory, dayobs, extraction_function)
     with open(output_pdf_filename, 'wb') as output_stream:
         pdf_writer.write(output_stream)
 
@@ -516,7 +509,7 @@ def make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_file
     for input_directory, site, dayobs, output_text_filename in zip(input_directories, sites, daysobs, output_text_filenames):
         extraction_function = lambda pdf_reader: extract_signal_to_noise_from_pdf(pdf_reader, signal_to_noise_table, site, dayobs)
         # Extract the Signal to noise
-        extract_from_pdfs(input_directory, extraction_function)
+        extract_from_pdfs(input_directory, dayobs, extraction_function)
         output_table = signal_to_noise_table[np.logical_and(signal_to_noise_table['site'] == site,
                                                             signal_to_noise_table['dayobs'] == dayobs)]
         if output_text_filename is not None:
@@ -538,20 +531,27 @@ def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Ta
                                                               'search_text': pdf_text_to_search}})
 
 
-def get_missing_files(raw_directory, specproc_directory):
-    get_files_without_extensions_and_e00 = lambda filenames, extension: [os.path.basename(filename).replace(extension, "")[:-4]
-                                                                         for filename in filenames]
-    raw_files = get_files_without_extensions_and_e00(glob(os.path.join(raw_directory, '*e00.fits*')), '.fits.fz')
-    processed_files = get_files_without_extensions_and_e00(glob(os.path.join(specproc_directory, '*.tar.gz')), '.tar.gz')
+def get_missing_files(site, dayobs):
+    results = []
+    for reduction_level in ['0', '91']:
+        url = os.getenv('API_ROOT', '') + 'frames/?SITEID={site}&TELID=igla&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE=TARGET'.format(
+            site=site, day_obs=dayobs, rlevel=reduction_level)
+        frames = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))}).json()['results']
+        results.append(frames)
+
+    raw_files = [frame['basename'] for frame in results[0]]
+    processed_files = [frame['basename'] for frame in results[1]]
     return raw_files, processed_files, list(set(raw_files) - set(processed_files))
 
 
-def get_calibration_files_taken(raw_directory):
-    bias_files = glob(os.path.join(raw_directory, '*b00.fits.fz'))
-    dark_files = glob(os.path.join(raw_directory, '*d00.fits.fz'))
-    flat_files = glob(os.path.join(raw_directory, '*w00.fits.fz'))
-    arc_files = glob(os.path.join(raw_directory, '*a00.fits.fz'))
-    return bias_files, dark_files, flat_files, arc_files
+def get_calibration_files_taken(site, dayobs):
+    results = []
+    for obstype in ['BIAS', 'DARK', 'LAMPFLAT', 'DOUBLE']:
+        url = os.getenv('API_ROOT', '') + 'frames/?SITEID={site}&TELID=igla&DAY_OBS={day_obs}&RLEVEL=0&OBSTYPE={obstype}'.format(
+            site=site, day_obs=dayobs, obstype=obstype)
+        frames = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))}).json()['results']
+        results.append(frames)
+    return results
 
 
 target_name_translations = {'PSIPHE' : 'psi Phe',

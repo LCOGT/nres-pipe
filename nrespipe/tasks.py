@@ -292,18 +292,14 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
     attachments = []
     email_body = "<p>NRES Nighly Summary for {dayobs}</p>\n".format(dayobs=dayobs)
     for site, instrument in zip(sites, instruments):
-        pdf_filename = '{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}.pdf'
-        pdf_filename = pdf_filename.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
-        specproc_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'
-        specproc_directory = specproc_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
+        plot_directory = '{raw_data_root}/{site}/{instrument}/reduced/plot/'.format(raw_data_root=raw_data_root, site=site, instrument=instrument)
+        pdf_filename = os.path.join(plot_directory, '{site}_{dayobs}.pdf'.format(site=site, dayobs=dayobs))
 
-        make_summary_pdf(specproc_directory, pdf_filename)
+        make_summary_pdf(plot_directory, dayobs, pdf_filename)
         if os.path.exists(pdf_filename):
             attachments.append(pdf_filename)
 
-        raw_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/raw'
-        raw_directory = raw_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
-        raw_files, processed_files, missing_files = get_missing_files(raw_directory, specproc_directory)
+        raw_files, processed_files, missing_files = get_missing_files(site, dayobs)
         email_body += "<p>{site}/{instrument}/{dayobs}:</p>\n".format(site=site, instrument=instrument,dayobs=dayobs)
         email_body += "<p>Raw Science Exposures: {num_raw}; Processed Science Exposures: {num_proc}</p>\n".format(num_raw=len(raw_files),
                                                                                                                   num_proc=len(processed_files))
@@ -313,12 +309,12 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                                                                                                                 dayobs=dayobs)
             for missing_file in missing_files:
                 email_body += "{filename}<br>\n".format(filename=missing_file)
-        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(raw_directory)
+        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(site, dayobs)
         calibrations_taken = "<p>Bias Frames: {num_biases}; Dark Frames: {num_darks}; Flat Frames: {num_flats}; Arc Frames {num_arcs}</p>\n"
         calibrations_taken = calibrations_taken.format(num_biases=len(bias_files), num_darks=len(dark_files),
                                                        num_flats=len(flat_files), num_arcs=len(arc_files))
         email_body += calibrations_taken
-        email_body +="</p>"
+        email_body += "</p>"
 
     input_directories = ['{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'.format(raw_data_root=raw_data_root, site=site,
                                                                                         instrument=instrument, dayobs=dayobs)
