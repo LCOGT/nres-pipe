@@ -534,7 +534,7 @@ def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Ta
 def query_archive_api(site, dayobs, rlevel=0, obstype='TARGET', telid='igla'):
     url_day_obs = datetime.datetime.strptime(dayobs, '%Y%m%d').strftime('%Y-%m-%d')
     url = os.getenv('API_ROOT', '')
-    url += 'frames/?SITEID={site}&TELID={telid}}&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE={obstype}'.format(
+    url += 'frames/?SITEID={site}&TELID={telid}&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE={obstype}'.format(
         site=site, day_obs=url_day_obs, rlevel=rlevel, obstype=obstype, telid=telid)
     response = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))})
     try:
