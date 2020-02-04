@@ -325,8 +325,8 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
         email_body += calibrations_taken
         email_body += "</p>"
 
-    input_directories = ['{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'.format(raw_data_root=raw_data_root, site=site,
-                                                                                        instrument=instrument, dayobs=dayobs)
+    input_directories = ['{raw_data_root}/{site}/{instrument}/reduced/plot'.format(raw_data_root=raw_data_root, site=site,
+                                                                                   instrument=instrument, dayobs=dayobs)
                          for site, instrument in zip(sites, instruments)]
     output_text_filenames = ['{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}_sn.txt'.format(raw_data_root=raw_data_root, site=site,
                                                                                                               instrument=instrument, dayobs=dayobs)

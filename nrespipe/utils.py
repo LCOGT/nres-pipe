@@ -553,7 +553,7 @@ def get_missing_files(site, dayobs):
         results.append(query_archive_api(site, dayobs, rlevel=reduction_level, obstype='TARGET'))
 
     raw_files = [frame['basename'] for frame in results[0]]
-    processed_files = [frame['basename'] for frame in results[1]]
+    processed_files = [frame['basename'].replace('e91', 'e00') for frame in results[1]]
     return raw_files, processed_files, list(set(raw_files) - set(processed_files))
 
 
