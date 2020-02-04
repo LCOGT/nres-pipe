@@ -531,13 +531,26 @@ def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Ta
                                                               'search_text': pdf_text_to_search}})
 
 
+def query_archive_api(site, dayobs, rlevel=0, obstype='TARGET', telid='igla'):
+    url_day_obs = datetime.datetime.strptime(dayobs, '%Y%m%d').strftime('%Y-%m-%d')
+    url = os.getenv('API_ROOT', '')
+    url += 'frames/?SITEID={site}&TELID={telid}}&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE={obstype}'.format(
+        site=site, day_obs=url_day_obs, rlevel=rlevel, obstype=obstype, telid=telid)
+    response = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))})
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        logger.error('Error querying Archive: url: {url}'.format(url=url), extra={'tags': {'response': response.text,
+                                                                                           'status': response.status_code}})
+        raise e
+    frames = response.json()['results']
+    return frames
+
+
 def get_missing_files(site, dayobs):
     results = []
-    for reduction_level in ['0', '91']:
-        url = os.getenv('API_ROOT', '') + 'frames/?SITEID={site}&TELID=igla&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE=TARGET'.format(
-            site=site, day_obs=dayobs, rlevel=reduction_level)
-        frames = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))}).json()['results']
-        results.append(frames)
+    for reduction_level in [0, 91]:
+        results.append(query_archive_api(site, dayobs, rlevel=reduction_level, obstype='TARGET'))
 
     raw_files = [frame['basename'] for frame in results[0]]
     processed_files = [frame['basename'] for frame in results[1]]
@@ -547,10 +560,7 @@ def get_missing_files(site, dayobs):
 def get_calibration_files_taken(site, dayobs):
     results = []
     for obstype in ['BIAS', 'DARK', 'LAMPFLAT', 'DOUBLE']:
-        url = os.getenv('API_ROOT', '') + 'frames/?SITEID={site}&TELID=igla&DAY_OBS={day_obs}&RLEVEL=0&OBSTYPE={obstype}'.format(
-            site=site, day_obs=dayobs, obstype=obstype)
-        frames = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))}).json()['results']
-        results.append(frames)
+        results.append(query_archive_api(site, dayobs, rlevel=0, obstype=obstype))
     return results
 
 
@@ -585,9 +595,11 @@ def download_from_s3(frameid, output_directory):
         f.write(requests.get(response['url']).content)
     return os.path.join(output_directory, response['filename'])
 
+
 def format_exception():
     exc_type, exc_value, exc_tb = sys.exc_info()
     return traceback.format_exception(exc_type, exc_value, exc_tb)
+
 
 def ingest_file(file_path):
     retry = True
