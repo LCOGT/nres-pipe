@@ -23,12 +23,21 @@ from nrespipe import settings
 import numpy as np
 
 import tempfile
+from celery.signals import worker_process_init
+
 
 app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 idl_logger = logging.getLogger('idl')
+
+
+@worker_process_init.connect
+def configure_workers(**kwargs):
+    from importlib import reload
+    from opentsdb_python_metrics import metric_wrappers
+    reload(metric_wrappers)
 
 
 def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
