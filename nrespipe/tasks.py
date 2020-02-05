@@ -14,9 +14,9 @@ import pkg_resources
 
 from nrespipe import dbs
 from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
-from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw
+from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw, query_archive_api, get_header_from_archive_api
 from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
-from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file
+from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file, get_last_night
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
@@ -166,8 +166,10 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
 
 @app.task
 def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=None):
+    if night is None:
+        night = get_last_night()
     # Get all the lamp flats from last night and which fibers were illuminated
-    flat_files = get_files_from_night('*w00.fits*', raw_data_root, site, nres_instrument, night=night)
+    flat_files = query_archive_api(site, night, rlevel=0, obstype='LAMPFLAT')
 
     if len(flat_files) == 0:
         # Short circuit
@@ -177,7 +179,10 @@ def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=
     flats_2 = []
 
     for f in flat_files:
-        fiber = fits.getval(f, 'OBJECTS', 1)
+        header = get_header_from_archive_api(f['id'])
+        fiber = header.get('OBJECTS')
+        if fiber is None:
+            continue
         if fiber.split('&')[2] == 'none':
             flats_1.append(f)
         else:

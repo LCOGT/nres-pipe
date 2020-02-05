@@ -547,6 +547,19 @@ def query_archive_api(site, dayobs, rlevel=0, obstype='TARGET', telid='igla'):
     return frames
 
 
+def get_header_from_archive_api(frame_id):
+    url = os.getenv('API_ROOT', '')
+    url += f'frames/{frame_id}/headers/'
+    response = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))})
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        logger.error('Error querying the Archive for headers: url: {url}'.format(url=url),
+                     extra={'tags': {'response': response.text, 'status': response.status_code}})
+        raise e
+    return response.json()['data']
+
+
 def get_missing_files(site, dayobs):
     results = []
     for reduction_level in [0, 91]:
