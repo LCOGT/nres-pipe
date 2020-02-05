@@ -165,7 +165,7 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
 
 
 @app.task
-def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=None):
+def refine_trace_from_night(site, camera, nres_instrument, night=None):
     if night is None:
         night = get_last_night()
     # Get all the lamp flats from last night and which fibers were illuminated

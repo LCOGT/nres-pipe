@@ -68,8 +68,7 @@ trace_refine_schedule = {'{site}_refine_trace_nightly'.format(site=site):
                              {'task': 'nrespipe.tasks.refine_trace_from_night',
                               'schedule': crontab(minute=0,
                                                   hour= site_restart + calibration_stack_delay_from_site_restart),
-                              'kwargs': {'site': site, 'camera': camera, 'nres_instrument': nres_instrument,
-                                         'raw_data_root': '/nres/'},
+                              'kwargs': {'site': site, 'camera': camera, 'nres_instrument': nres_instrument},
                               'options': {'queue': 'periodic'}
                               }
                          for site, camera, nres_instrument, site_restart in [('lsc', 'fa09', 'nres01', 16),
