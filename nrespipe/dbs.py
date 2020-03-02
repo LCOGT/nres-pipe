@@ -15,7 +15,7 @@ class ProcessingState(Base):
     """
     __tablename__ = 'processingstate'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    filename = Column(String(50), unique=True, index=True)
+    filename = Column(String(100), unique=True, index=True)
     checksum = Column(CHAR(32), default='0'*32)
     processed = Column(Boolean, default=False)
     frameid = Column(Integer, default=None, nullable=True)
