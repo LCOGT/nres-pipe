@@ -88,8 +88,6 @@ ENV NRES_IDL_PRECOMPILE='/nres-pipe/code/precompile.sav'
 
 COPY docker/ /
 
-RUN chown -R archive:domainusers /opt/conda
-
 ENV HOME /home/archive
 
 WORKDIR /home/archive
