@@ -628,22 +628,25 @@ def ingest_file(file_path):
                            extra={'tags': {'filename': file_path}})
             retry = False
         except NonFatalDoNotRetryError as exc:
-            logger.debug('Non-fatal Exception occured: {0}. Aborting.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('Non-fatal Exception occured: {0}. Aborting.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             retry = False
         except RetryError as exc:
-            logger.debug('Retry Exception occured: {0}. Retrying.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('Retry Exception occured: {0}. Retrying.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             retry = True
             try_counter += 1
+            if try_counter > 5:
+                logger.warning('Giving up because we tried too many times.', extra={'tags': {'filename': file_path}})
+                retry = False
         except BackoffRetryError as exc:
-            logger.debug('BackoffRetry Exception occured: {0}. Retrying.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('BackoffRetry Exception occured: {0}. Retrying.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             if try_counter > 5:
                 logger.warning('Giving up because we tried too many times.', extra={'tags': {'filename': file_path}})
                 retry = False
             else:
-                sleep(5 ** try_counter)
+                sleep(5 * try_counter)
                 retry = True
                 try_counter += 1
         except Exception as exc:
