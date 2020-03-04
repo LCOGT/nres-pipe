@@ -57,7 +57,7 @@ def get_md5(filepath):
     return md5
 
 
-def need_to_process(filename, checksum, db_address):
+def already_processed(filename, checksum, db_address):
     record = dbs.get_processing_state(filename, checksum, db_address)
     return not record.processed or checksum != record.checksum
 
@@ -651,3 +651,44 @@ def ingest_file(file_path):
                          extra={'tags': {'filename': file_path}})
             retry = True
             try_counter += 1
+
+
+def need_to_process(file_info, db_address):
+    should_process = True
+
+    # Note if this is an archived_fits message it has the whole header already attached
+    if file_info.get('version_set') is not None and not is_raw_nres_file(file_info):
+        should_process = False
+
+    path, filename, checksum = get_path_info(file_info)
+    if filename_is_blacklisted(filename):
+        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': filename}})
+        should_process = False
+
+    if not already_processed(filename, checksum, db_address):
+        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': filename}})
+        should_process = False
+
+    if not should_process:
+        dbs.set_file_as_processed(filename, checksum, file_info.get('frameid'), db_address)
+
+    return should_process
+
+
+def get_path_info(file_info):
+    # If the file_info is just a string, assume it is a full path to a file
+    if file_info.get('version_set') is None:
+        path = file_info.get('path')
+        filename = os.path.basename(path)
+
+        if not os.path.exists(path):
+            logger.error('File not found', extra={'tags': {'filename': filename}})
+            raise FileNotFoundError
+
+        checksum = get_md5(path)
+    else:
+        filename = file_info.get('filename')
+        checksum = file_info.get('version_set')[0].get('md5')
+        path = None
+
+    return path, filename, checksum
