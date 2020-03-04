@@ -68,7 +68,8 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
-def process_nres_file(file_info, data_reduction_root_path, db_address):
+def process_nres_file(file_info, data_reduction_root_path, old_db_address):
+    db_address = settings.db_address
     if not need_to_process(file_info, db_address):
         return
 
