@@ -58,7 +58,7 @@ def get_md5(filepath):
 
 
 def already_processed(filename, checksum, db_address):
-    record = dbs.get_processing_state(filename, checksum, db_address)
+    record = dbs.get_processing_state(filename, db_address)
     return not record.processed or checksum != record.checksum
 
 
