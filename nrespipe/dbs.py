@@ -116,7 +116,7 @@ def get_processing_state(filename, db_address):
     state : nrespipe.dbs.ProcessingState
             The current state of processing for the file of interest
     """
-    return get_or_create(db_address, ProcessingState, {'filename': filename})
+    return get_or_create(db_address, ProcessingState, {'filename': filename}, {})
 
 
 def set_file_as_processed(filename, checksum, frameid, db_address):
