@@ -1,35 +1,41 @@
 import logging
-import requests
 import shlex
 import subprocess
 import datetime
 from celery import Celery
 import os
-from requests.auth import HTTPBasicAuth
 from astropy.io import fits
-from opentsdb_python_metrics.metric_wrappers import metric_timer, send_tsdb_metric
 from astropy.io import ascii
 from dateutil import parser
 
 import pkg_resources
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
-from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_files_from_night
+from nrespipe.utils import measure_sources_from_raw, query_archive_api, get_header_from_archive_api
 from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
-from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file
+from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file, get_last_night, get_path_info
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
 import numpy as np
 
 import tempfile
+from celery.signals import worker_process_init
+
 
 app = Celery('nrestasks')
 app.config_from_object('nrespipe.settings')
 
 logger = logging.getLogger('nrespipe')
 idl_logger = logging.getLogger('idl')
+
+
+@worker_process_init.connect
+def configure_workers(**kwargs):
+    from importlib import reload
+    from opentsdb_python_metrics import metric_wrappers
+    reload(metric_wrappers)
 
 
 def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
@@ -62,33 +68,12 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
-@metric_timer('nrespipe', async=False)
-def process_nres_file(file_info, data_reduction_root_path, db_address):
-
-    # If the file_info is just a string, assume it is a full path to a file
-    path = file_info.get('path')
-    if path is not None:
-        filename = os.path.basename(path)
-
-        if not os.path.exists(path):
-            logger.error('File not found', extra={'tags': {'filename': filename}})
-            raise FileNotFoundError
-
-        checksum = get_md5(path)
-    else:
-        filename = file_info.get('filename')
-        checksum = file_info.get('version_set')[0].get('md5')
-        path = None
-        if not is_raw_nres_file(file_info):
-            dbs.set_file_as_processed(filename, checksum, file_info.get('frameid'), db_address)
-
-    if filename_is_blacklisted(filename):
-        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': filename}})
+def process_nres_file(file_info, data_reduction_root_path, old_db_address):
+    db_address = settings.db_address
+    if not need_to_process(file_info, db_address):
         return
 
-    if not need_to_process(filename, checksum, db_address):
-        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': filename}})
-        return
+    path, filename, checksum = get_path_info(file_info)
 
     with tempfile.TemporaryDirectory() as temp_directory:
         if path is None:
@@ -138,12 +123,6 @@ def make_stacked_calibrations_for_one_night(site, camera, nres_instrument):
                                                       'nres_instrument': nres_instrument},
                                               queue='celery')
 
-@app.task
-def collect_queue_length_metric(rabbit_api_root):
-    response = requests.get('http://{base_url}:15672/api/queues/%2f/celery/'.format(base_url=rabbit_api_root),
-                            auth=HTTPBasicAuth('guest', 'guest')).json()
-    send_tsdb_metric('nrespipe.queue_length', response['messages'], async=False)
-
 
 @app.task
 def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_root):
@@ -164,9 +143,11 @@ def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_f
 
 
 @app.task
-def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=None):
+def refine_trace_from_night(site, camera, nres_instrument, night=None):
+    if night is None:
+        night = get_last_night()
     # Get all the lamp flats from last night and which fibers were illuminated
-    flat_files = get_files_from_night('*w00.fits*', raw_data_root, site, nres_instrument, night=night)
+    flat_files = query_archive_api(site, night, rlevel=0, obstype='LAMPFLAT')
 
     if len(flat_files) == 0:
         # Short circuit
@@ -176,7 +157,10 @@ def refine_trace_from_night(site, camera, nres_instrument, raw_data_root, night=
     flats_2 = []
 
     for f in flat_files:
-        fiber = fits.getval(f, 'OBJECTS', 1)
+        header = get_header_from_archive_api(f['id'])
+        fiber = header.get('OBJECTS')
+        if fiber is None:
+            continue
         if fiber.split('&')[2] == 'none':
             flats_1.append(f)
         else:
@@ -300,18 +284,14 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
     attachments = []
     email_body = "<p>NRES Nighly Summary for {dayobs}</p>\n".format(dayobs=dayobs)
     for site, instrument in zip(sites, instruments):
-        pdf_filename = '{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}.pdf'
-        pdf_filename = pdf_filename.format(raw_data_root=raw_data_root, site=site,instrument=instrument, dayobs=dayobs)
-        specproc_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'
-        specproc_directory = specproc_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
+        plot_directory = '{raw_data_root}/{site}/{instrument}/reduced/plot/'.format(raw_data_root=raw_data_root, site=site, instrument=instrument)
+        pdf_filename = os.path.join(plot_directory, '{site}_{dayobs}.pdf'.format(site=site, dayobs=dayobs))
 
-        make_summary_pdf(specproc_directory, pdf_filename)
+        make_summary_pdf(plot_directory, dayobs, pdf_filename)
         if os.path.exists(pdf_filename):
             attachments.append(pdf_filename)
 
-        raw_directory = '{raw_data_root}/{site}/{instrument}/{dayobs}/raw'
-        raw_directory = raw_directory.format(raw_data_root=raw_data_root, site=site, instrument=instrument, dayobs=dayobs)
-        raw_files, processed_files, missing_files = get_missing_files(raw_directory, specproc_directory)
+        raw_files, processed_files, missing_files = get_missing_files(site, dayobs)
         email_body += "<p>{site}/{instrument}/{dayobs}:</p>\n".format(site=site, instrument=instrument,dayobs=dayobs)
         email_body += "<p>Raw Science Exposures: {num_raw}; Processed Science Exposures: {num_proc}</p>\n".format(num_raw=len(raw_files),
                                                                                                                   num_proc=len(processed_files))
@@ -321,21 +301,21 @@ def send_end_of_night_summary_plots(sites, instruments, sender_email, sender_pas
                                                                                                                 dayobs=dayobs)
             for missing_file in missing_files:
                 email_body += "{filename}<br>\n".format(filename=missing_file)
-        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(raw_directory)
+        bias_files, dark_files, flat_files, arc_files = get_calibration_files_taken(site, dayobs)
         calibrations_taken = "<p>Bias Frames: {num_biases}; Dark Frames: {num_darks}; Flat Frames: {num_flats}; Arc Frames {num_arcs}</p>\n"
         calibrations_taken = calibrations_taken.format(num_biases=len(bias_files), num_darks=len(dark_files),
                                                        num_flats=len(flat_files), num_arcs=len(arc_files))
         email_body += calibrations_taken
-        email_body +="</p>"
+        email_body += "</p>"
 
-    input_directories = ['{raw_data_root}/{site}/{instrument}/{dayobs}/specproc'.format(raw_data_root=raw_data_root, site=site,
-                                                                                        instrument=instrument, dayobs=dayobs)
+    input_directories = ['{raw_data_root}/{site}/{instrument}/reduced/plot'.format(raw_data_root=raw_data_root, site=site,
+                                                                                   instrument=instrument, dayobs=dayobs)
                          for site, instrument in zip(sites, instruments)]
     output_text_filenames = ['{raw_data_root}/{site}/{instrument}/reduced/plot/{site}_{dayobs}_sn.txt'.format(raw_data_root=raw_data_root, site=site,
                                                                                                               instrument=instrument, dayobs=dayobs)
                              for site, instrument in zip(sites, instruments)]
 
-    output_pdf_filename = '{raw_data_root}/nres/plots/nres_sn_{dayobs}.pdf'.format(raw_data_root=raw_data_root, dayobs=dayobs)
+    output_pdf_filename = '{raw_data_root}/plots/nres_sn_{dayobs}.pdf'.format(raw_data_root=raw_data_root, dayobs=dayobs)
     make_signal_to_noise_pdf(input_directories, sites, [dayobs] * len(sites), output_text_filenames, output_pdf_filename)
     attachments.insert(0, output_pdf_filename)
     # Send an email with the end of night plots

@@ -15,7 +15,7 @@ import os
 
 logger = logging.getLogger('nrespipe')
 logger.propagate = False
-fits_exchange = Exchange('fits_files', type='fanout')
+fits_exchange = Exchange(settings.FITS_EXCHANGE, type='fanout')
 
 
 def run_listener():

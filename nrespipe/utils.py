@@ -20,6 +20,8 @@ from astropy.io import fits
 from astropy.table import Table
 from kombu import Connection, Exchange
 from time import sleep
+import traceback
+import sys
 
 from lco_ingester import ingester
 from lco_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
@@ -55,8 +57,8 @@ def get_md5(filepath):
     return md5
 
 
-def need_to_process(filename, checksum, db_address):
-    record = dbs.get_processing_state(filename, checksum, db_address)
+def already_processed(filename, checksum, db_address):
+    record = dbs.get_processing_state(filename, db_address)
     return not record.processed or checksum != record.checksum
 
 
@@ -483,25 +485,18 @@ def send_email(subject, recipient_emails, sender_email, sender_password, email_b
     server.quit()
 
 
-def extract_from_pdfs(input_directory, extraction_function):
+def extract_from_pdfs(input_directory, dayobs, extraction_function):
     # Get all of the tar files in the input_directory
-    tar_files = glob(os.path.join(input_directory, '*.tar.gz'))
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        for tar_filename in tar_files:
-            basename = os.path.basename(tar_filename).replace('.tar.gz', '')
-            with tarfile.open(tar_filename) as open_tar_file:
-                # Extract the pdf file from the tar directory into a temporary directory
-                open_tar_file.extract('{basename}/{basename}.pdf'.format(basename=basename), path=temp_dir)
-                tmp_pdf_filename = os.path.join(temp_dir, basename, '{basename}.pdf'.format(basename=basename))
-                pdf_reader = PdfFileReader(tmp_pdf_filename)
-                extraction_function(pdf_reader)
+    pdf_files = glob(os.path.join(input_directory, '*' + dayobs + '*e??.pdf'))
+    for pdf_file in pdf_files:
+        pdf_reader = PdfFileReader(pdf_file)
+        extraction_function(pdf_reader)
 
 
-def make_summary_pdf(input_directory, output_pdf_filename):
+def make_summary_pdf(input_directory, dayobs, output_pdf_filename):
     pdf_writer = PdfFileWriter()
     extraction_function = lambda pdf_reader: pdf_writer.appendPagesFromReader(pdf_reader)
-    extract_from_pdfs(input_directory, extraction_function)
+    extract_from_pdfs(input_directory, dayobs, extraction_function)
     with open(output_pdf_filename, 'wb') as output_stream:
         pdf_writer.write(output_stream)
 
@@ -514,7 +509,7 @@ def make_signal_to_noise_pdf(input_directories, sites, daysobs, output_text_file
     for input_directory, site, dayobs, output_text_filename in zip(input_directories, sites, daysobs, output_text_filenames):
         extraction_function = lambda pdf_reader: extract_signal_to_noise_from_pdf(pdf_reader, signal_to_noise_table, site, dayobs)
         # Extract the Signal to noise
-        extract_from_pdfs(input_directory, extraction_function)
+        extract_from_pdfs(input_directory, dayobs, extraction_function)
         output_table = signal_to_noise_table[np.logical_and(signal_to_noise_table['site'] == site,
                                                             signal_to_noise_table['dayobs'] == dayobs)]
         if output_text_filename is not None:
@@ -536,20 +531,50 @@ def extract_signal_to_noise_from_pdf(pdf_reader: PdfFileReader, output_table: Ta
                                                               'search_text': pdf_text_to_search}})
 
 
-def get_missing_files(raw_directory, specproc_directory):
-    get_files_without_extensions_and_e00 = lambda filenames, extension: [os.path.basename(filename).replace(extension, "")[:-4]
-                                                                         for filename in filenames]
-    raw_files = get_files_without_extensions_and_e00(glob(os.path.join(raw_directory, '*e00.fits*')), '.fits.fz')
-    processed_files = get_files_without_extensions_and_e00(glob(os.path.join(specproc_directory, '*.tar.gz')), '.tar.gz')
+def query_archive_api(site, dayobs, rlevel=0, obstype='TARGET', telid='igla'):
+    url_day_obs = datetime.datetime.strptime(dayobs, '%Y%m%d').strftime('%Y-%m-%d')
+    url = os.getenv('API_ROOT', '')
+    url += 'frames/?SITEID={site}&TELID={telid}&DAY_OBS={day_obs}&RLEVEL={rlevel}&OBSTYPE={obstype}'.format(
+        site=site, day_obs=url_day_obs, rlevel=rlevel, obstype=obstype, telid=telid)
+    response = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))})
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        logger.error('Error querying Archive: url: {url}'.format(url=url), extra={'tags': {'response': response.text,
+                                                                                           'status': response.status_code}})
+        raise e
+    frames = response.json()['results']
+    return frames
+
+
+def get_header_from_archive_api(frame_id):
+    url = os.getenv('API_ROOT', '')
+    url += f'frames/{frame_id}/headers/'
+    response = requests.get(url, headers={'Authorization': 'Token {token}'.format(token=os.getenv('AUTH_TOKEN'))})
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        logger.error('Error querying the Archive for headers: url: {url}'.format(url=url),
+                     extra={'tags': {'response': response.text, 'status': response.status_code}})
+        raise e
+    return response.json()['data']
+
+
+def get_missing_files(site, dayobs):
+    results = []
+    for reduction_level in [0, 91]:
+        results.append(query_archive_api(site, dayobs, rlevel=reduction_level, obstype='TARGET'))
+
+    raw_files = [frame['basename'] for frame in results[0]]
+    processed_files = [frame['basename'].replace('e91', 'e00') for frame in results[1]]
     return raw_files, processed_files, list(set(raw_files) - set(processed_files))
 
 
-def get_calibration_files_taken(raw_directory):
-    bias_files = glob(os.path.join(raw_directory, '*b00.fits.fz'))
-    dark_files = glob(os.path.join(raw_directory, '*d00.fits.fz'))
-    flat_files = glob(os.path.join(raw_directory, '*w00.fits.fz'))
-    arc_files = glob(os.path.join(raw_directory, '*a00.fits.fz'))
-    return bias_files, dark_files, flat_files, arc_files
+def get_calibration_files_taken(site, dayobs):
+    results = []
+    for obstype in ['BIAS', 'DARK', 'LAMPFLAT', 'DOUBLE']:
+        results.append(query_archive_api(site, dayobs, rlevel=0, obstype=obstype))
+    return results
 
 
 target_name_translations = {'PSIPHE' : 'psi Phe',
@@ -578,10 +603,15 @@ def get_mag_from_simbad(target_name : str):
 
 def download_from_s3(frameid, output_directory):
     url = f'{settings.ARCHIVE_FRAME_URL}/{frameid}'
-    response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN, stream=True).json()
+    response = requests.get(url, headers=settings.ARCHIVE_AUTH_TOKEN).json()
     with open(os.path.join(output_directory, response['filename']), 'wb') as f:
         f.write(requests.get(response['url']).content)
     return os.path.join(output_directory, response['filename'])
+
+
+def format_exception():
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    return traceback.format_exception(exc_type, exc_value, exc_tb)
 
 
 def ingest_file(file_path):
@@ -598,25 +628,70 @@ def ingest_file(file_path):
                            extra={'tags': {'filename': file_path}})
             retry = False
         except NonFatalDoNotRetryError as exc:
-            logger.debug('Non-fatal Exception occured: {0}. Aborting.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('Non-fatal Exception occured: {0}. Aborting.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             retry = False
         except RetryError as exc:
-            logger.debug('Retry Exception occured: {0}. Retrying.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('Retry Exception occured: {0}. Retrying.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             retry = True
             try_counter += 1
+            if try_counter > 5:
+                logger.warning('Giving up because we tried too many times.', extra={'tags': {'filename': file_path}})
+                retry = False
         except BackoffRetryError as exc:
-            logger.debug('BackoffRetry Exception occured: {0}. Retrying.'.format(exc),
-                         extra={'tags': {'filename': file_path}})
+            logger.warning('BackoffRetry Exception occured: {0}. Retrying.'.format(exc),
+                            extra={'tags': {'filename': file_path}})
             if try_counter > 5:
                 logger.warning('Giving up because we tried too many times.', extra={'tags': {'filename': file_path}})
                 retry = False
             else:
-                sleep(5 ** try_counter)
+                sleep(5 * try_counter)
                 retry = True
                 try_counter += 1
         except Exception as exc:
-            logger.fatal('Unexpected exception: {0} Will retry.'.format(exc), extra={'tags': {'filename': file_path}})
+            logger.fatal('Unexpected exception: {0} \nWill retry.'.format(format_exception()),
+                         extra={'tags': {'filename': file_path}})
             retry = True
             try_counter += 1
+
+
+def need_to_process(file_info, db_address):
+    should_process = True
+
+    # Note if this is an archived_fits message it has the whole header already attached
+    if file_info.get('version_set') is not None and not is_raw_nres_file(file_info):
+        should_process = False
+
+    path, filename, checksum = get_path_info(file_info)
+    if filename_is_blacklisted(filename):
+        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': filename}})
+        should_process = False
+
+    if not already_processed(filename, checksum, db_address):
+        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': filename}})
+        should_process = False
+
+    if not should_process:
+        dbs.set_file_as_processed(filename, checksum, file_info.get('frameid'), db_address)
+
+    return should_process
+
+
+def get_path_info(file_info):
+    # If the file_info is just a string, assume it is a full path to a file
+    if file_info.get('version_set') is None:
+        path = file_info.get('path')
+        filename = os.path.basename(path)
+
+        if not os.path.exists(path):
+            logger.error('File not found', extra={'tags': {'filename': filename}})
+            raise FileNotFoundError
+
+        checksum = get_md5(path)
+    else:
+        filename = file_info.get('filename')
+        checksum = file_info.get('version_set')[0].get('md5')
+        path = None
+
+    return path, filename, checksum
