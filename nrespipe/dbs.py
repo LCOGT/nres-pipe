@@ -98,7 +98,7 @@ def get_or_create(db_address, table_model, equivalence_criteria, record_attribut
     return record
 
 
-def get_processing_state(filename, checksum, db_address):
+def get_processing_state(filename, db_address):
     """
     Get the state of pipeline processing for a given file from the database.
 
@@ -108,8 +108,6 @@ def get_processing_state(filename, checksum, db_address):
                file name. This is the primary key of the table
     filepath : str
                Full path to the file of interest
-    checksum : str
-               32 character string representing the MD5 checksum of the file of interest
     db_address : str
                  SQLAlchemy style url to the database
 
@@ -118,7 +116,7 @@ def get_processing_state(filename, checksum, db_address):
     state : nrespipe.dbs.ProcessingState
             The current state of processing for the file of interest
     """
-    return get_or_create(db_address, ProcessingState, {'filename': filename, 'checksum': checksum}, {})
+    return get_or_create(db_address, ProcessingState, {'filename': filename}, {})
 
 
 def set_file_as_processed(filename, checksum, frameid, db_address):

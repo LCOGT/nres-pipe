@@ -1,11 +1,9 @@
 import logging
-import requests
 import shlex
 import subprocess
 import datetime
 from celery import Celery
 import os
-from requests.auth import HTTPBasicAuth
 from astropy.io import fits
 from astropy.io import ascii
 from dateutil import parser
@@ -13,10 +11,10 @@ from dateutil import parser
 import pkg_resources
 
 from nrespipe import dbs
-from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_md5, get_files_from_night
-from nrespipe.utils import filename_is_blacklisted, measure_sources_from_raw, query_archive_api, get_header_from_archive_api
+from nrespipe.utils import need_to_process, is_raw_nres_file, which_nres, date_range_to_idl, funpack, get_files_from_night
+from nrespipe.utils import measure_sources_from_raw, query_archive_api, get_header_from_archive_api
 from nrespipe.utils import warp_coordinates, send_email, make_summary_pdf, get_missing_files, make_signal_to_noise_pdf
-from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file, get_last_night
+from nrespipe.utils import get_calibration_files_taken, download_from_s3, ingest_file, get_last_night, get_path_info
 from nrespipe.traces import get_pixel_scale_ratio_and_rotation, fit_warping_polynomial, find_best_offset
 from nrespipe import settings
 
@@ -70,32 +68,12 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
-def process_nres_file(file_info, data_reduction_root_path, db_address):
-
-    # If the file_info is just a string, assume it is a full path to a file
-    if file_info.get('version_set') is None:
-        path = file_info.get('path')
-        filename = os.path.basename(path)
-
-        if not os.path.exists(path):
-            logger.error('File not found', extra={'tags': {'filename': filename}})
-            raise FileNotFoundError
-
-        checksum = get_md5(path)
-    else:
-        filename = file_info.get('filename')
-        checksum = file_info.get('version_set')[0].get('md5')
-        path = None
-        if not is_raw_nres_file(file_info):
-            dbs.set_file_as_processed(filename, checksum, file_info.get('frameid'), db_address)
-
-    if filename_is_blacklisted(filename):
-        logger.debug('Filename does not pass black list. Skipping...', extra={'tags': {'filename': filename}})
+def process_nres_file(file_info, data_reduction_root_path):
+    db_address = settings.db_address
+    if not need_to_process(file_info, db_address):
         return
 
-    if not need_to_process(filename, checksum, db_address):
-        logger.debug('NRES File already processed. Skipping...', extra={'tags': {'filename': filename}})
-        return
+    path, filename, checksum = get_path_info(file_info)
 
     with tempfile.TemporaryDirectory() as temp_directory:
         if path is None:
@@ -153,8 +131,13 @@ def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_roo
 
 @app.task
 def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_flat1, input_flat2=''):
-
     with tempfile.TemporaryDirectory() as tempdir:
+        if type(input_flat1) == dict:
+            download_from_s3(input_flat1['id'], tempdir)
+            input_flat1 = os.path.join(tempdir, input_flat1['filename'])
+        if type(input_flat1) == dict:
+            download_from_s3(input_flat2['id'], tempdir)
+            input_flat2 = os.path.join(tempdir, input_flat2['filename'])
         unpacked_path1 = funpack(input_flat1, tempdir)
         if input_flat2:
             unpacked_path2 = funpack(input_flat2, tempdir)
