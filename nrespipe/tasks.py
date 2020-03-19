@@ -68,7 +68,7 @@ def run_idl(idl_procedure, args, data_reduction_root, site, nres_instrument):
 
 
 @app.task(max_retries=3, default_retry_delay=3 * 60)
-def process_nres_file(file_info, data_reduction_root_path, old_db_address):
+def process_nres_file(file_info, data_reduction_root_path):
     db_address = settings.db_address
     if not need_to_process(file_info, db_address):
         return
@@ -131,8 +131,13 @@ def run_trace0(input_filename, site, camera, nres_instrument, data_reduction_roo
 
 @app.task
 def run_refine_trace(site, camera, nres_instrument, data_reduction_root, input_flat1, input_flat2=''):
-
     with tempfile.TemporaryDirectory() as tempdir:
+        if type(input_flat1) == dict:
+            download_from_s3(input_flat1['id'], tempdir)
+            input_flat1 = os.path.join(tempdir, input_flat1['filename'])
+        if type(input_flat1) == dict:
+            download_from_s3(input_flat2['id'], tempdir)
+            input_flat2 = os.path.join(tempdir, input_flat2['filename'])
         unpacked_path1 = funpack(input_flat1, tempdir)
         if input_flat2:
             unpacked_path2 = funpack(input_flat2, tempdir)
