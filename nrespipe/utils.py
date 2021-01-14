@@ -23,8 +23,8 @@ from time import sleep
 import traceback
 import sys
 
-from lco_ingester import ingester
-from lco_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
+from ocs_ingester import ingester
+from ocs_ingester.exceptions import RetryError, DoNotRetryError, BackoffRetryError, NonFatalDoNotRetryError
 
 
 from nrespipe import dbs
