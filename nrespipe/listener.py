@@ -1,5 +1,6 @@
 from kombu.mixins import ConsumerMixin
 from nrespipe import tasks
+from nrespipe.utils import need_to_process
 import logging
 
 logger = logging.getLogger('nrespipe')
@@ -23,5 +24,9 @@ class NRESListener(ConsumerMixin):
         return [consumer]
 
     def on_message(self, body, message):
-        tasks.process_nres_file.delay(body, self.data_reduction_root, self.db_address)
+        try:
+            if need_to_process(body, self.db_address):
+                tasks.process_nres_file.delay(body, self.data_reduction_root)
+        except FileNotFoundError:
+            tasks.process_nres_file.delay(body, self.data_reduction_root)
         message.ack()  # acknowledge to the sender we got this message (it can be popped)

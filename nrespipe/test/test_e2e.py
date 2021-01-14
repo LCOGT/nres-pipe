@@ -167,12 +167,11 @@ def init():
 
 @pytest.fixture(scope='module')
 def make_tracefiles():
-    tasks.run_trace0.delay('/nres/code/config/lsc_trace.2017a.txt', 'lsc', 'fl09', 'nres01', os.environ['NRES_DATA_ROOT'])
-    tasks.run_trace0.delay('/nres/code/config/nres02_trace.2017a.txt', 'elp', 'fl17', 'nres02', os.environ['NRES_DATA_ROOT'])
+    tasks.run_trace0.delay('/nres-pipe/code/config/lsc_trace.2017a.txt', 'lsc', 'fl09', 'nres01', os.environ['NRES_DATA_ROOT'])
+    tasks.run_trace0.delay('/nres-pipe/code/config/nres02_trace.2017a.txt', 'elp', 'fl17', 'nres02', os.environ['NRES_DATA_ROOT'])
     for site_day_obs in days_obs:
         [site, nres_instrument, day_obs] = site_day_obs.split(os.sep)
-        tasks.refine_trace_from_night.delay(site, cameras[site], nres_instrument,
-                                            os.environ['NRES_DATA_ROOT'], night=day_obs)
+        tasks.refine_trace_from_night.delay(site, cameras[site], nres_instrument, night=day_obs)
     wait_for_celery_to_finish()
 
 
